@@ -1,0 +1,24 @@
+{
+  "name": "FamilyKYCManager - Safe Household Vault",
+  "short_name": "FamilyVault",
+  "description": "Secure record sync, zero-knowledge encryption, and automated identity expiry alert safety net for your family.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://lucide.dev/api/icon/shield-check?color=2563eb&size=192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://lucide.dev/api/icon/shield-check?color=2563eb&size=512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

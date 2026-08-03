@@ -1,0 +1,13 @@
+# Dependencies & Local Config
+node_modules/
+.env
+.env.local
+
+# Operating System & IDE junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log

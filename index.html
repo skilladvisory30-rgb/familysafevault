@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FamilyKYCManager - Secure Record Sync & Expiry Net</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PWA & Mobile Web Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FamilyVault">
+
+    <!-- Supabase Cloud SDK & Tesseract OCR CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-mode vault-locked">
+    <!-- SALES & MARKETING LANDING PAGE -->
+    <div class="marketing-page" id="marketing-page">
+        <!-- Navigation Header -->
+        <header class="m-navbar">
+            <div class="m-nav-container">
+                <div class="logo">
+                    <div class="logo-icon" style="background:var(--accent);"><i data-lucide="shield-check"></i></div>
+                    <span class="logo-text">Family<span style="color:var(--accent);">KYCManager</span></span>
+                </div>
+                <nav class="m-nav-links">
+                    <a href="#problem">The Challenge</a>
+                    <a href="#features">Core Pillars</a>
+                    <a href="#documents-list">Supported Records</a>
+                    <a href="#pricing">Pricing Plans</a>
+                </nav>
+                <div class="m-nav-actions">
+                    <select id="m-country-select" onchange="app.setCountry(this.value)" class="form-select text-xs" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: 600; cursor: pointer; color: #475569; margin-right: 8px;">
+                        <option value="India" selected>🇮🇳 India</option>
+                        <option value="US">🇺🇸 United States</option>
+                        <option value="UK">🇬🇧 United Kingdom</option>
+                    </select>
+                    <button class="btn btn-outline m-signin-btn" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">Unlock Vault</button>
+                    <button class="btn btn-primary" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:var(--accent); border-color:var(--accent);">Register Vault</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section (2-Column Grid with Embedded Login Form) -->
+        <section class="m-hero">
+            <div class="m-hero-bg-glow"></div>
+            <div class="m-hero-grid">
+                
+                <!-- Left Column: Copy & Teaser Stats -->
+                <div class="m-hero-left">
+                    <span class="m-hero-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.2); color:#ef4444;"><i data-lucide="shield-alert"></i> ⚠️ 4 out of 5 families have a hidden identity or paperwork mismatch right now.</span>
+                    <h1 style="font-size: 34px; line-height: 1.25; margin-top: 12px;">One Mismatched Letter Can Freeze Your Bank Account, Reject Your Insurance, or Lock Out Your Family.</h1>
+                    <p class="m-hero-desc" id="m-hero-desc">
+                        Stop scrambling at the eleventh hour over expired passports, legacy licence rules, or name typos. FamilyKYCManager automatically tracks your household's expiries and alerts you before the authorities do.
+                    </p>
+                    <div class="m-hero-actions-container mb-lg">
+                        <button class="btn btn-primary btn-lg" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:var(--accent); border-color:var(--accent); margin-right:12px;">
+                            Protect Your Family Free
+                        </button>
+                        <button class="btn btn-outline btn-lg" onclick="document.getElementById('problem').scrollIntoView({behavior: 'smooth'})">
+                            See How It Works
+                        </button>
+                    </div>
+                    <p class="trust-subtext text-xs text-muted mb-lg" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="shield-check" style="color:var(--accent); width:14px; height:14px;"></i> 🔒 Metadata-only storage. We store dates and numbers, never your money. Zero security liability.
+                    </p>
+                    
+                    <!-- Teaser preview with family image -->
+                    <div class="m-hero-teaser-frame" style="position: relative; overflow: hidden; height: 185px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); margin-top: 10px;">
+                        <img src="./hero_family.jpg" alt="Happy Multigenerational Family" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.85);">
+                        <!-- Overlaid Stats Banner -->
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <div style="text-align: left;">
+                                <span style="font-size: 11px; color: rgba(255,255,255,0.7); display: block; font-weight: 500;">Household Safety Net</span>
+                                <span style="font-size: 14px; color: #fff; font-weight: 700;">Active Guard Status</span>
+                            </div>
+                            <div style="display: flex; gap: 16px;">
+                                <div style="text-align: right;"><span style="font-size: 10px; color: rgba(255,255,255,0.7); display: block;">Safety Health</span><span style="font-size: 12px; color: var(--warning); font-weight: 700;">72%</span></div>
+                                <div style="text-align: right;"><span style="font-size: 10px; color: rgba(255,255,255,0.7); display: block;">Active Alerts</span><span style="font-size: 12px; color: var(--danger); font-weight: 700;">3 Urgent</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Login Card Portal (Direct E2E Access) -->
+                <div class="m-hero-right" id="login-form-anchor">
+                    <div class="login-card-container">
+                        <div class="login-card-header">
+                            <div class="login-logo" style="background:linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);">
+                                <i data-lucide="lock"></i>
+                            </div>
+                            <h3 id="auth-title">Unlock Family Vault</h3>
+                            <p id="auth-subtitle">E2E LOCAL DECRYPTION & AUTHORIZATION GATE</p>
+                        </div>
+                        
+                        <!-- Auth Tabs Switcher -->
+                        <div class="auth-tabs" style="display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px; gap: 8px;">
+                            <button type="button" class="auth-tab active" id="tab-signin" onclick="app.switchAuthMode('signin')" style="flex: 1; padding: 10px; background: none; border: none; font-weight: 700; font-size: 13px; color: var(--accent); border-bottom: 2px solid var(--accent); cursor: pointer; transition: all 0.2s;">Unlock Vault</button>
+                            <button type="button" class="auth-tab" id="tab-signup" onclick="app.switchAuthMode('signup')" style="flex: 1; padding: 10px; background: none; border: none; font-weight: 600; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;">Register Vault</button>
+                        </div>
+
+                        <!-- Signin View -->
+                        <div id="signin-view-container">
+                            <div class="login-role-selector" style="margin-bottom: 15px;">
+                                <button class="role-btn active" id="role-head" onclick="app.setLoginRole('head')">
+                                    <i data-lucide="shield-alert"></i>
+                                    <span>Head Login</span>
+                                </button>
+                                <button class="role-btn" id="role-spouse" onclick="app.setLoginRole('spouse')">
+                                    <i data-lucide="user"></i>
+                                    <span>Member Login</span>
+                                </button>
+                            </div>
+
+                            <form id="login-form" onsubmit="app.handleLogin(event)">
+                                <div class="form-group w-full">
+                                    <label for="login-email">Email Address or Mobile Number</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="mail"></i>
+                                        <input type="text" id="login-email" value="vikram.garg@gmail.com" required placeholder="Email or mobile number">
+                                    </div>
+                                </div>
+
+                                <div class="form-group w-full mt-sm">
+                                    <label for="login-password">Decryption Key / Master Password</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="key-round"></i>
+                                        <input type="password" id="login-password" value="••••••••••••" required placeholder="Enter password">
+                                    </div>
+                                </div>
+
+                                <div class="form-group w-full mt-sm" id="otp-group">
+                                    <label for="login-otp" id="login-otp-label">Secure 6-Digit OTP</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="fingerprint"></i>
+                                        <input type="text" id="login-otp" value="542190" maxlength="6" required placeholder="Enter 6-digit OTP">
+                                    </div>
+                                </div>
+
+                                <div class="login-consent mt-md">
+                                    <input type="checkbox" id="login-consent-chk" checked required>
+                                    <label for="login-consent-chk">I authorize E2E validation scanning of my government records.</label>
+                                </div>
+
+                                <button class="btn btn-primary w-full mt-md btn-lg" type="submit" id="btn-login-unlock" style="background:var(--accent); border-color:var(--accent);">
+                                    <i data-lucide="unlock"></i> Authorize & Unlock
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Signup View (Hidden initially) -->
+                        <div id="signup-view-container" class="hidden">
+                            <form id="signup-form" onsubmit="app.handleSignup(event)">
+                                <div class="form-group w-full">
+                                    <label for="signup-email">Email Address or Mobile Number</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="mail"></i>
+                                        <input type="text" id="signup-email" required placeholder="Email or mobile number">
+                                    </div>
+                                </div>
+
+                                <div class="form-group w-full mt-sm">
+                                    <label for="signup-password">Master Password</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="key-round"></i>
+                                        <input type="password" id="signup-password" required placeholder="Create password">
+                                    </div>
+                                </div>
+
+                                <div class="form-group w-full mt-sm">
+                                    <label for="signup-country-select">Country Location (Select once)</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="globe" style="top:12px;"></i>
+                                        <select id="signup-country-select" onchange="app.setCountry(this.value)" style="width:100%; padding: 10px 12px 10px 36px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 13px; color: #475569; background: #fff; cursor: pointer; outline: none;">
+                                            <option value="India" selected>🇮🇳 India</option>
+                                            <option value="US">🇺🇸 United States</option>
+                                            <option value="UK">🇬🇧 United Kingdom</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group w-full mt-sm">
+                                    <label for="signup-otp" id="signup-otp-label">Secure 6-Digit OTP</label>
+                                    <div class="input-icon-wrapper">
+                                        <i data-lucide="fingerprint"></i>
+                                        <input type="text" id="signup-otp" maxlength="6" required placeholder="Create 6-digit OTP">
+                                    </div>
+                                </div>
+
+                                <div class="login-consent mt-md">
+                                    <input type="checkbox" id="signup-consent-chk" required>
+                                    <label for="signup-consent-chk">I agree to terms and E2E schema scan protocols.</label>
+                                </div>
+
+                                <button class="btn btn-primary w-full mt-md btn-lg" type="submit" style="background:var(--accent); border-color:var(--accent);">
+                                    <i data-lucide="user-plus"></i> Register & Open Vault
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="login-card-footer mt-md text-xs text-muted">
+                            <i data-lucide="lock" style="width: 12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Zero-knowledge keys never leave this device.
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- The Problem Section -->
+        <section class="m-section m-bg-alt" id="problem">
+            <div class="m-container" style="max-width: 800px; text-align: center;">
+                <span class="m-hero-badge" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #ef4444; margin-bottom: 16px;">The Pain of Life Admin</span>
+                <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 20px;">Life Admin Doesn’t Have to Be a Family Emergency</h2>
+                <p style="font-size: 14px; color: #475569; line-height: 1.7; font-weight: 400; text-align: center;">
+                    From renewing your parents' passports to updating your child's documents or catching a sneaky name mismatch between your PAN and Aadhaar, managing household paperwork is exhausting. Missing a single renewal can mean frozen accounts, rejected insurance claims, or administrative gridlock. You don't need another heavy, risky document vault—you need a proactive family safety net.
+                </p>
+            </div>
+        </section>
+
+        <!-- Founder's Story Section -->
+        <section class="m-section" style="background: #f8fafc; border-top: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7;">
+            <div class="m-container" style="max-width: 1000px;">
+                <div class="m-section-header" style="text-align: center; margin-bottom: 48px;">
+                    <span class="m-hero-badge" style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.2); color: var(--accent); margin: 0 auto 16px;">Real Households, Real Pain</span>
+                    <h2>Why FamilyKYCManager Exists</h2>
+                    <p style="max-width: 600px; margin: 0 auto; color: #64748b;">True administrative nightmares that inspired us to build a proactive household companion.</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;" class="settings-grid-layout">
+                    <!-- Story 1 -->
+                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">AS</div>
+                            <div>
+                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">A. Sharma</h4>
+                                <span style="font-size: 11px; color: var(--text-secondary);">The Nominee Bank Account Ordeal</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                            "After my father passed away, I naively assumed closing his bank account would be simple because a nominee was registered. Instead, it became a grueling 6-month ordeal because the account had slipped into dormancy. A nominee name on a form doesn't protect your family if records go out of sync and nobody tracks operational health."
+                        </p>
+                    </div>
+
+                    <!-- Story 2 -->
+                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">SS</div>
+                            <div>
+                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">S. Sen</h4>
+                                <span style="font-size: 11px; color: var(--text-secondary);">The Forgotten 15-Year Mutual Fund</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                            "I invested in a mutual fund for my daughter when she was 5. When she turned 21, I discovered a mountain of roadblocks: the company merged, my contact details and KYC were outdated, and PAN/nominee details weren't updated. It hit me with a chill: What if something had happened to me during those 15 years? My family wouldn't even have known the investment existed."
+                        </p>
+                    </div>
+
+                    <!-- Story 3 -->
+                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">KP</div>
+                            <div>
+                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">K. Patel</h4>
+                                <span style="font-size: 11px; color: var(--text-secondary);">The Typos & Digits Mismatch Squeeze</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                            "Missing a passport renewal deadline by 3 months. Realizing at the eleventh hour that my 2005 Driver's Licence required manual offline digitization before online renewal, threatening a 14-day window. Compounded by a DOB typo (30.07.1977 printed as 30.09.1977) and outdated addresses. Running from office to office over cascading errors is an unnecessary headache."
+                        </p>
+                    </div>
+
+                    <!-- Story 4 -->
+                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">RM</div>
+                            <div>
+                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">R. Mehta</h4>
+                                <span style="font-size: 11px; color: var(--text-secondary);">The 25-Year Ghost Builder Trap</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                            "Buying a property 25 years ago, only to find the electricity bill still bore the builder's name when trying to generate an e-khata. Requiring an untraceable builder's NOC creates permanent administrative gridlock for homeowners."
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Story 5 (Full Width Accent) -->
+                <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: linear-gradient(to right, #eff6ff, #fff); border: 1px solid #bfdbfe; border-radius: 12px; margin-top: 32px; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="background: var(--accent-light); color: var(--accent); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">VA</div>
+                        <div>
+                            <h4 style="margin:0; font-size: 15px; font-weight: 700; color: var(--accent);">Vikram Agrawal</h4>
+                            <span style="font-size: 12px; color: var(--text-secondary);">The EPFO Clerical Spelling Mismatch Trap</span>
+                        </div>
+                    </div>
+                    <p style="font-size: 13.5px; color: #1e3a8a; line-height: 1.65; font-style: italic; margin: 0;">
+                        "Working across 5 different organizations over 25 years, only to find my name spelled differently in 3 of them (Vikram Agrawal, Vikram D Agrawal, D Vikram Agrawal). Despite having the same UAN, the EPFO portal refused to recognize them because names didn't match official identity records. This locked me out of my passbook, left helpless by unresponsive helplines, while third-party agencies demanded a 2% cut to fix it. Career milestones shouldn't be held hostage by clerical typos."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Pillars Section -->
+        <section class="m-section" id="features">
+            <div class="m-container">
+                <div class="m-section-header">
+                    <h2>Core Pillars: Built for Real Families</h2>
+                    <p>The Principle of Simple Security & Proactive Record Management.</p>
+                </div>
+                
+                <div class="m-features-grid">
+                    <!-- Pillar 1 -->
+                    <div class="m-feature-card">
+                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="shield-check"></i></div>
+                        <h3>Metadata-Only Storage</h3>
+                        <p>We store only document numbers and dates (like expiry and issue dates). We <strong>never</strong> store financial balances, bank account amounts, or sensitive investments.</p>
+                    </div>
+                    <!-- Pillar 2 -->
+                    <div class="m-feature-card">
+                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="users"></i></div>
+                        <h3>Multi-Member Family Sync</h3>
+                        <p>One central "Family Admin" (like you or your partner) can easily manage records for spouses, children, and elderly parents from a single dashboard.</p>
+                    </div>
+                    <!-- Pillar 3 -->
+                    <div class="m-feature-card">
+                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="smartphone"></i></div>
+                        <h3>Cross-Platform Accessibility</h3>
+                        <p>Enjoy real-time cloud synchronisation seamlessly across Android, iOS, and web platforms for all your devices.</p>
+                    </div>
+                    <!-- Pillar 4 -->
+                    <div class="m-feature-card">
+                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="bell"></i></div>
+                        <h3>7-Stage Reminder Engine</h3>
+                        <p>Never miss a deadline again. Automated alerts trigger at smart intervals from <strong>90 days down to 24 hours</strong> before expiry.</p>
+                    </div>
+                    <!-- Pillar 5 -->
+                    <div class="m-feature-card">
+                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="milestone"></i></div>
+                        <h3>Smart Life Event Mapping</h3>
+                        <p>Major life updates made easy. Selecting events like "Moving House" automatically suggests exactly which records (Aadhaar, DL, insurance, utility) require urgent updates.</p>
+                    </div>
+                    <!-- Pillar 6 -->
+                    <div class="m-feature-card">
+                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="check-square"></i></div>
+                        <h3>Automated Consistency Checker</h3>
+                        <p>Proactively flags mismatches in names or addresses across your various government and financial IDs before official institutions do.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Supported Document Examples -->
+        <section class="m-section m-bg-alt" id="documents-list">
+            <div class="m-container">
+                <div class="m-section-header">
+                    <h2>Supported Document Examples</h2>
+                    <p>Keep all your essential household records organized across three vital categories without the clutter:</p>
+                </div>
+                
+                <div class="m-features-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <!-- Category 1 -->
+                    <div class="m-feature-card" style="text-align: center;">
+                        <div class="m-f-icon" style="margin: 0 auto 20px; background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="fingerprint"></i></div>
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Government IDs</h3>
+                        <p id="m-docs-govt" style="font-size: 13px; color: #475569; line-height: 1.8;">
+                            PAN Card<br>
+                            Passport<br>
+                            Driving Licence<br>
+                            Voter ID<br>
+                            Aadhaar Card (Masked/Redacted)
+                        </p>
+                    </div>
+                    <!-- Category 2 -->
+                    <div class="m-feature-card" style="text-align: center;">
+                        <div class="m-f-icon" style="margin: 0 auto 20px; background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="wallet"></i></div>
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Financial IDs</h3>
+                        <p id="m-docs-financial" style="font-size: 13px; color: #475569; line-height: 1.8;">
+                            Bank Accounts<br>
+                            Life / Health Insurance<br>
+                            Mutual Funds (Metadata Only)
+                        </p>
+                    </div>
+                    <!-- Category 3 -->
+                    <div class="m-feature-card" style="text-align: center;">
+                        <div class="m-f-icon" style="margin: 0 auto 20px; background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="home"></i></div>
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Assets & Utilities</h3>
+                        <p id="m-docs-utilities" style="font-size: 13px; color: #475569; line-height: 1.8;">
+                            Vehicle RC (Registration)<br>
+                            Property Tax<br>
+                            Electricity<br>
+                            Gas<br>
+                            Broadband
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="m-section" id="pricing">
+            <div class="m-container">
+                <div class="m-section-header">
+                    <h2>Simple, Transparent Pricing for Peace of Mind</h2>
+                    <p>No hidden fees, no financial exposure, complete protection.</p>
+                </div>
+                
+                <div class="pricing-grid mt-xl" style="max-width:800px; margin: 0 auto; display:grid; grid-template-columns: 1fr 1fr; gap:32px;">
+                    <!-- Free Household Tier -->
+                    <div class="pricing-card" style="background:#ffffff; color:var(--text-primary); border-color:#e2e8f0; box-shadow:var(--shadow-md);">
+                        <div class="pricing-card-header">
+                            <span class="plan-badge" style="background:var(--bg-tertiary); color:var(--text-secondary);">Basic Vault</span>
+                            <h3>Free Household Tier</h3>
+                            <div class="price" style="color:var(--text-primary);" id="free-price-val"><span class="currency">$</span>0<span class="period" style="color:var(--text-secondary);">/ forever</span></div>
+                            <p class="plan-desc">Perfect for getting started with core family record tracking.</p>
+                        </div>
+                        <ul class="plan-features-list" style="color:var(--text-secondary); border-color:#e2e8f0; border-top:1px solid; padding-top:20px; list-style:none;">
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> 1 Primary User Account</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> Up to 5 Essential Documents</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> Standard Expiry Timers</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="x" class="text-danger" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> No family profile switching</li>
+                        </ul>
+                        <button class="btn btn-outline w-full mt-xl" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="color:var(--text-primary); border-color:#cbd5e1;">Get Started Free</button>
+                    </div>
+
+                    <!-- FamilyKYCManager Plan -->
+                    <div class="pricing-card pricing-recommended" style="border-color:var(--accent); background:#ffffff; color:var(--text-primary); box-shadow:0 10px 30px rgba(37, 99, 235, 0.08);">
+                        <div class="pricing-card-header">
+                            <span class="plan-badge badge-gold" style="background:var(--accent); color:#fff;">Most Popular</span>
+                            <h3 style="color:var(--text-primary);">FamilyKYCManager Plan</h3>
+                            <div class="price" style="color:var(--text-primary);" id="home-price-val"><span class="currency">$</span>2.99<span class="period" style="color:var(--text-secondary);">/ month</span></div>
+                            <p class="plan-desc">Complete administrative safety for the household.</p>
+                        </div>
+                        <ul class="plan-features-list" style="color:var(--text-secondary); border-color:#e2e8f0; border-top:1px solid; padding-top:20px; list-style:none;">
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **Unlimited Family Members** (Spouse, kids, parents)</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **Unlimited Document Tracking** (Govt, Utility, Finance)</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **7-Stage Proactive Reminder Engine**</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **Automated Consistency & Mismatch Checker**</li>
+                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> Smart Cascade Life Event Mapping</li>
+                        </ul>
+                        <button class="btn btn-primary w-full mt-xl" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:var(--accent); border-color:var(--accent); color:#fff;">Secure Your Family Today</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Footer CTA -->
+        <section class="m-section" style="background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%); color:#ffffff; text-align:center;">
+            <div class="m-container" style="max-width: 600px;">
+                <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 16px;">Keep Your Family's Records Updated, Always</h2>
+                <p style="font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.6; margin-bottom: 24px;">
+                    Join modern households taking control of their administrative health. Zero friction, zero financial liability, total peace of mind.
+                </p>
+                <button class="btn btn-gold btn-lg" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:#ffffff; color:var(--accent); border:none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight:700;">
+                    Create Your Free Family Account
+                </button>
+            </div>
+        </section>
+
+        <!-- CTA / Footer -->
+        <footer class="m-footer">
+            <p>© 2026 Family KYC Manager. Secure document registry and compliance engine.</p>
+        </footer>
+    </div>
+
+    <div class="app-container hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <span class="logo-text">Family<span>KYCManager</span></span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-tab="dashboard">
+                        <a href="#"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="documents">
+                        <a href="#"><i data-lucide="files"></i> <span>My Documents</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="family">
+                        <a href="#"><i data-lucide="users"></i> <span>Family Vault</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="kyc-audit">
+                        <a href="#"><i data-lucide="check-square"></i> <span>KYC Audit</span> <span class="badge badge-warning" id="kyc-badge-count">3</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="life-events">
+                        <a href="#"><i data-lucide="milestone"></i> <span>Life Events</span> <span class="badge badge-pro" id="life-events-badge">2 Active</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="renewals">
+                        <a href="#"><i data-lucide="clock"></i> <span>Renewals & Expiries</span> <span class="badge badge-danger" id="renewal-badge-count">2</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="comms-log">
+                        <a href="#"><i data-lucide="mail"></i> <span>Reminders Log</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="subscription">
+                        <a href="#"><i data-lucide="credit-card"></i> <span>SaaS Subscription</span></a>
+                    </li>
+                    <li class="nav-item" data-tab="settings">
+                        <a href="#"><i data-lucide="settings"></i> <span>Profile & Settings</span></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Sidebar Footer - Subscription Status Widget -->
+            <div class="sidebar-footer">
+                <div class="tier-widget" id="tier-widget">
+                    <div class="tier-widget-header">
+                        <span class="tier-label text-warning" id="sidebar-tier-name">Free Tier</span>
+                        <span class="tier-limit" id="sidebar-tier-limit">12 / 5 docs</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="sidebar-progress-bar" style="width: 48%;"></div>
+                    </div>
+                    <p class="tier-msg" id="sidebar-tier-msg">1 User Only. Upgrade for Family access.</p>
+                    <button class="btn btn-upgrade-sm" onclick="app.switchTab('subscription')">
+                        <i data-lucide="sparkles"></i> Upgrade to Pro
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header / Topbar -->
+            <header class="topbar">
+                <button class="mobile-menu-toggle-btn" onclick="app.toggleSidebar()">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="topbar-left">
+                    <h1 id="page-title">Dashboard Overview</h1>
+                    <p class="subtitle" id="page-subtitle">Welcome back, Vikram. Here is your family's safety health status.</p>
+                </div>
+                
+                <div class="topbar-right">
+                    <!-- Action Bar Items -->
+                    <div class="header-action-badge premium-badge free-only" id="topbar-upgrade-banner" onclick="app.switchTab('subscription')">
+                        <i data-lucide="crown"></i> Upgrade to Family Pro
+                    </div>
+                    <div class="header-action-badge premium-badge pro-only hidden" id="topbar-pro-banner">
+                        <i data-lucide="shield"></i> Family Pro Active
+                    </div>
+
+
+                    <!-- Quick Add Button -->
+                    <button class="btn btn-primary btn-add-doc" onclick="app.openUploadModal()">
+                        <i data-lucide="plus"></i> <span>Add Document</span>
+                    </button>
+                    
+                    <!-- Notification Bell -->
+                    <div class="notification-bell-container">
+                        <button class="icon-btn" id="notif-bell-btn" onclick="app.toggleNotifDropdown()">
+                            <i data-lucide="bell"></i>
+                            <span class="bell-dot" id="bell-dot"></span>
+                        </button>
+                        <div class="notif-dropdown hidden" id="notif-dropdown">
+                            <div class="notif-dropdown-header">
+                                <h3>Notifications</h3>
+                                <button class="text-btn text-xs" onclick="app.markAllNotificationsRead()">Mark all read</button>
+                            </div>
+                            <div class="notif-dropdown-list" id="notif-dropdown-list">
+                                <!-- Dynamically filled -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Member Switcher Dropdown (Top Right) -->
+                    <div class="profile-selector-container">
+                        <button class="profile-btn" onclick="app.toggleProfileDropdown()">
+                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" alt="Avatar" class="avatar-sm" id="active-user-avatar">
+                            <div class="profile-btn-info">
+                                <span class="profile-name" id="active-user-name">Vikram Garg</span>
+                                <span class="profile-role" id="active-user-role">Head of Family</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="chevron"></i>
+                        </button>
+                        <div class="profile-dropdown hidden" id="profile-dropdown">
+                            <div class="profile-dropdown-header">
+                                <span>Switch Profile</span>
+                            </div>
+                            <div class="profile-dropdown-list" id="profile-dropdown-list">
+                                <!-- Loaded dynamically based on tier and active profile -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Scrollable Section -->
+            <section class="content-body">
+                
+                <!-- TAB: DASHBOARD -->
+                <div class="tab-pane active" id="tab-dashboard">
+                    <!-- Dashboard Cards / Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card stat-primary">
+                            <div class="stat-icon"><i data-lucide="file-text"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Documents</span>
+                                <h2 class="stat-value" id="stat-total-docs">12</h2>
+                                <span class="stat-subtext" id="stat-free-cap">Free tier (max 25 docs)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card stat-success" id="card-vault-health">
+                            <div class="stat-icon"><i data-lucide="heart-pulse"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Vault Safety Health</span>
+                                <h2 class="stat-value text-success" id="stat-health">72%</h2>
+                                <span class="stat-subtext" id="stat-health-subtext">3 Issues Detected</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card stat-warning" onclick="app.switchTab('kyc-audit')">
+                            <div class="stat-icon"><i data-lucide="alert-triangle"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">KYC Inconsistencies</span>
+                                <h2 class="stat-value text-warning" id="stat-kyc-alerts">3</h2>
+                                <span class="stat-subtext">Name, DOB, or Address mismatches</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card stat-danger" onclick="app.switchTab('renewals')">
+                            <div class="stat-icon"><i data-lucide="hourglass"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Expiries & Renewals</span>
+                                <h2 class="stat-value text-danger" id="stat-renewals">2</h2>
+                                <span class="stat-subtext" id="stat-renewals-subtext">Action required within 30 days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout: Left (Main Dashboard Charts / Alerts) & Right (Quick Panel) -->
+                    <div class="dashboard-layout">
+                        <!-- Left Panel -->
+                        <div class="dashboard-main">
+                            <!-- Critical Alerts Banner -->
+                            <div class="alerts-section" id="dashboard-critical-alerts-section">
+                                <div class="section-title-row">
+                                    <h3 class="section-title"><i data-lucide="shield-alert" class="icon-danger"></i> Urgent Safety Action Required</h3>
+                                </div>
+                                <div class="alerts-list" id="dashboard-alerts-list">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+
+                            <!-- Family Document Compliance Grid -->
+                            <div class="family-compliance-section mt-lg">
+                                <div class="section-title-row">
+                                    <h3 class="section-title">Family Compliance Status</h3>
+                                    <span class="badge badge-pro pro-only">Pro Feature</span>
+                                    <span class="badge badge-locked-gray free-only"><i data-lucide="lock" class="icon-xs"></i> Locked</span>
+                                </div>
+                                <div class="family-grid-container" id="family-compliance-grid">
+                                    <!-- Dynamic cards representing family members -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel -->
+                        <div class="dashboard-side">
+                            <!-- Premium Upgrade Promo Widget (Free Tier Only) -->
+                            <div class="promo-card free-only" id="dashboard-promo-widget">
+                                <div class="promo-glow"></div>
+                                <i data-lucide="crown" class="promo-icon"></i>
+                                <h3>Go Pro with FamilySafeVault</h3>
+                                <p>Unlock Multi-Member Family Accounts, Smart AI cross-document KYC checks, Unlimited documents, and automated SMS/Email reminders for all.</p>
+                                <button class="btn btn-gold w-full mt-md" onclick="app.switchTab('subscription')">
+                                    Upgrade to Family Pro
+                                </button>
+                            </div>
+
+                            <!-- Document Categories Breakdown -->
+                            <div class="category-breakdown-card">
+                                <h3>Document Breakdown</h3>
+                                <div class="category-list" id="dashboard-category-list">
+                                    <!-- Dynamic categories list with small progress meters -->
+                                </div>
+                            </div>
+
+                            <!-- Quick Action Shortcuts -->
+                            <div class="shortcuts-card mt-md">
+                                <h3>Quick Actions</h3>
+                                <div class="shortcut-buttons">
+                                    <button class="shortcut-btn" onclick="app.openUploadModal()">
+                                        <i data-lucide="upload-cloud"></i>
+                                        <span>Upload File</span>
+                                    </button>
+                                    <button class="shortcut-btn" onclick="app.switchTab('kyc-audit')">
+                                        <i data-lucide="scan-face"></i>
+                                        <span>Run KYC Scan</span>
+                                    </button>
+                                    <button class="shortcut-btn" onclick="app.switchTab('comms-log')">
+                                        <i data-lucide="send"></i>
+                                        <span>Test Reminders</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: MY DOCUMENTS -->
+                <div class="tab-pane hidden" id="tab-documents">
+                    <!-- Filters & Search Toolbar -->
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" placeholder="Search documents by name, type, or number..." id="doc-search-input" onkeyup="app.filterDocuments()">
+                        </div>
+                        <div class="filters-row">
+                            <select id="filter-member" onchange="app.filterDocuments()">
+                                <option value="all">All Family Members</option>
+                                <option value="head">Vikram Garg (Self)</option>
+                                <option value="spouse">Sunita Garg (Wife)</option>
+                                <option value="child">Rohan Garg (Son)</option>
+                                <option value="parent">Ramesh C. Garg (Father)</option>
+                            </select>
+                            <select id="filter-type" onchange="app.filterDocuments()">
+                                <option value="all">All Document Types</option>
+                                <option value="Government">Government IDs</option>
+                                <option value="Financial">Financial / Tax</option>
+                                <option value="Insurance">Insurance Policies</option>
+                                <option value="Utility">Utilities / Bills</option>
+                            </select>
+                            <select id="filter-status" onchange="app.filterDocuments()">
+                                <option value="all">All Statuses</option>
+                                <option value="valid">Valid / Safe</option>
+                                <option value="warning">KYC Mismatch</option>
+                                <option value="expired">Expired / Expiring</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Documents Grid -->
+                    <div class="documents-grid" id="documents-grid">
+                        <!-- Dynamic Cards -->
+                    </div>
+
+                    <div class="empty-state hidden" id="documents-empty-state">
+                        <i data-lucide="file-question" class="empty-icon"></i>
+                        <h3>No documents found</h3>
+                        <p>Try adjusting your filters or search query, or upload a new document.</p>
+                        <button class="btn btn-primary mt-md" onclick="app.openUploadModal()">
+                            <i data-lucide="plus"></i> Add Document
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB: FAMILY VAULT -->
+                <div class="tab-pane hidden" id="tab-family">
+                    <div class="family-vault-header">
+                        <h2>Family Account Settings & Profiles</h2>
+                        <p>Manage access control for your spouse, children, and parents. Head of family controls billing, encryption keys, and has executive override access.</p>
+                    </div>
+
+                    <!-- Paywall banner for Free Tier -->
+                    <div class="alert alert-warning free-only" id="family-paywall" style="margin-top: 20px; display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 8px; border: 1px solid var(--warning-border); background-color: var(--warning-bg);">
+                        <i data-lucide="shield-alert" class="text-warning" style="width: 24px; height: 24px; flex-shrink:0;"></i>
+                        <div style="flex-grow: 1; text-align: left;">
+                            <h4 style="margin: 0; font-size: 14px; color: var(--gold);">Family Directory Demo Mode</h4>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">You are viewing the family vault in free mode. Upgrade to Family Pro to unlock multi-user vaults, automated KYC checker, and E2E escrow keys.</p>
+                        </div>
+                        <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')" style="flex-shrink:0; padding: 8px 12px; font-size: 11px;">Upgrade Plan</button>
+                    </div>
+
+                    <!-- Active Family View -->
+                    <div class="family-active-container" id="family-pro-view" style="margin-top: 24px;">
+                        <div class="section-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin:0;">Family Directory Setup</h3>
+                            <button class="btn btn-primary" onclick="app.showAddMemberModal()">
+                                <i data-lucide="user-plus"></i> Add Family Member
+                            </button>
+                        </div>
+                        <!-- Family Members Grid -->
+                        <div class="family-members-cards-container" id="family-members-setup-grid">
+                            <!-- Filled dynamically -->
+                        </div>
+
+                        <!-- Access Controls Table -->
+                        <div class="permissions-card mt-lg">
+                            <h3>Access & Encryption Controls</h3>
+                            <p class="text-sm text-muted">All documents are stored with end-to-end encryption. The Head of Family has the master recovery key.</p>
+                            
+                            <table class="data-table mt-md">
+                               <thead>
+                                   <tr>
+                                       <th>Family Member</th>
+                                       <th>Role</th>
+                                       <th>Relationship</th>
+                                       <th>Vault Access Permissions</th>
+                                       <th>Encryption Key Status</th>
+                                       <th>Actions</th>
+                                   </tr>
+                               </thead>
+                               <tbody id="family-permissions-tbody">
+                                   <!-- Filled dynamically -->
+                               </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: KYC AUDIT -->
+                <div class="tab-pane hidden" id="tab-kyc-audit">
+                    <div class="kyc-header">
+                        <div class="kyc-header-info">
+                            <h2>Automated KYC Inconsistency Engine</h2>
+                            <p>Our smart sentinel scans and cross-checks the metadata of your documents (Aadhaar, PAN, Passport, DL, Voter ID, ITR, Utility Bills) to detect name discrepancies, address spelling issues, and DOB mismatches that could trigger failures in financial KYC or government applications.</p>
+                        </div>
+                        <div class="kyc-header-action">
+                            <button class="btn btn-primary" onclick="app.runFullKYCScan()">
+                                <i data-lucide="refresh-cw" id="kyc-scan-spinner"></i> Re-Scan All Documents
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KYC Issues Dashboard -->
+                    <div class="kyc-dashboard mt-lg">
+                        <div class="kyc-alerts-main">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Active Inconsistencies & Flags</h3>
+                                    <span class="badge badge-warning" id="kyc-card-badge">3 Warnings</span>
+                                </div>
+                                <div class="kyc-warnings-list" id="kyc-warnings-list">
+                                    <!-- Loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kyc-rules-side">
+                            <div class="card">
+                                <h3>Active KYC Rules</h3>
+                                <ul class="kyc-rules-list">
+                                    <li>
+                                        <div class="rule-icon"><i data-lucide="user-check"></i></div>
+                                        <div class="rule-details">
+                                            <strong>Exact Name Match</strong>
+                                            <p>Compares spelling across all official government ID cards (tolerance limit: 1 letter typo).</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="rule-icon"><i data-lucide="calendar"></i></div>
+                                        <div class="rule-details">
+                                            <strong>Date of Birth Validation</strong>
+                                            <p>Cross-references DOB day, month, and year. Any variation flags an immediate error.</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="rule-icon"><i data-lucide="map-pin"></i></div>
+                                        <div class="rule-details">
+                                            <strong>Address Consistency</strong>
+                                            <p>Scans for major differences in address fields between permanent identity proof and current utility proofs.</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="rule-icon"><i data-lucide="hash"></i></div>
+                                        <div class="rule-details">
+                                            <strong>Document Number Formats</strong>
+                                            <p>Verifies alphanumeric structure of PAN Cards (e.g. 5 letters, 4 digits, 1 letter) and Aadhaar (12 digits).</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: LIFE EVENTS -->
+                <div class="tab-pane hidden" id="tab-life-events">
+                    <div class="life-events-header">
+                        <h2>Life Event Document Mapping & Sentinel</h2>
+                        <p>A major life event (marriage, relocation, minor turning 18) triggers cascade dependencies across government documents. Our engine maps out the task checklist to ensure your family's records remain fully consistent.</p>
+                    </div>
+
+                    <!-- Life Events View Wrapper -->
+                    <div class="life-events-layout mt-lg">
+                        
+                        <!-- Left Panel: Life Event Categories -->
+                        <div class="life-events-menu">
+                            <div class="card">
+                                <h3>Active Life Events</h3>
+                                <p class="text-xs text-muted mb-md">Select an event to view the document roadmap checklist.</p>
+                                
+                                <div class="life-events-list" id="life-events-select-list">
+                                    <!-- Dynamic list items -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Active Compliance Roadmap Checklist -->
+                        <div class="life-events-roadmap">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 id="active-event-title">Post-Marriage Name Alignment</h3>
+                                    <span class="badge badge-warning" id="active-event-progress">33% Complete</span>
+                                </div>
+                                <p class="text-sm text-muted mb-md" id="active-event-desc">
+                                    Following marriage, name corrections must cascade across identification records. Anchor document: Spouse Aadhaar Card ("Sunita Garg").
+                                </p>
+
+                                <div class="life-event-stepper" id="life-event-stepper-container">
+                                    <!-- Loaded dynamically by app.js -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: RENEWALS & EXPIRIES -->
+                <div class="tab-pane hidden" id="tab-renewals">
+                    <div class="renewals-header">
+                        <h2>Document Expiries & Renewals Sentinel</h2>
+                        <p>Avoid heavy penalties, locked accounts, and travel delays. Set up automated push reminders and trace actions until renewals are finalized and files re-uploaded.</p>
+                    </div>
+
+                    <div class="renewals-grid-layout mt-lg">
+                        <!-- Left Panel: Active Expiries list -->
+                        <div class="renewals-main-list">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Upcoming Expiry Schedule</h3>
+                                    <span class="badge badge-danger" id="renewals-card-badge">2 Urgent</span>
+                                </div>
+                                <div class="renewals-list-container" id="renewals-list-container">
+                                    <!-- Loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Closed Loop Timeline -->
+                        <div class="renewals-timeline-side">
+                            <div class="card">
+                                <h3>Closed-Loop Renewal History</h3>
+                                <p class="text-xs text-muted mb-md">Verify completed renewal requests and closed alerts.</p>
+                                <div class="timeline" id="renewals-timeline">
+                                    <!-- Dynamically updated -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: COMMUNICATIONS LOG (SMS / EMAIL SIMULATOR) -->
+                <div class="tab-pane hidden" id="tab-comms-log">
+                    <div class="comms-header">
+                        <h2>Simulated Notifications Log (Email & SMS)</h2>
+                        <p>FamilySafeVault automatically dispatches timely updates and high-priority warnings via email and SMS. In this debug panel, you can monitor what messages have been sent to family members and trigger actions directly from incoming alerts.</p>
+                    </div>
+
+                    <div class="comms-panel mt-lg">
+                        <!-- Filter Log -->
+                        <div class="comms-toolbar">
+                            <div class="comms-channel-selector">
+                                <button class="filter-chip active" data-channel="all" onclick="app.filterComms('all')">All Messages</button>
+                                <button class="filter-chip" data-channel="email" onclick="app.filterComms('email')"><i data-lucide="mail"></i> Emails</button>
+                                <button class="filter-chip" data-channel="sms" onclick="app.filterComms('sms')"><i data-lucide="smartphone"></i> SMS Alerts</button>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="app.clearCommsLog()">Clear Logs</button>
+                        </div>
+
+                        <!-- Logs list representation -->
+                        <div class="comms-logs-list" id="comms-logs-list">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: SAAS SUBSCRIPTION -->
+                <div class="tab-pane hidden" id="tab-subscription">
+                    <div class="sub-header text-center">
+                        <h2>Flexible Pricing Plans</h2>
+                        <p class="subtitle">Secure your family's financial and regulatory safety. Choose the plan that fits your scale.</p>
+                    </div>
+
+                    <div class="sub-billing-toggle text-center mt-md">
+                        <span class="billing-label text-bold">Monthly</span>
+                        <div class="toggle-switch-wrapper">
+                            <input type="checkbox" id="billing-toggle" onchange="app.toggleBillingCycle()">
+                            <label for="billing-toggle" class="toggle-slider"></label>
+                        </div>
+                        <span class="billing-label">Yearly <span class="badge badge-success text-xs">Save 20%</span></span>
+                    </div>
+
+                    <!-- Pricing Cards Grid -->
+                    <div class="pricing-grid mt-xl">
+                        <!-- Free Tier Card -->
+                        <div class="pricing-card" id="pricing-card-free">
+                            <div class="pricing-card-header">
+                                <span class="plan-badge">Basic Safety</span>
+                                <h3>Free Vault</h3>
+                                <div class="price"><span class="currency">₹</span>0<span class="period">/ month</span></div>
+                                <p class="plan-desc">For single users getting started with basic document storage.</p>
+                            </div>
+                            <ul class="plan-features-list">
+                                <li><i data-lucide="check" class="text-success"></i> 1 User Account</li>
+                                <li><i data-lucide="check" class="text-success"></i> Up to 5 Documents Max</li>
+                                <li><i data-lucide="check" class="text-success"></i> Basic Expiry Reminders</li>
+                                <li><i data-lucide="x" class="text-danger"></i> No Family Vaults & Switcher</li>
+                                <li><i data-lucide="x" class="text-danger"></i> No Automated KYC Mismatch crosscheck</li>
+                                <li><i data-lucide="x" class="text-danger"></i> No Premium Support</li>
+                            </ul>
+                            <div class="pricing-card-action">
+                                <button class="btn btn-outline w-full" id="btn-select-free" disabled>Current Active Plan</button>
+                            </div>
+                        </div>
+
+                        <!-- Pro Family Tier Card (Recommended) -->
+                        <div class="pricing-card pricing-recommended" id="pricing-card-pro">
+                            <div class="pricing-card-glow"></div>
+                            <div class="pricing-card-header">
+                                <span class="plan-badge badge-gold">Most Popular</span>
+                                <h3>Family Pro Vault</h3>
+                                <div class="price" id="pro-price-val"><span class="currency">₹</span>299<span class="period">/ month</span></div>
+                                <p class="plan-desc">Complete security management for your entire family household.</p>
+                            </div>
+                            <ul class="plan-features-list">
+                                <li><i data-lucide="check" class="text-success"></i> Head of Family + 5 Family Profiles</li>
+                                <li><i data-lucide="check" class="text-success"></i> <strong>Unlimited Documents Storage</strong></li>
+                                <li><i data-lucide="check" class="text-success"></i> <strong>Smart Cross-Document KYC Checker</strong></li>
+                                <li><i data-lucide="check" class="text-success"></i> Automated SMS & Email Reminders</li>
+                                <li><i data-lucide="check" class="text-success"></i> Priority WhatsApp Support & Recovery</li>
+                                <li><i data-lucide="check" class="text-success"></i> Advanced Encryption Key Escrow</li>
+                            </ul>
+                            <div class="pricing-card-action">
+                                <button class="btn btn-gold w-full btn-lg" id="btn-upgrade-pro" onclick="app.upgradeSubscription()">
+                                    Upgrade to Family Pro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: PROFILE & SETTINGS -->
+                <div class="tab-pane hidden" id="tab-settings">
+                    <div class="settings-grid-layout" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px;">
+                        
+                        <!-- Left Panel: Account Metadata & Security -->
+                        <div style="display: flex; flex-direction: column; gap: 24px;">
+                            
+                            <!-- Card 1: Identity & Metadata -->
+                            <div class="card">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="user" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--accent);"></i> Account & Identity Metadata</h3>
+                                    <span class="badge badge-warning" id="settings-role-tag" style="background-color: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); font-size: 10px;">Family Admin</span>
+                                </div>
+                                <div class="form-group w-full">
+                                    <label for="settings-admin-name">Primary Admin Legal Name</label>
+                                    <input type="text" id="settings-admin-name" value="Vikram Garg" onchange="app.updateSettingsName(this.value)" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                </div>
+                                <div class="form-group w-full mt-sm">
+                                    <label for="settings-mobile">Primary Mobile Number (OTP Auth)</label>
+                                    <input type="text" id="settings-mobile" value="+91 98765 43210" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                </div>
+                                <div class="form-group w-full mt-sm">
+                                    <label for="settings-email">Email Address (Recovery & Alerts)</label>
+                                    <input type="email" id="settings-email" value="vikram.garg@gmail.com" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                </div>
+                                <div class="form-group w-full mt-sm">
+                                    <label for="settings-address">Admin Residential Address</label>
+                                    <textarea id="settings-address" onchange="app.updateSettingsAddress(this.value)" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; min-height: 60px; outline: none; resize: vertical;">A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075</textarea>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Household & Overview -->
+                            <div class="card">
+                                <div style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="users" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--success);"></i> Household Overview</h3>
+                                </div>
+                                <p id="settings-members-count" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Linked Family Members: 4 connected profiles managed under this household account.</p>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn btn-outline btn-sm w-full" onclick="app.switchTab('family')"><i data-lucide="eye" style="width: 14px; height: 14px; margin-right: 4px;"></i> View Directory</button>
+                                    <button class="btn btn-primary btn-sm w-full" onclick="app.switchTab('family'); app.showAddMemberModal()"><i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> Add Member</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Preferences & Controls -->
+                        <div style="display: flex; flex-direction: column; gap: 24px;">
+                            
+                            <!-- Card 3: Alert & Funnel Preferences -->
+                            <div class="card">
+                                <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="bell" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--warning);"></i> Alert & Reminder Preferences</h3>
+                                </div>
+                                <h4 style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">Active Alert Delivery Channels</h4>
+                                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                        <span>Push Notifications (Firebase Cloud Messaging)</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                        <span>SMS Text Alerts</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                        <span>Email Security Notices</span>
+                                    </label>
+                                </div>
+                                
+                                <h4 style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">Reminder Funnel Thresholds</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                        <span>90 Days Ahead</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                        <span>60 Days Ahead</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                        <span>30 Days Ahead</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                        <span>15 Days Ahead</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                        <span>7 Days Ahead</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                        <span>1 Day Out</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Plan Status & Security -->
+                            <div class="card">
+                                <div style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="shield-check" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--gold);"></i> Subscription & Security Controls</h3>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                                    <div>
+                                        <span class="text-xs text-muted" style="text-transform:uppercase; font-weight:700;">Active Plan</span>
+                                        <h4 id="settings-plan-tier" style="margin:0; font-size:15px; color: var(--gold);">Free Household Tier</h4>
+                                    </div>
+                                    <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')">Upgrade Plan</button>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; cursor: pointer;">
+                                        <span>Biometric Authentication (Face ID / Touch ID)</span>
+                                        <input type="checkbox" id="settings-biometric" checked style="width: 16px; height: 16px;">
+                                    </label>
+                                </div>
+
+                                <!-- Data Privacy Badge -->
+                                <div class="alert alert-info" style="display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; border: 1px solid #93c5fd; background-color: #eff6ff; font-size: 11px; color: #1e40af; margin-bottom: 20px;">
+                                    <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                                    <span><strong>Metadata-Only Storage</strong>: No financial values or sensitive document binaries stored.</span>
+                                </div>
+
+                                <!-- Actions -->
+                                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 16px; gap: 12px;">
+                                    <button class="btn btn-outline btn-sm btn-danger" onclick="app.toast('Account data closure requested. All local ledger mappings will be wiped permanently within 24 hours.', 'danger')"><i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Close Account</button>
+                                    <button class="btn btn-outline btn-sm" onclick="app.handleSignOut()"><i data-lucide="log-out" style="width:14px; height:14px; margin-right:4px;"></i> Lock Vault</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: ADD / EDIT DOCUMENT -->
+    <div class="modal-backdrop hidden" id="doc-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Upload New Document</h3>
+                <button class="close-btn" onclick="app.closeUploadModal()"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="doc-form" onsubmit="app.saveDocument(event)">
+                <input type="hidden" id="doc-id-field">
+                
+                <div class="modal-body">
+                    <!-- Basic details -->
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="doc-member-select">Document Owner</label>
+                            <select id="doc-member-select" required>
+                                <option value="head">Vikram Garg (Self)</option>
+                                <option value="spouse">Sunita Garg (Wife)</option>
+                                <option value="child">Rohan Garg (Son)</option>
+                                <option value="parent">Ramesh C. Garg (Father)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-type-select">Document Type</label>
+                            <select id="doc-type-select" onchange="app.onDocTypeChange()" required>
+                                <option value="Aadhaar">Aadhaar Card</option>
+                                <option value="PAN">PAN Card</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Driving License">Driving License</option>
+                                <option value="Voter ID">Voter ID Card</option>
+                                <option value="ITR">Income Tax Return (ITR)</option>
+                                <option value="Insurance">Insurance Policy (LIC / Health)</option>
+                                <option value="Property Tax">Property Tax Receipt</option>
+                                <option value="Utility Gas">Gas Bill (PNG)</option>
+                                <option value="Utility Electricity">Electricity Bill</option>
+                                <option value="Class 10 Certificate">Class 10 Marksheet / Certificate</option>
+                                <option value="Graduation Degree">Graduation Degree</option>
+                                <option value="Employment Offer Letter">Employment Offer Letter</option>
+                                <option value="Salary Slip">Salary Slip</option>
+                                <option value="EPF UAN Card">EPF UAN Card</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="doc-num-input">Document Number / ID</label>
+                            <input type="text" id="doc-num-input" placeholder="e.g. 1234 5678 9012" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-expiry-input">Expiry Date (Optional)</label>
+                            <input type="date" id="doc-expiry-input">
+                        </div>
+                    </div>
+
+                    <!-- KYC Matching Data Fields -->
+                    <div class="section-divider-text">KYC Verification Fields (To match other documents)</div>
+                    
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="doc-kyc-name">Full Name (as printed on document)</label>
+                            <input type="text" id="doc-kyc-name" placeholder="e.g. Vikram Garg" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-kyc-dob">Date of Birth (as printed)</label>
+                            <input type="date" id="doc-kyc-dob" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doc-kyc-address">Full Address (as printed on document)</label>
+                        <textarea id="doc-kyc-address" rows="2" placeholder="Enter printed address..." required></textarea>
+                    </div>
+
+                    <!-- Drag & Drop Area -->
+                    <div class="drag-drop-area" id="drag-drop-zone">
+                        <i data-lucide="upload" class="drag-icon"></i>
+                        <p><strong>Drag & drop file here</strong> or <span>browse files</span></p>
+                        <span class="drag-sub">Supports PDF, PNG, JPG up to 10MB</span>
+                        <input type="file" id="file-input-raw" class="hidden-file-input">
+                    </div>
+                    <div class="file-attached-info hidden" id="file-attached-info">
+                        <i data-lucide="file-check" class="text-success"></i>
+                        <span id="attached-filename">aadhaar_scan.pdf</span>
+                        <button type="button" class="remove-file-btn" onclick="app.removeAttachedFile()"><i data-lucide="trash-2"></i></button>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="app.closeUploadModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-doc">Upload & Scan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: DOCUMENT DETAILS DRAWER -->
+    <div class="modal-backdrop hidden" id="detail-modal">
+        <div class="modal-card detail-card">
+            <div class="modal-header">
+                <h3>Document Inspector</h3>
+                <button class="close-btn" onclick="app.closeDetailModal()"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="modal-body" id="detail-modal-body">
+                <!-- Loaded dynamically -->
+            </div>
+            
+            <div class="modal-footer" id="detail-modal-footer">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RENEWAL & RESOLUTION SIMULATION STEP -->
+    <div class="modal-backdrop hidden" id="renewal-modal">
+        <div class="modal-card small-card">
+            <div class="modal-header">
+                <h3>Document Action Center</h3>
+                <button class="close-btn" onclick="app.closeRenewalModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="renewal-modal-body">
+                <!-- Loaded dynamically based on action (Renew vs Correct Name vs Correct DOB) -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION STACK -->
+    <div class="toast-stack" id="toast-stack"></div>
+
+    <!-- MODAL: ADD FAMILY MEMBER -->
+    <div class="modal-backdrop hidden" id="add-member-modal">
+        <div class="modal-card small-card">
+            <div class="modal-header">
+                <h3>Add Family Member</h3>
+                <button class="close-btn" onclick="app.closeAddMemberModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-member-form" onsubmit="app.handleAddMember(event)">
+                    <div class="form-group w-full">
+                        <label for="new-member-name">Full Name</label>
+                        <input type="text" id="new-member-name" required placeholder="Enter full name" class="form-control" style="width:100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px;">
+                    </div>
+                    <div class="form-group w-full mt-sm">
+                        <label for="new-member-role">Vault Role</label>
+                        <select id="new-member-role" required class="form-select" style="width:100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px; background:#fff;">
+                            <option value="spouse">Spouse (Limited Access)</option>
+                            <option value="child">Child (Metadata Only)</option>
+                            <option value="parent">Parent (Shared Access)</option>
+                        </select>
+                    </div>
+                    <div class="form-group w-full mt-sm">
+                        <label for="new-member-relationship">Relationship</label>
+                        <input type="text" id="new-member-relationship" required placeholder="e.g. Spouse, Son, Mother" class="form-control" style="width:100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px;">
+                    </div>
+                    <div class="form-group w-full mt-sm">
+                        <label>Select Preset Avatar or Enter URL Below</label>
+                        <div style="display: flex; gap: 12px; margin-top: 6px; justify-content: space-between;">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" class="avatar-select-btn active" onclick="app.selectPresetAvatar(this, 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100')" style="width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 3px solid var(--accent); transition: all 0.2s;">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" class="avatar-select-btn" onclick="app.selectPresetAvatar(this, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100')" style="width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s;">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100" class="avatar-select-btn" onclick="app.selectPresetAvatar(this, 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100')" style="width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s;">
+                            <img src="https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=100" class="avatar-select-btn" onclick="app.selectPresetAvatar(this, 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=100')" style="width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s;">
+                        </div>
+                    </div>
+                    <div class="form-group w-full mt-sm" style="margin-bottom: 12px;">
+                        <label for="new-member-avatar-url">Custom Photo / Image URL (Optional)</label>
+                        <input type="url" id="new-member-avatar-url" placeholder="https://example.com/profile.jpg" class="form-control" style="width:100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px;" oninput="app.customAvatarUrlInput(this.value)">
+                    </div>
+                    <button class="btn btn-primary w-full mt-md btn-lg" type="submit" style="background:var(--accent); border-color:var(--accent);">
+                        <i data-lucide="check"></i> Provision Member Vault
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PAYPAL/RAZORPAY INTEGRATION PAYMENT WORKFLOW -->
+    <div class="modal-backdrop hidden" id="payment-modal">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Complete Payment Securely</h3>
+                <button class="close-btn" onclick="app.closePaymentModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="padding-top: 10px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="background-color: var(--accent-light); color: var(--accent); width: 64px; height: 64px; font-size: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                        <i data-lucide="credit-card"></i>
+                    </div>
+                    <h4 style="margin: 0 0 4px 0; font-size: 16px;">FamilyKYCManager Plan Subscription</h4>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);" id="payment-modal-price">₹299 / month</p>
+                </div>
+                
+                <div class="form-group w-full">
+                    <label>Cardholder Name</label>
+                    <input type="text" id="pay-card-name" value="Vikram Garg" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                </div>
+                
+                <div class="form-group w-full mt-sm">
+                    <label>Card Number</label>
+                    <input type="text" id="pay-card-number" placeholder="4111 2222 3333 4444" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                </div>
+                
+                <div class="form-row-2 mt-sm">
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="text" placeholder="MM/YY" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="password" placeholder="***" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                    </div>
+                </div>
+                
+                <!-- Security Badge -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--text-secondary); margin-top: 16px;">
+                    <i data-lucide="shield-check" class="text-success" style="width: 14px; height: 14px;"></i>
+                    <span>Razorpay Secure 256-Bit SSL Encryption</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button class="btn btn-outline w-full" onclick="app.closePaymentModal()">Cancel</button>
+                <button class="btn btn-primary w-full" onclick="app.processPaymentSubmit()" id="btn-pay-submit">Pay & Activate Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR BACKDROP OVERLAY FOR MOBILE -->
+    <div class="sidebar-backdrop hidden" id="sidebar-backdrop" onclick="app.toggleSidebar()"></div>
+
+    <!-- FLOATING BACK-TO-TOP BUTTON -->
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(37,99,235,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 9999; transition: all 0.3s ease; opacity: 0; pointer-events: none; transform: translateY(16px); outline: none;">
+        <i data-lucide="arrow-up" style="width: 20px; height: 20px; stroke-width: 2.5px;"></i>
+    </button>
+
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('🟢 PWA ServiceWorker registered:', reg.scope))
+                    .catch(err => console.warn('⚠️ PWA ServiceWorker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
