@@ -3,8 +3,8 @@
 (function() {
     // Default / Placeholder Supabase Credentials
     // Replace these with your actual Supabase Project URL and Anon Key from https://supabase.com
-    const SUPABASE_URL = window.ENV_SUPABASE_URL || "https://your-project-id.supabase.co";
-    const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || "your-anon-key-here";
+    const SUPABASE_URL = window.ENV_SUPABASE_URL || "https://sqehicfevzjgogdhtifh.supabase.co";
+    const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || "sb_publishable_cuY5s6CkCzFsjZ2DrDc7Kg_WMgvFZL3";
 
     window.SupabaseVaultConfig = {
         url: SUPABASE_URL,
