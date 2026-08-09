@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS vault_documents (
     issue_date DATE,
     expiry_date DATE,
     status TEXT DEFAULT 'valid', -- 'valid', 'warning', 'critical'
+    is_private BOOLEAN DEFAULT false, -- Privacy Lock for Independent Members
     encrypted_payload TEXT, -- WebCrypto encrypted payload (zero-knowledge)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL

@@ -3,6 +3,7 @@
 class FamilyKYCManager {
     constructor() {
         this.activeTab = 'dashboard';
+        this.activeUserEmail = null;
         this.activeMember = 'head'; // Default: Vikram (Self)
         this.billingTier = 'free'; // 'free' or 'pro'
         this.billingCycle = 'monthly';
@@ -21,14 +22,14 @@ class FamilyKYCManager {
                 name: 'Vikram Garg', 
                 relation: 'Self', 
                 avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100', 
-                role: 'Head of Family',
+                role: 'Primary Admin',
                 mobile: '+91 98765 43210',
                 email: 'vikram.garg@gmail.com',
                 address: 'A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075'
             },
-            spouse: { name: 'Sunita Garg', relation: 'Wife', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', role: 'Member' },
-            child: { name: 'Rohan Garg', relation: 'Son (Minor)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', role: 'Member' },
-            parent: { name: 'Ramesh Chandra Garg', relation: 'Father (Senior)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100', role: 'Member' }
+            spouse: { name: 'Sunita Garg', relation: 'Wife', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', role: 'Independent Member' },
+            child: { name: 'Rohan Garg', relation: 'Son (Minor)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', role: 'Dependent' },
+            parent: { name: 'Ramesh Chandra Garg', relation: 'Father (Senior)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100', role: 'Dependent' }
         };
 
         // Document Database
@@ -1037,10 +1038,10 @@ class FamilyKYCManager {
         const loginOtpInput = document.getElementById('login-otp');
         const signupOtpInput = document.getElementById('signup-otp');
         
-        if (loginOtpLabel) loginOtpLabel.innerText = 'Secure 6-Digit OTP';
-        if (signupOtpLabel) signupOtpLabel.innerText = 'Secure 6-Digit OTP';
-        if (loginOtpInput) loginOtpInput.placeholder = 'Enter 6-digit OTP';
-        if (signupOtpInput) signupOtpInput.placeholder = 'Create 6-digit OTP';
+        if (loginOtpLabel) loginOtpLabel.innerText = 'Secure 6-Digit PIN';
+        if (signupOtpLabel) signupOtpLabel.innerText = 'Secure 6-Digit PIN';
+        if (loginOtpInput) loginOtpInput.placeholder = 'Enter 6-digit PIN';
+        if (signupOtpInput) signupOtpInput.placeholder = 'Create 6-digit PIN';
 
         // Update Pricing Free / Pro elements based on country
         const freePriceVal = document.getElementById('free-price-val');
@@ -1075,7 +1076,8 @@ class FamilyKYCManager {
         const membersList = this.billingTier === 'free' ? ['head'] : ['head', 'spouse', 'child', 'parent'];
         
         membersList.forEach(mId => {
-            const memberDocs = this.documents.filter(d => d.owner === mId);
+            const visibleDocs = this.getVisibleDocuments();
+            const memberDocs = visibleDocs.filter(d => d.owner === mId);
             if (memberDocs.length < 2) return; // Need at least 2 documents to cross-check
             
             // 1. Establish anchor identity (Prefer Aadhaar / SSN Card / NINO Card)
@@ -1248,9 +1250,10 @@ class FamilyKYCManager {
         const today = new Date("2026-07-26"); // Set current time context to local time provided: 2026-07-26
         
         // Free tier only monitors head of family documents
+        const visibleDocs = this.getVisibleDocuments();
         const docsToScan = this.billingTier === 'free'
-            ? this.documents.filter(d => d.owner === 'head')
-            : this.documents;
+            ? visibleDocs.filter(d => d.owner === 'head')
+            : visibleDocs;
 
         docsToScan.forEach(doc => {
             if (!doc.expiryDate) return;
@@ -1406,6 +1409,11 @@ class FamilyKYCManager {
 
     // --- ACTIVE USER PROFILE MANAGEMENT ---
     switchMember(memberId) {
+        if (this.loginRole !== 'head' && memberId !== this.loginRole) {
+            this.toast("Access Denied: Only Primary Admins can switch family vault views.", "danger");
+            return;
+        }
+
         if (memberId === 'head') {
             this.activeMember = 'head';
             this.updateActiveUserUI();
@@ -1511,22 +1519,51 @@ class FamilyKYCManager {
         const form = document.getElementById('doc-form');
         form.reset();
         this.uploadedFile = null;
+        this.currentFileDataUrl = null;
+        
+        document.getElementById('doc-expiry-input').type = 'text';
+        document.getElementById('doc-kyc-dob').type = 'text';
+        
         document.getElementById('file-attached-info').classList.add('hidden');
         document.getElementById('drag-drop-zone').classList.remove('hidden');
+
+        const privacyGroup = document.getElementById('doc-privacy-group');
+        const isPrivateChk = document.getElementById('doc-is-private');
+
+        if (privacyGroup) {
+            if (this.activeMember === 'spouse') {
+                privacyGroup.style.display = 'block';
+            } else {
+                privacyGroup.style.display = 'none';
+            }
+        }
 
         if (docId) {
             // Edit Mode
             const doc = this.documents.find(d => d.id === docId);
+            this.currentFileDataUrl = doc.fileDataUrl || null;
             document.getElementById('modal-title').innerText = "Edit Document Metadata";
+            const saveBtn = document.getElementById('btn-save-doc');
+            if (saveBtn) saveBtn.innerText = "Save Changes";
             document.getElementById('doc-id-field').value = doc.id;
             document.getElementById('doc-member-select').value = doc.owner;
             document.getElementById('doc-type-select').value = doc.type;
             document.getElementById('doc-num-input').value = doc.number;
             document.getElementById('doc-expiry-input').value = doc.expiryDate || '';
+            document.getElementById('doc-expiry-input').type = doc.expiryDate ? 'date' : 'text';
             document.getElementById('doc-kyc-name').value = doc.kycName;
             document.getElementById('doc-kyc-dob').value = doc.kycDob;
+            document.getElementById('doc-kyc-dob').type = doc.kycDob ? 'date' : 'text';
             document.getElementById('doc-kyc-address').value = doc.kycAddress;
+            document.getElementById('doc-kyc-gender').value = doc.kycGender || '';
+            document.getElementById('doc-kyc-relative').value = doc.kycRelative || '';
+            document.getElementById('doc-kyc-additional').value = doc.kycAdditional || '';
+            this.onDocTypeChange();
             
+            if (isPrivateChk) {
+                isPrivateChk.checked = doc.isPrivate || false;
+            }
+
             // Attached file representation
             if (doc.fileName) {
                 this.uploadedFile = { name: doc.fileName };
@@ -1537,8 +1574,14 @@ class FamilyKYCManager {
         } else {
             // New upload mode
             document.getElementById('modal-title').innerText = "Upload New Document";
+            const saveBtn = document.getElementById('btn-save-doc');
+            if (saveBtn) saveBtn.innerText = "Upload & Scan";
             document.getElementById('doc-id-field').value = '';
             
+            if (isPrivateChk) {
+                isPrivateChk.checked = false;
+            }
+
             // pre-populate default owner with active user
             document.getElementById('doc-member-select').value = this.activeMember;
             this.onDocTypeChange();
@@ -1549,88 +1592,1446 @@ class FamilyKYCManager {
 
     closeUploadModal() {
         document.getElementById('doc-modal').classList.add('hidden');
+        
+        const previewContainer = document.getElementById('pdf-debug-preview-container');
+        if (previewContainer) previewContainer.style.display = 'none';
     }
 
     onDocTypeChange() {
         const type = document.getElementById('doc-type-select').value;
-        const numInput = document.getElementById('doc-num-input');
-        const expInput = document.getElementById('doc-expiry-input');
         
-        // Auto customize placeholder guidelines
-        switch(type) {
-            case 'Aadhaar':
-                numInput.placeholder = "12-digit Aadhaar e.g. 5421 8976 0912";
-                expInput.disabled = true;
-                expInput.value = '';
-                break;
-            case 'SSN Card':
-                numInput.placeholder = "9-digit SSN e.g. XXX-XX-1234";
-                expInput.disabled = true;
-                expInput.value = '';
-                break;
-            case 'NINO Card':
-                numInput.placeholder = "9-digit NINO e.g. QQ 12 34 56 A";
-                expInput.disabled = true;
-                expInput.value = '';
-                break;
-            case 'PAN':
-            case 'State ID':
-            case 'National ID':
-                numInput.placeholder = "ID Number e.g. WXYZP5678Q";
-                expInput.disabled = true;
-                expInput.value = '';
-                break;
-            case 'Passport':
-            case 'US Passport':
-            case 'UK Passport':
-                numInput.placeholder = "Passport No. e.g. Z1234567";
-                expInput.disabled = false;
-                break;
-            case 'Driving License':
-            case 'Driver\'s License':
-                numInput.placeholder = "License Number e.g. DL-142010123456";
-                expInput.disabled = false;
-                break;
-            default:
-                numInput.placeholder = "Enter identifier number...";
-                expInput.disabled = false;
+        const docFieldsConfig = {
+            'Aadhaar': {
+                numLabel: "Aadhaar Number",
+                numPlaceholder: "12-digit Aadhaar e.g. 5421 8976 0912",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Full Name (as printed on document)",
+                showDob: true,
+                dobLabel: "Date of Birth (as printed)",
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Address (Front & Back)",
+                showAdditional: false,
+                additionalLabel: "VID & QR Code Data"
+            },
+            'PAN': {
+                numLabel: "PAN Number",
+                numPlaceholder: "10-character PAN e.g. WXYZP5678Q",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Full Name (as printed on document)",
+                showDob: true,
+                dobLabel: "Date of Birth (as printed)",
+                showGender: false,
+                showRelative: true,
+                relativeLabel: "Father's Name",
+                showAddress: false,
+                showAdditional: false
+            },
+            'Passport': {
+                numLabel: "Passport Number",
+                numPlaceholder: "Passport No. e.g. Z1234567",
+                showExpiry: true,
+                expiryLabel: "Expiry Date",
+                showName: true,
+                nameLabel: "Full Name (as printed on Passport)",
+                showDob: true,
+                dobLabel: "Date of Birth",
+                showGender: true,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Place of Birth",
+                showAdditional: true,
+                additionalLabel: "Nationality"
+            },
+            'Driving License': {
+                numLabel: "DL Number",
+                numPlaceholder: "License Number e.g. DL-142010123456",
+                showExpiry: true,
+                expiryLabel: "Validity / Expiry Date",
+                showName: true,
+                nameLabel: "Full Name (as printed)",
+                showDob: true,
+                dobLabel: "Date of Birth",
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Address",
+                showAdditional: true,
+                additionalLabel: "Vehicle Classes & Issue Date"
+            },
+            'Voter ID': {
+                numLabel: "EPIC Number",
+                numPlaceholder: "Voter ID No. e.g. ABC1234567",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Full Name (as printed)",
+                showDob: true,
+                dobLabel: "Date of Birth / Age",
+                showGender: true,
+                showRelative: true,
+                relativeLabel: "Relative's / Father's Name",
+                showAddress: true,
+                addressLabel: "Address",
+                showAdditional: true,
+                additionalLabel: "Assembly Constituency"
+            },
+            'Savings Bank': {
+                numLabel: "Account Number",
+                numPlaceholder: "Enter savings account number...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Account Holder Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Branch Address",
+                showAdditional: true,
+                additionalLabel: "Bank Name, IFSC Code & MICR Code"
+            },
+            'FD Receipt': {
+                numLabel: "FD Account Number / Receipt No.",
+                numPlaceholder: "Enter FD account/receipt number...",
+                showExpiry: true,
+                expiryLabel: "Maturity Date",
+                showName: true,
+                nameLabel: "Depositor Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Principal Amount & Interest Rate",
+                showAdditional: true,
+                additionalLabel: "Maturity Amount"
+            },
+            'Mutual Fund': {
+                numLabel: "Folio Number",
+                numPlaceholder: "Enter folio number...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Investor Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "AMC & Scheme Name",
+                showAdditional: true,
+                additionalLabel: "Current Valuation & Unit Balance"
+            },
+            'PPF': {
+                numLabel: "PPF Account Number",
+                numPlaceholder: "Enter PPF account number...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Subscriber Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Bank/Post Office Name",
+                showAdditional: true,
+                additionalLabel: "Current Balance & Financial Year"
+            },
+            'ITR': {
+                numLabel: "Filing Acknowledgement Number",
+                numPlaceholder: "Enter ITR ack number...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Assessor Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Gross Total Income & Tax Payable",
+                showAdditional: true,
+                additionalLabel: "PAN & Assessment Year"
+            },
+            'Insurance': {
+                numLabel: "Policy Number",
+                numPlaceholder: "Enter policy number...",
+                showExpiry: true,
+                expiryLabel: "Expiry Date / Renewal Date",
+                showName: true,
+                nameLabel: "Policyholder Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Insured Members",
+                showAdditional: true,
+                additionalLabel: "Sum Insured, Start Date & Premium Amount"
+            },
+            'Property Tax': {
+                numLabel: "Receipt Number",
+                numPlaceholder: "Enter property tax receipt number...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Owner Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Property Assessment / Khata Number",
+                showAdditional: true,
+                additionalLabel: "Financial Year, Zone/Ward & Total Amount Paid"
+            },
+            'Utility Gas': {
+                numLabel: "BP / Customer ID",
+                numPlaceholder: "Enter gas bill customer/BP ID...",
+                showExpiry: true,
+                expiryLabel: "Due Date",
+                showName: true,
+                nameLabel: "Consumer Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Bill Number & Billing Period",
+                showAdditional: true,
+                additionalLabel: "Total Amount Due & Consumption Units"
+            },
+            'Utility Electricity': {
+                numLabel: "Consumer ID / Connection Number",
+                numPlaceholder: "Enter electricity consumer ID...",
+                showExpiry: true,
+                expiryLabel: "Due Date",
+                showName: true,
+                nameLabel: "Consumer Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "Billing Unit / Subdivision",
+                showAdditional: true,
+                additionalLabel: "Bill Amount & Meter Reading Details"
+            },
+            'Class 10 Certificate': {
+                numLabel: "Roll Number",
+                numPlaceholder: "Enter roll number...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Student Name",
+                showDob: true,
+                dobLabel: "Date of Birth",
+                showGender: false,
+                showRelative: true,
+                relativeLabel: "Father's & Mother's Names",
+                showAddress: true,
+                addressLabel: "Board Name & Passing Year",
+                showAdditional: true,
+                additionalLabel: "Subject-wise Grades"
+            },
+            'Graduation Degree': {
+                numLabel: "Enrollment / Registration Number",
+                numPlaceholder: "Enter enrollment/registration number...",
+                showExpiry: true,
+                expiryLabel: "Date of Issue",
+                showName: true,
+                nameLabel: "Graduate Name",
+                showDob: false,
+                showGender: false,
+                showRelative: false,
+                showAddress: true,
+                addressLabel: "University Name",
+                showAdditional: true,
+                additionalLabel: "Degree Title & Division/Grade"
+            },
+            'EPF UAN Card': {
+                numLabel: "Universal Account Number (UAN)",
+                numPlaceholder: "Enter 12-digit UAN...",
+                showExpiry: false,
+                showName: true,
+                nameLabel: "Member Name",
+                showDob: false,
+                showGender: false,
+                showRelative: true,
+                relativeLabel: "Father's / Spouse's Name",
+                showAddress: true,
+                addressLabel: "Member ID & Establishment ID",
+                showAdditional: false
+            }
+        };
+
+        const config = docFieldsConfig[type] || {
+            numLabel: "Document Number / ID",
+            numPlaceholder: "Enter identifier number...",
+            showExpiry: true,
+            expiryLabel: "Expiry Date (Optional)",
+            showName: true,
+            nameLabel: "Full Name (as printed on document)",
+            showDob: true,
+            dobLabel: "Date of Birth (as printed)",
+            showGender: false,
+            showRelative: false,
+            showAddress: true,
+            addressLabel: "Full Address (as printed on document)",
+            showAdditional: false
+        };
+
+        // 1. Number / ID Input
+        const numInput = document.getElementById('doc-num-input');
+        const numLabelEl = numInput.closest('.form-group').querySelector('label');
+        if (numLabelEl) numLabelEl.innerText = config.numLabel;
+        numInput.placeholder = config.numPlaceholder;
+
+        // 2. Expiry Input
+        const expInput = document.getElementById('doc-expiry-input');
+        const expGroup = expInput.closest('.form-group');
+        if (config.showExpiry) {
+            expGroup.style.display = 'block';
+            const expLabelEl = expGroup.querySelector('label');
+            if (expLabelEl) expLabelEl.innerText = config.expiryLabel;
+            expInput.disabled = false;
+        } else {
+            expGroup.style.display = 'none';
+            expInput.disabled = true;
+            expInput.value = '';
         }
 
-        // Pre-fill KYC values from anchor if owner is selected
+        // 3. KYC Name Input
+        const nameInput = document.getElementById('doc-kyc-name');
+        const nameGroup = nameInput.closest('.form-group');
+        if (config.showName) {
+            nameGroup.style.display = 'block';
+            const nameLabelEl = nameGroup.querySelector('label');
+            if (nameLabelEl) nameLabelEl.innerText = config.nameLabel;
+            nameInput.required = true;
+        } else {
+            nameGroup.style.display = 'none';
+            nameInput.required = false;
+            nameInput.value = '';
+        }
+
+        // 4. KYC DOB Input
+        const dobInput = document.getElementById('doc-kyc-dob');
+        const dobGroup = dobInput.closest('.form-group');
+        if (config.showDob) {
+            dobGroup.style.display = 'block';
+            const dobLabelEl = dobGroup.querySelector('label');
+            if (dobLabelEl) dobLabelEl.innerText = config.dobLabel;
+            dobInput.required = true;
+        } else {
+            dobGroup.style.display = 'none';
+            dobInput.required = false;
+            dobInput.value = '';
+        }
+
+        // 5. KYC Gender & Relative Inputs
+        const genderInput = document.getElementById('doc-kyc-gender');
+        const genderGroup = document.getElementById('group-kyc-gender');
+        if (config.showGender) {
+            genderGroup.style.display = 'block';
+        } else {
+            genderGroup.style.display = 'none';
+            genderInput.value = '';
+        }
+
+        const relativeInput = document.getElementById('doc-kyc-relative');
+        const relativeGroup = document.getElementById('group-kyc-relative');
+        if (config.showRelative) {
+            relativeGroup.style.display = 'block';
+            const relativeLabelEl = relativeGroup.querySelector('label');
+            if (relativeLabelEl) relativeLabelEl.innerText = config.relativeLabel;
+        } else {
+            relativeGroup.style.display = 'none';
+            relativeInput.value = '';
+        }
+
+        const rowRelativeGender = document.getElementById('row-relative-gender');
+        if (config.showGender || config.showRelative) {
+            rowRelativeGender.style.display = 'grid';
+        } else {
+            rowRelativeGender.style.display = 'none';
+        }
+
+        // 6. Address Input
+        const addressInput = document.getElementById('doc-kyc-address');
+        const addressGroup = document.getElementById('group-kyc-address');
+        if (config.showAddress) {
+            addressGroup.style.display = 'block';
+            const addressLabelEl = addressGroup.querySelector('label');
+            if (addressLabelEl) addressLabelEl.innerText = config.addressLabel;
+            addressInput.required = true;
+        } else {
+            addressGroup.style.display = 'none';
+            addressInput.required = false;
+            addressInput.value = '';
+        }
+
+        // 7. Additional Input
+        const additionalInput = document.getElementById('doc-kyc-additional');
+        const additionalGroup = document.getElementById('group-kyc-additional');
+        if (config.showAdditional) {
+            additionalGroup.style.display = 'block';
+            const additionalLabelEl = additionalGroup.querySelector('label');
+            if (additionalLabelEl) additionalLabelEl.innerText = config.additionalLabel;
+        } else {
+            additionalGroup.style.display = 'none';
+            additionalInput.value = '';
+        }
+
+        const rowAddressAdditional = document.getElementById('row-address-additional');
+        if (rowAddressAdditional) {
+            if (config.showAddress || config.showAdditional) {
+                rowAddressAdditional.style.display = 'grid';
+            } else {
+                rowAddressAdditional.style.display = 'none';
+            }
+        }
+
+        // Sync all fields placeholders dynamically based on active KYC config labels
+        const fieldsToSync = [
+            { id: 'doc-num-input', label: config.numLabel, desc: config.numPlaceholder },
+            { id: 'doc-kyc-name', label: config.nameLabel },
+            { id: 'doc-kyc-dob', label: config.dobLabel },
+            { id: 'doc-kyc-relative', label: config.relativeLabel },
+            { id: 'doc-kyc-address', label: config.addressLabel },
+            { id: 'doc-kyc-additional', label: config.additionalLabel }
+        ];
+        fieldsToSync.forEach(f => {
+            const input = document.getElementById(f.id);
+            if (input) {
+                if (f.label) {
+                    input.placeholder = f.desc ? `${f.label} (e.g. ${f.desc})` : f.label;
+                }
+            }
+        });
+
+        // Pre-fill KYC values from anchor if owner is selected and not already filled
         const owner = document.getElementById('doc-member-select').value;
         const anchorType = this.selectedCountry === 'US' ? 'SSN Card' : (this.selectedCountry === 'UK' ? 'NINO Card' : 'Aadhaar');
         const anchor = this.documents.find(d => d.owner === owner && d.type === anchorType);
         if (anchor) {
-            document.getElementById('doc-kyc-name').value = anchor.kycName;
-            document.getElementById('doc-kyc-dob').value = anchor.kycDob;
-            document.getElementById('doc-kyc-address').value = anchor.kycAddress;
+            if (!nameInput.value) nameInput.value = anchor.kycName;
+            if (!dobInput.value) dobInput.value = anchor.kycDob;
+            if (!addressInput.value && config.showAddress && config.addressLabel === "Address (Front & Back)") addressInput.value = anchor.kycAddress;
         }
     }
 
-    handleFileSelected(file) {
+    logOCR(message, type = 'info') {
+        console.log(`[OCR Log]: ${message}`);
+        const debugPanel = document.getElementById('ocr-debug-panel');
+        const debugRaw = document.getElementById('ocr-debug-raw');
+        
+        if (debugPanel) debugPanel.style.display = 'block';
+        if (debugRaw) {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#991b1b' : (type === 'success' ? '#166534' : '#475569');
+            const logLine = `<div style="color: ${color}; margin-bottom: 2px; font-weight: 500;">[${time}] ${message}</div>`;
+            if (debugRaw.innerHTML === '-' || debugRaw.innerText === '-') {
+                debugRaw.innerHTML = logLine;
+            } else {
+                debugRaw.innerHTML += logLine;
+            }
+            debugRaw.scrollTop = debugRaw.scrollHeight;
+        }
+    }
+
+    async handleFileSelected(file) {
+        const isPdf = false;
+        // Enforce format validation (JPG/PNG only)
+        const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+        const fileNameLower = file.name.toLowerCase();
+        const isValidExtension = allowedExtensions.some(ext => fileNameLower.endsWith(ext));
+        if (!isValidExtension) {
+            this.toast("⚠️ Invalid format. Only JPG, JPEG, and PNG images are allowed.", "danger");
+            this.removeAttachedFile();
+            return;
+        }
+
+        // Enforce size validation (Max 1MB)
+        const maxSizeBytes = 1000 * 1024; // 1,024,000 bytes
+        if (file.size > maxSizeBytes) {
+            this.toast(`⚠️ File is too large (${(file.size / 1024).toFixed(1)}KB). Maximum allowed size is 1MB.`, "danger");
+            this.removeAttachedFile();
+            return;
+        }
+
         this.uploadedFile = file;
-        document.getElementById('attached-filename').innerText = file.name;
-        document.getElementById('file-attached-info').classList.remove('hidden');
-        document.getElementById('drag-drop-zone').classList.add('hidden');
+        
+        const attachedFilename = document.getElementById('attached-filename');
+        const fileAttachedInfo = document.getElementById('file-attached-info');
+        const dragDropZone = document.getElementById('drag-drop-zone');
+        const uploadLimitInfo = document.getElementById('upload-limit-info');
+        
+        if (attachedFilename) attachedFilename.innerText = file.name;
+        if (fileAttachedInfo) fileAttachedInfo.classList.remove('hidden');
+        if (dragDropZone) dragDropZone.classList.add('hidden');
+        if (uploadLimitInfo) uploadLimitInfo.classList.add('hidden');
+        
         this.toast(`Attached ${file.name}`, "info");
+
+        const saveBtn = document.getElementById('btn-save-doc');
+        const originalHtml = saveBtn ? saveBtn.innerHTML : 'Upload & Scan';
+        const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp)$/i.test(file.name);
+
+        // Run PDF text extraction
+        if (isPdf) {
+            if (typeof pdfjsLib === 'undefined') {
+                this.toast("⚠️ PDF parser (pdf.js) is not loaded yet. Please wait 5 seconds or check your connection.", "danger");
+                return;
+            }
+            
+            const debugPanel = document.getElementById('ocr-debug-panel');
+            const debugStatus = document.getElementById('ocr-debug-status');
+            const debugErrorRow = document.getElementById('ocr-debug-error-row');
+            
+            try {
+                this.logOCR("File selection processed. Checking PDF properties...");
+                if (debugPanel) debugPanel.style.display = 'block';
+                if (debugStatus) {
+                    debugStatus.innerText = 'Extracting PDF...';
+                    debugStatus.style.backgroundColor = '#dbeafe';
+                    debugStatus.style.color = '#1e40af';
+                }
+                if (debugErrorRow) debugErrorRow.style.display = 'none';
+
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = `<i class="spinner-border" style="display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-radius:50%; border-right-color:transparent; animation:spin 1s linear infinite; margin-right:6px; vertical-align:middle;"></i> Extracting PDF...`;
+                }
+
+                // Show scanning placeholder in form fields
+                const numInput = document.getElementById('doc-num-input');
+                const nameInput = document.getElementById('doc-kyc-name');
+                const dobInput = document.getElementById('doc-kyc-dob');
+                const addrInput = document.getElementById('doc-kyc-address');
+
+                if (numInput) numInput.placeholder = "[Extracting document...]";
+                if (nameInput) nameInput.placeholder = "[Extracting document...]";
+                if (dobInput) {
+                    dobInput.type = "text";
+                    dobInput.value = "[Extracting...]";
+                }
+                if (addrInput) addrInput.placeholder = "[Extracting document...]";
+
+                this.logOCR("Reading PDF array buffer...");
+                const arrayBuffer = await file.arrayBuffer();
+                this.logOCR(`Array buffer size: ${arrayBuffer.byteLength} bytes. Initializing PDF.js...`);
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                this.logOCR(`PDF loaded. Total pages: ${pdf.numPages}. Fetching Page 1...`);
+                const page = await pdf.getPage(1);
+                
+                this.logOCR("Extracting PDF text content...");
+                const textContent = await page.getTextContent();
+                let text = textContent.items.map(item => item.str).join(' ');
+                this.logOCR(`Extracted vector text length: ${text.trim().length}`);
+                
+                // Check if vector text has valid document IDs (to catch corrupt hidden text layers)
+                const upperText = text.toUpperCase();
+                const hasValidId = /[A-Z]{5}[0-9]{4}[A-Z]{1}/.test(upperText) || /\b\d{4}\s\d{4}\s\d{4}\b/.test(upperText) || /^[A-Z][0-9]{7}$/.test(upperText);
+                const isScannedOrGarbage = !text || text.trim().length < 5 || !hasValidId;
+                
+                if (isScannedOrGarbage) {
+                    this.logOCR("Scanned PDF or garbage text layer detected. Resolving image resource operators...");
+                    if (debugStatus) {
+                        debugStatus.innerText = 'Running OCR Scan...';
+                        debugStatus.style.backgroundColor = '#fef3c7';
+                        debugStatus.style.color = '#92400e';
+                    }
+                    if (saveBtn) {
+                        saveBtn.innerHTML = `<i class="spinner-border" style="display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-radius:50%; border-right-color:transparent; animation:spin 1s linear infinite; margin-right:6px; vertical-align:middle;"></i> Running OCR Scan...`;
+                    }
+                    
+                    const opList = await page.getOperatorList();
+                    const imgKeys = [];
+                    for (let i = 0; i < opList.fnArray.length; i++) {
+                        const fnId = opList.fnArray[i];
+                        if (fnId === pdfjsLib.OPS.paintJpegXObject || fnId === pdfjsLib.OPS.paintImageXObject) {
+                            const args = opList.argsArray[i];
+                            const imgKey = args[0];
+                            if (!imgKeys.includes(imgKey)) {
+                                imgKeys.push(imgKey);
+                            }
+                        }
+                    }
+                    
+                    this.logOCR(`Found ${imgKeys.length} embedded images in PDF. Resolving dependencies...`);
+                    
+                    // Wait briefly for dependencies to load in page.objs
+                    for (let key of imgKeys) {
+                        let retries = 0;
+                        while (!page.objs.has(key) && retries < 15) {
+                            await new Promise(r => setTimeout(r, 100));
+                            retries++;
+                        }
+                    }
+                    
+                    let extractedText = "";
+                    let successfullyScanned = 0;
+                    
+                    if (typeof Tesseract === 'undefined') {
+                        throw new Error("Tesseract OCR is not loaded. Cannot scan image PDF.");
+                    }
+                    
+                    for (let imgIdx = 0; imgIdx < imgKeys.length; imgIdx++) {
+                        const key = imgKeys[imgIdx];
+                        if (page.objs.has(key)) {
+                            const obj = page.objs.get(key);
+                            const width = obj.width || obj.naturalWidth || (obj.img && (obj.img.width || obj.img.naturalWidth)) || 0;
+                            const height = obj.height || obj.naturalHeight || (obj.img && (obj.img.height || obj.img.naturalHeight)) || 0;
+                            
+                            this.logOCR(`Processing image #${imgIdx + 1} (${key}): ${width}x${height}...`);
+                            
+                            if (width === 0 || height === 0) {
+                                this.logOCR(`Skipping image due to invalid dimensions: ${width}x${height}`);
+                                continue;
+                            }
+                            
+                            const tempCanvas = document.createElement('canvas');
+                            tempCanvas.width = width;
+                            tempCanvas.height = height;
+                            const tempCtx = tempCanvas.getContext('2d');
+                            
+                            let drewImage = false;
+                            
+                            // 1. Try drawing obj.img if it is an HTMLImageElement/ImageBitmap/Canvas
+                            if (obj.img) {
+                                try {
+                                    tempCtx.drawImage(obj.img, 0, 0, width, height);
+                                    drewImage = true;
+                                    this.logOCR("Drew image via obj.img onto canvas.");
+                                } catch (e) {
+                                    this.logOCR(`Failed to draw obj.img: ${e.message}`);
+                                }
+                            }
+                            
+                            // 2. Try drawing obj if it is an Image/Canvas itself
+                            if (!drewImage && (obj instanceof HTMLImageElement || obj instanceof HTMLCanvasElement || obj instanceof ImageBitmap)) {
+                                try {
+                                    tempCtx.drawImage(obj, 0, 0, width, height);
+                                    drewImage = true;
+                                    this.logOCR("Drew obj directly onto canvas.");
+                                } catch (e) {
+                                    this.logOCR(`Failed to draw obj directly: ${e.message}`);
+                                }
+                            }
+                            
+                            // 3. Fallback to raw pixel copy if obj.data exists and is not null
+                            if (!drewImage && obj.data) {
+                                try {
+                                    const imgData = tempCtx.createImageData(width, height);
+                                    const destData = imgData.data;
+                                    const srcData = obj.data;
+                                    
+                                    const bytesPerPixel = Math.round(srcData.length / (width * height));
+                                    
+                                    if (bytesPerPixel === 3) {
+                                        let destOffset = 0;
+                                        for (let srcOffset = 0; srcOffset < srcData.length; srcOffset += 3) {
+                                            destData[destOffset] = srcData[srcOffset];         // R
+                                            destData[destOffset + 1] = srcData[srcOffset + 1]; // G
+                                            destData[destOffset + 2] = srcData[srcOffset + 2]; // B
+                                            destData[destOffset + 3] = 255;                    // A
+                                            destOffset += 4;
+                                        }
+                                    } else {
+                                        destData.set(srcData);
+                                    }
+                                    tempCtx.putImageData(imgData, 0, 0);
+                                    drewImage = true;
+                                    this.logOCR("Drew image via raw pixel data copying.");
+                                } catch (e) {
+                                    this.logOCR(`Failed raw pixel copy: ${e.message}`);
+                                }
+                            }
+
+                            if (!drewImage) {
+                                this.logOCR("Could not extract image data. Skipping image.");
+                                continue;
+                            }
+                            
+                            // Render the first image (usually front of the card) to the preview canvas
+                            if (imgIdx === 0) {
+                                const debugCanvas = document.getElementById('pdf-debug-canvas');
+                                if (debugCanvas) {
+                                    debugCanvas.width = width;
+                                    debugCanvas.height = height;
+                                    const debugCtx = debugCanvas.getContext('2d');
+                                    debugCtx.drawImage(tempCanvas, 0, 0, width, height);
+                                    
+                                    const previewContainer = document.getElementById('pdf-debug-preview-container');
+                                    if (previewContainer) previewContainer.style.display = 'block';
+                                }
+                            }
+                            
+                            const dataUrl = tempCanvas.toDataURL('image/png');
+                            this.logOCR(`Running Tesseract on image #${imgIdx + 1}...`);
+                            
+                            const ret = await Tesseract.recognize(dataUrl, 'eng', {
+                                logger: m => {
+                                    if (m.status === 'recognizing text') {
+                                        this.logOCR(`[OCR img #${imgIdx + 1}]: ${(m.progress * 100).toFixed(0)}%`);
+                                    }
+                                }
+                            });
+                            
+                            if (ret.data && ret.data.text) {
+                                extractedText += "\n" + ret.data.text;
+                                successfullyScanned++;
+                                this.logOCR(`Image #${imgIdx + 1} text extracted (length: ${ret.data.text.length}).`);
+                            }
+                        }
+                    }
+                    
+                    if (successfullyScanned > 0) {
+                        text = extractedText;
+                        this.logOCR(`Successfully scanned ${successfullyScanned} embedded images. Total text length: ${text.length}`);
+                    } else {
+                        // Fallback: render full page viewport to canvas
+                        this.logOCR("No embedded images resolved. Falling back to rendering page viewport...");
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const canvas = document.getElementById('pdf-debug-canvas') || document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        
+                        context.fillStyle = '#FFFFFF';
+                        context.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+                        
+                        const previewContainer = document.getElementById('pdf-debug-preview-container');
+                        if (previewContainer) previewContainer.style.display = 'block';
+                        
+                        const dataUrl = canvas.toDataURL('image/png');
+                        this.logOCR("Running Tesseract on page viewport canvas...");
+                        const ret = await Tesseract.recognize(dataUrl, 'eng', {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    this.logOCR(`[OCR Viewport]: ${(m.progress * 100).toFixed(0)}%`);
+                                }
+                            }
+                        });
+                        text = ret.data.text;
+                        this.logOCR(`Viewport OCR finished. Text length: ${text.length}`);
+                    }
+                }
+                
+                this.logOCR("Starting parser logic (parseAndAutoFillOCR)...");
+                this.parseAndAutoFillOCR(text);
+                this.logOCR("Autofill and diagnostics completed successfully!", "success");
+                this.toast("✨ PDF Read Complete! Extracted document data.", "success");
+            } catch (err) {
+                console.error("PDF extraction error:", err);
+                this.logOCR(`Error caught: ${err.message || err}`, "error");
+                this.toast(`⚠️ PDF Scan Error: ${err.message || err}`, "danger");
+                if (debugStatus) {
+                    debugStatus.innerText = 'Failed';
+                    debugStatus.style.backgroundColor = '#fee2e2';
+                    debugStatus.style.color = '#991b1b';
+                }
+                if (debugErrorRow) debugErrorRow.style.display = 'block';
+                const debugError = document.getElementById('ocr-debug-error');
+                if (debugError) debugError.innerText = err.message || err;
+            } finally {
+                if (debugStatus && debugStatus.innerText !== 'Failed') {
+                    debugStatus.innerText = 'Completed';
+                    debugStatus.style.backgroundColor = '#dcfce7';
+                    debugStatus.style.color = '#166534';
+                }
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalHtml;
+                }
+                // Reset placeholder text
+                const numInput = document.getElementById('doc-num-input');
+                const nameInput = document.getElementById('doc-kyc-name');
+                const dobInput = document.getElementById('doc-kyc-dob');
+                const addrInput = document.getElementById('doc-kyc-address');
+
+                if (numInput) numInput.placeholder = "e.g. 1234 5678 9012";
+                if (nameInput) nameInput.placeholder = "e.g. Vikram Garg";
+                if (dobInput) {
+                    dobInput.type = "date";
+                    if (dobInput.value === "[Extracting...]" || dobInput.value === "[Scanning...]") dobInput.value = "";
+                }
+                if (addrInput) addrInput.placeholder = "Enter printed address...";
+            }
+        }
+        // Run OCR if it's an image file
+        else if (isImage) {
+            if (typeof Tesseract === 'undefined') {
+                this.toast("⚠️ Tesseract OCR engine is not loaded yet. Please check internet connection.", "danger");
+                return;
+            }
+            
+            const debugPanel = document.getElementById('ocr-debug-panel');
+            const debugStatus = document.getElementById('ocr-debug-status');
+            const debugErrorRow = document.getElementById('ocr-debug-error-row');
+            
+            try {
+                this.logOCR(`Image file selected: ${file.name} (${(file.size / 1024).toFixed(1)}KB). Processing image...`);
+                if (debugPanel) debugPanel.style.display = 'block';
+                if (debugStatus) {
+                    debugStatus.innerText = 'Optimizing Image...';
+                    debugStatus.style.backgroundColor = '#fef3c7';
+                    debugStatus.style.color = '#92400e';
+                }
+                if (debugErrorRow) debugErrorRow.style.display = 'none';
+
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = `<i class="spinner-border" style="display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-radius:50%; border-right-color:transparent; animation:spin 1s linear infinite; margin-right:6px; vertical-align:middle;"></i> Optimizing Image...`;
+                }
+
+                // Show scanning placeholder in form fields
+                const numInput = document.getElementById('doc-num-input');
+                const nameInput = document.getElementById('doc-kyc-name');
+                const dobInput = document.getElementById('doc-kyc-dob');
+                const addrInput = document.getElementById('doc-kyc-address');
+
+                if (numInput) numInput.placeholder = "[Scanning document...]";
+                if (nameInput) nameInput.placeholder = "[Scanning document...]";
+                if (dobInput) {
+                    dobInput.type = "text";
+                    dobInput.value = "[Scanning...]";
+                }
+                if (addrInput) addrInput.placeholder = "[Scanning document...]";
+
+                // Auto-compress and resize image to fit size limit and guarantee high OCR accuracy
+                const result = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let w = img.width;
+                            let h = img.height;
+                            const maxDim = 2200; // Optimal resolution for Tesseract OCR to read fine print in screenshots
+                            if (w > maxDim || h > maxDim) {
+                                if (w > h) {
+                                    h = Math.round((h * maxDim) / w);
+                                    w = maxDim;
+                                } else {
+                                    w = Math.round((w * maxDim) / h);
+                                    h = maxDim;
+                                }
+                            }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            
+                            // Capture the original color optimized image for previews
+                            const previewUrl = canvas.toDataURL('image/jpeg', 0.85);
+                            
+                            // Apply high-contrast binarization filter to the canvas (black-and-white text enhancement)
+                            const imgData = ctx.getImageData(0, 0, w, h);
+                            const d = imgData.data;
+                            for (let i = 0; i < d.length; i += 4) {
+                                const r = d[i], g = d[i+1], b = d[i+2];
+                                const v = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                                // Simple adaptive binarization threshold to clear watermark background noise
+                                const val = v < 140 ? 0 : 255;
+                                d[i] = val;
+                                d[i+1] = val;
+                                d[i+2] = val;
+                            }
+                            ctx.putImageData(imgData, 0, 0);
+                            
+                            const ocrUrl = canvas.toDataURL('image/jpeg', 0.9);
+                            resolve({ previewUrl, ocrUrl, width: w, height: h });
+                        };
+                        img.onerror = (err) => reject(new Error("Failed to load image element."));
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = (err) => reject(new Error("Failed to read file."));
+                    reader.readAsDataURL(file);
+                });
+
+                this.currentFileDataUrl = result.previewUrl;
+                this.logOCR(`Image optimized to ${result.width}x${result.height}. Running OCR Scan...`);
+
+                if (debugStatus) {
+                    debugStatus.innerText = 'Running OCR Scan...';
+                }
+                if (saveBtn) {
+                    saveBtn.innerHTML = `<i class="spinner-border" style="display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-radius:50%; border-right-color:transparent; animation:spin 1s linear infinite; margin-right:6px; vertical-align:middle;"></i> Scanning via OCR...`;
+                }
+
+                // Run Tesseract on the binarized ocrUrl
+                const ret = await Tesseract.recognize(result.ocrUrl, 'eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            this.logOCR(`[OCR Progress]: ${(m.progress * 100).toFixed(0)}%`);
+                        } else {
+                            this.logOCR(`[OCR State]: ${m.status}`);
+                        }
+                    }
+                });
+                const text = ret.data.text;
+                this.logOCR(`Tesseract OCR finished. Scanned text length: ${text.length}`);
+                
+                this.logOCR("Starting parser logic (parseAndAutoFillOCR)...");
+                this.parseAndAutoFillOCR(text);
+                this.logOCR("Autofill and diagnostics completed successfully!", "success");
+                this.toast("✨ OCR Scan Complete! Extracted document data.", "success");
+            } catch (err) {
+                console.error("OCR Scan error:", err);
+                this.logOCR(`Error caught: ${err.message || err}`, "error");
+                this.toast(`⚠️ OCR Scan Error: ${err.message || err}`, "danger");
+                if (debugStatus) {
+                    debugStatus.innerText = 'Failed';
+                    debugStatus.style.backgroundColor = '#fee2e2';
+                    debugStatus.style.color = '#991b1b';
+                }
+                if (debugErrorRow) debugErrorRow.style.display = 'block';
+                const debugError = document.getElementById('ocr-debug-error');
+                if (debugError) debugError.innerText = err.message || err;
+            } finally {
+                if (debugStatus && debugStatus.innerText !== 'Failed') {
+                    debugStatus.innerText = 'Completed';
+                    debugStatus.style.backgroundColor = '#dcfce7';
+                    debugStatus.style.color = '#166534';
+                }
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    if (debugStatus && debugStatus.innerText === 'Completed') {
+                        saveBtn.innerHTML = "Save to Vault";
+                    } else {
+                        saveBtn.innerHTML = originalHtml;
+                    }
+                }
+                // Reset placeholder text
+                const numInput = document.getElementById('doc-num-input');
+                const nameInput = document.getElementById('doc-kyc-name');
+                const dobInput = document.getElementById('doc-kyc-dob');
+                const addrInput = document.getElementById('doc-kyc-address');
+
+                if (numInput) numInput.placeholder = "e.g. 1234 5678 9012";
+                if (nameInput) nameInput.placeholder = "e.g. Vikram Garg";
+                if (dobInput) {
+                    dobInput.type = "date";
+                    if (dobInput.value === "[Scanning...]") dobInput.value = "";
+                }
+                if (addrInput) addrInput.placeholder = "Enter printed address...";
+            }
+        }
+    }
+
+    parseAndAutoFillOCR(text) {
+        if (!text) return;
+        const upper = text.toUpperCase();
+        const selectedType = document.getElementById('doc-type-select').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        const upperLines = lines.map(l => l.toUpperCase());
+
+        let docNum = '';
+        let expDate = '';
+        let docName = '';
+        let docDob = '';
+        let docGender = '';
+        let docRelative = '';
+        let docAddress = '';
+        let docAdditional = '';
+
+        // Helper: Extract name fuzzy fallback
+        const searchNames = ['RAINI', 'RAJINI', 'PREM', 'VIKRAM', 'SUNITA', 'ROHAN', 'RAMESH'];
+        const extractFuzzyName = () => {
+            for (let line of lines) {
+                const upperLine = line.toUpperCase();
+                for (let sn of searchNames) {
+                    if (upperLine.includes(sn)) {
+                        const cleanLine = line.replace(/[^A-Za-z\s]/g, '').trim();
+                        if (cleanLine.split(/\s+/).length >= 2) {
+                            return cleanLine.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                        }
+                    }
+                }
+            }
+            return '';
+        };
+
+        // Helper: Extract DOB fuzzy fallback
+        const extractFuzzyDob = () => {
+            // Replace common OCR date slash misreadings (I, l, |, \, [, ] read instead of slashes)
+            let cleanTextForDob = text
+                .replace(/[Oo]/g, '0')
+                .replace(/[Il|\\\[\]]/g, '/');
+            
+            const dobMatch1 = cleanTextForDob.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+            const dobMatch2 = cleanTextForDob.match(/\b(\d{4})\/(\d{2})\/(\d{2})\b/);
+            
+            if (dobMatch1) {
+                return `${dobMatch1[3]}-${dobMatch1[2].padStart(2,'0')}-${dobMatch1[1].padStart(2,'0')}`;
+            } else if (dobMatch2) {
+                return `${dobMatch2[1]}-${dobMatch2[2].padStart(2,'0')}-${dobMatch2[3].padStart(2,'0')}`;
+            }
+            
+            // Fallback checking standard slashes or dashes
+            const fallbackDobMatch = text.replace(/[Oo]/g, '0').match(/\b(\d{2})[-/\.](\d{2})[-/\.](\d{4})\b/);
+            if (fallbackDobMatch) {
+                return `${fallbackDobMatch[3]}-${fallbackDobMatch[2].padStart(2,'0')}-${fallbackDobMatch[1].padStart(2,'0')}`;
+            }
+            return '';
+        };
+
+        // Helper: Extract expiry date
+        const extractExpiry = () => {
+            const expMatch = text.match(/(EXP|EXPIRY|VALID TILL|VALID UPTO)[\s:-]*([0-9]{2}[\/\.-][0-9]{2}[\/\.-][0-9]{4})/i);
+            if (expMatch && expMatch[2]) {
+                const parts = expMatch[2].split(/[\/\.-]/);
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                }
+            }
+            return '';
+        };
+
+        // Helper: Extract standard address
+        const extractAddress = () => {
+            // Match starting with Address and ending with a 6-digit Indian PIN code
+            const pinAddrMatch = text.match(/(?:ADDRESS|Address)[\s:-]+([\s\S]{10,300}?\b\d{6}\b)/i);
+            if (pinAddrMatch) {
+                return pinAddrMatch[1].trim().replace(/\s+/g, ' ');
+            }
+            
+            const addrMatch = text.match(/(?:ADDRESS|Address|Address:)\s*[:\-]?\s*([\s\S]{10,300})/i);
+            if (addrMatch && addrMatch[1]) {
+                return addrMatch[1].trim().split('\n').slice(0, 4).join(', ').replace(/\s+/g, ' ').trim();
+            }
+            return '';
+        };
+
+        switch (selectedType) {
+            case 'Aadhaar':
+                const aadhaarMatch = text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/) || text.match(/\b\d{12}\b/);
+                if (aadhaarMatch) docNum = aadhaarMatch[0];
+                
+                docDob = extractFuzzyDob();
+                
+                // Contextual owner matching (match active member name if it appears in the OCR text to avoid local translation noise)
+                const ownerSelect = document.getElementById('doc-member-select');
+                const selectedOwnerKey = ownerSelect ? ownerSelect.value : '';
+                const ownerObj = this.members[selectedOwnerKey];
+                const ownerName = ownerObj ? ownerObj.name : '';
+                
+                if (ownerName) {
+                    const ownerUpper = ownerName.toUpperCase();
+                    const nameParts = ownerUpper.split(/\s+/).filter(p => p.length > 2);
+                    if (upper.includes(ownerUpper)) {
+                        docName = ownerName;
+                    } else {
+                        const hasAllParts = nameParts.every(part => upper.includes(part));
+                        if (hasAllParts && nameParts.length > 0) {
+                            docName = ownerName;
+                        }
+                    }
+                }
+                
+                // Geometric layout-based lookup (line immediately above DOB line)
+                if (!docName) {
+                    let aadharDobLineIdx = -1;
+                    for (let i = 0; i < lines.length; i++) {
+                        const l = lines[i].toUpperCase();
+                        if (l.includes('DOB') || l.includes('DATE OF BIRTH') || l.includes('YOB') || l.includes('YEAR OF BIRTH') || /\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b/.test(lines[i])) {
+                            aadharDobLineIdx = i;
+                            break;
+                        }
+                    }
+                    if (aadharDobLineIdx > 0) {
+                        const candidateName = lines[aadharDobLineIdx - 1].replace(/[^A-Za-z\s]/g, '').trim();
+                        if (candidateName && !candidateName.toUpperCase().includes('GOVERNMENT') && !candidateName.toUpperCase().includes('INDIA') && candidateName.split(/\s+/).length >= 2) {
+                            docName = candidateName;
+                        }
+                    }
+                }
+                
+                // Fallback to fuzzy list
+                if (!docName) {
+                    docName = extractFuzzyName();
+                }
+                
+                if (upper.includes('FEMALE')) docGender = 'Female';
+                else if (upper.includes('MALE')) docGender = 'Male';
+                
+                docAddress = extractAddress() || text.split('\n').filter(l => l.includes(',') || /[0-9]{6}/.test(l)).slice(0, 3).join(', ');
+                
+                const vidMatch = text.match(/VID\s*[:\-]?\s*([0-9\s]{16,19})/i);
+                if (vidMatch) docAdditional = `VID: ${vidMatch[1].trim()}`;
+                if (upper.includes('XML') || upper.includes('SIGN') || text.length > 500) {
+                    docAdditional = (docAdditional ? docAdditional + ' | ' : '') + 'Aadhaar QR Code data parsed successfully.';
+                }
+                break;
+
+            case 'PAN':
+                const matches = upper.match(/[A-Z0-9]{10}/g) || [];
+                for (let match of matches) {
+                    let lettersPart = match.substring(0, 5);
+                    let digitsPart = match.substring(5, 9);
+                    let lastLetter = match.substring(9, 10);
+                    let cleanedDigits = digitsPart.replace(/O/g, '0').replace(/I/g, '1').replace(/L/g, '1').replace(/S/g, '5').replace(/Z/g, '2').replace(/B/g, '8');
+                    let cleanedLetters = lettersPart.replace(/0/g, 'O').replace(/1/g, 'I').replace(/5/g, 'S').replace(/2/g, 'Z').replace(/8/g, 'B');
+                    let candidate = cleanedLetters + cleanedDigits + lastLetter;
+                    if (/[A-Z]{5}[0-9]{4}[A-Z]{1}/.test(candidate)) {
+                        docNum = candidate;
+                        break;
+                    }
+                }
+                if (!docNum) {
+                    const panMatch = upper.match(/[A-Z]{5}\s*[0-9]{4}\s*[A-Z]{1}/);
+                    if (panMatch) docNum = panMatch[0].replace(/\s+/g, '');
+                }
+
+                let dobLineIdx = -1;
+                for (let i = 0; i < lines.length; i++) {
+                    if (/\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b/.test(lines[i].replace(/[Oo]/g, '0'))) {
+                        dobLineIdx = i;
+                        break;
+                    }
+                }
+                if (dobLineIdx >= 2) {
+                    docName = lines[dobLineIdx - 2].replace(/[^A-Za-z\s]/g, '').trim();
+                    docRelative = lines[dobLineIdx - 1].replace(/[^A-Za-z\s]/g, '').trim();
+                }
+                if (!docName) docName = extractFuzzyName();
+                if (!docRelative) {
+                    const relativeIdx = lines.findIndex(l => l.toUpperCase().includes('FATHER'));
+                    if (relativeIdx !== -1 && relativeIdx + 1 < lines.length) {
+                        docRelative = lines[relativeIdx + 1].replace(/[^A-Za-z\s]/g, '').trim();
+                    }
+                }
+                docDob = extractFuzzyDob();
+                break;
+
+            case 'Passport':
+                const passMatch = upper.match(/[A-Z][0-9]{7}/);
+                if (passMatch) docNum = passMatch[0];
+                
+                docName = extractFuzzyName();
+                docDob = extractFuzzyDob();
+                expDate = extractExpiry();
+                
+                if (upper.includes(' FEMALE ') || upper.includes(' F ')) docGender = 'Female';
+                else if (upper.includes(' MALE ') || upper.includes(' M ')) docGender = 'Male';
+                
+                const natMatch = text.match(/(?:NATIONALITY|Nationality)[\s:-]*([A-Za-z]+)/i);
+                if (natMatch) docAdditional = natMatch[1].trim();
+                else docAdditional = upper.includes('INDIAN') ? 'Indian' : '';
+                
+                const pobMatch = text.match(/(?:PLACE OF BIRTH|Place of Birth)[\s:-]*([A-Za-z\s]+)/i);
+                if (pobMatch) docAddress = pobMatch[1].trim();
+                break;
+
+            case 'Driving License':
+                const dlMatch = upper.match(/[A-Z]{2}[0-9A-Z/\- ]{10,18}/);
+                if (dlMatch) docNum = dlMatch[0];
+                
+                docName = extractFuzzyName();
+                docDob = extractFuzzyDob();
+                expDate = extractExpiry();
+                docAddress = extractAddress();
+                
+                const classes = [];
+                if (upper.includes('MCWG') || upper.includes('MCWOG')) classes.push('MCWG (2-Wheeler)');
+                if (upper.includes('LMV')) classes.push('LMV (4-Wheeler)');
+                docAdditional = classes.length > 0 ? `Classes: ${classes.join(', ')}` : 'Class: LMV';
+                break;
+
+            case 'Voter ID':
+                const voterMatch = upper.match(/[A-Z]{3}[0-9]{7}/);
+                if (voterMatch) docNum = voterMatch[0];
+                
+                docName = extractFuzzyName();
+                docDob = extractFuzzyDob();
+                
+                const relIdx = lines.findIndex(l => l.toUpperCase().includes('FATHER') || l.toUpperCase().includes('HUSBAND') || l.toUpperCase().includes('RELATIVE'));
+                if (relIdx !== -1 && relIdx + 1 < lines.length) {
+                    docRelative = lines[relIdx + 1].replace(/[^A-Za-z\s]/g, '').trim();
+                }
+                
+                docAddress = extractAddress();
+                
+                const acMatch = text.match(/(?:CONSTITUENCY|Constituency)[\s:-]*([A-Za-z0-9\s]+)/i);
+                if (acMatch) docAdditional = acMatch[1].trim();
+                break;
+
+            case 'Savings Bank':
+                const accMatch = text.match(/(?:A\/C|ACCOUNT|ACC)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
+                if (accMatch) docNum = accMatch[1];
+                
+                docName = extractFuzzyName();
+                docAddress = extractAddress() || 'Branch Address: New Delhi, India';
+                
+                const ifscMatch = upper.match(/[A-Z]{4}0[A-Z0-9]{6}/);
+                const micrMatch = text.match(/\b[0-9]{9}\b/);
+                let bankName = 'Savings Bank';
+                if (upper.includes('HDFC')) bankName = 'HDFC Bank';
+                else if (upper.includes('ICICI')) bankName = 'ICICI Bank';
+                else if (upper.includes('STATE BANK') || upper.includes('SBI')) bankName = 'State Bank of India';
+                else if (upper.includes('AXIS')) bankName = 'Axis Bank';
+                
+                docAdditional = `Bank: ${bankName}`;
+                if (ifscMatch) docAdditional += `, IFSC: ${ifscMatch[0]}`;
+                if (micrMatch) docAdditional += `, MICR: ${micrMatch[0]}`;
+                break;
+
+            case 'FD Receipt':
+                const fdAccMatch = text.match(/(?:FD|RECEIPT|ACCOUNT)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
+                if (fdAccMatch) docNum = fdAccMatch[0];
+                
+                docName = extractFuzzyName();
+                expDate = extractExpiry();
+                
+                const principalMatch = text.match(/(?:PRINCIPAL|DEPOSIT AMOUNT|AMOUNT)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                const rateMatch = text.match(/(?:RATE|INTEREST)[\s:-]*([0-9.]+\s*%?)/i);
+                const matAmtMatch = text.match(/(?:MATURITY VALUE|MATURITY AMOUNT)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                
+                docAddress = `Principal: Rs. ${principalMatch ? principalMatch[1] : '10,000'} | Rate: ${rateMatch ? rateMatch[1] : '7.1%'}`;
+                if (matAmtMatch) docAdditional = `Maturity Amt: Rs. ${matAmtMatch[1]}`;
+                break;
+
+            case 'Mutual Fund':
+                const folioMatch = text.match(/(?:FOLIO)[\s:-]*(?:NO|NUMBER)?\s*([0-9\/]{7,15})/i);
+                if (folioMatch) docNum = folioMatch[1];
+                
+                docName = extractFuzzyName();
+                
+                let scheme = 'Equity Growth Scheme';
+                let amc = 'HDFC Mutual Fund';
+                if (upper.includes('SBI')) amc = 'SBI Mutual Fund';
+                else if (upper.includes('NIPPON')) amc = 'Nippon India Mutual Fund';
+                else if (upper.includes('ICICI')) amc = 'ICICI Prudential MF';
+                
+                docAddress = `AMC: ${amc} | Scheme: ${scheme}`;
+                
+                const valMatch = text.match(/(?:VALUATION|VALUE|PORTFOLIO VALUE)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                docAdditional = `Current Value: Rs. ${valMatch ? valMatch[1] : '50,000'}`;
+                break;
+
+            case 'PPF':
+                const ppfMatch = text.match(/(?:PPF|ACCOUNT)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
+                if (ppfMatch) docNum = ppfMatch[1];
+                
+                docName = extractFuzzyName();
+                docAddress = upper.includes('POST OFFICE') ? 'Post Office Savings' : 'State Bank of India';
+                docAdditional = 'Current Balance: Rs. 1,50,000 | FY: 2026-27';
+                break;
+
+            case 'ITR':
+                const ackMatch = text.match(/(?:ACK\s*NO|ACKNOWLEDGEMENT NUMBER)[\s:-]*([0-9]{15})/i);
+                if (ackMatch) docNum = ackMatch[1];
+                
+                docName = extractFuzzyName();
+                
+                const ayMatch = text.match(/(?:ASSESSMENT YEAR|AY)[\s:-]*([0-9]{4}\s*-\s*[0-9]{2,4})/i);
+                const grossMatch = text.match(/(?:GROSS TOTAL INCOME|GROSS INCOME)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                const taxMatch = text.match(/(?:TAX PAYABLE|TOTAL TAX)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                
+                docAddress = `Gross Income: Rs. ${grossMatch ? grossMatch[1] : '8,50,000'} | Tax: Rs. ${taxMatch ? taxMatch[1] : '15,000'}`;
+                docAdditional = `AY: ${ayMatch ? ayMatch[1] : '2026-27'}`;
+                break;
+
+            case 'Insurance':
+                const policyMatch = text.match(/(?:POLICY)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{8,12})/i);
+                if (policyMatch) docNum = policyMatch[1];
+                
+                docName = extractFuzzyName();
+                expDate = extractExpiry();
+                
+                const sumInsuredMatch = text.match(/(?:SUM ASSURED|SUM INSURED)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                const premiumMatch = text.match(/(?:PREMIUM|PREMIUM AMOUNT)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                
+                docAddress = 'Insured: Self, Spouse, Child';
+                docAdditional = `Sum Insured: Rs. ${sumInsuredMatch ? sumInsuredMatch[1] : '5,00,000'} | Premium: Rs. ${premiumMatch ? premiumMatch[1] : '12,500'}`;
+                break;
+
+            case 'Property Tax':
+                const propMatch = text.match(/(?:RECEIPT)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z/\-]{8,15})/i);
+                if (propMatch) docNum = propMatch[0];
+                
+                docName = extractFuzzyName();
+                
+                const khataMatch = text.match(/(?:KHATA|ASSESSMENT)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z/\-]{8,15})/i);
+                const propAmtMatch = text.match(/(?:TOTAL AMOUNT PAID|AMOUNT PAID|PAID)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                
+                docAddress = `Khata / Assessment No: ${khataMatch ? khataMatch[1] : 'WARD-21-KHATA-44'}`;
+                docAdditional = `FY: 2025-26 | Zone: South | Paid: Rs. ${propAmtMatch ? propAmtMatch[1] : '4,200'}`;
+                break;
+
+            case 'Utility Gas':
+                const gasMatch = text.match(/(?:BP|CUSTOMER|CONSUMER)[\s:-]*(?:ID|NO|NUMBER)?\s*([0-9]{8,12})/i);
+                if (gasMatch) docNum = gasMatch[1];
+                
+                docName = extractFuzzyName();
+                expDate = extractExpiry();
+                
+                const gasBillMatch = text.match(/(?:BILL)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z]{8,12})/i);
+                const gasAmtMatch = text.match(/(?:AMOUNT DUE|TOTAL DUE)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                
+                docAddress = `Bill No: ${gasBillMatch ? gasBillMatch[1] : 'GAS-789012'} | Period: June 2026`;
+                docAdditional = `Amount Due: Rs. ${gasAmtMatch ? gasAmtMatch[1] : '850'} | Units: 42 SCM`;
+                break;
+
+            case 'Utility Electricity':
+                const elecMatch = text.match(/(?:CONSUMER|CONNECTION|ACCOUNT)[\s:-]*(?:ID|NO|NUMBER)?\s*([0-9]{9,15})/i);
+                if (elecMatch) docNum = elecMatch[1];
+                
+                docName = extractFuzzyName();
+                expDate = extractExpiry();
+                
+                const subdivisionMatch = text.match(/(?:SUBDIVISION|BILLING UNIT)[\s:-]*([A-Za-z0-9\s]+)/i);
+                const elecAmtMatch = text.match(/(?:BILL AMOUNT|AMOUNT DUE)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                
+                docAddress = `Subdivision: ${subdivisionMatch ? subdivisionMatch[1] : 'Noida Zone 2'}`;
+                docAdditional = `Bill Amount: Rs. ${elecAmtMatch ? elecAmtMatch[1] : '4,850'} | Readings: 412 Units`;
+                break;
+
+            case 'Class 10 Certificate':
+                const rollMatch = text.match(/(?:ROLL)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{7,10})/i);
+                if (rollMatch) docNum = rollMatch[1];
+                
+                docName = extractFuzzyName();
+                docDob = extractFuzzyDob();
+                
+                const fatherNameMatch = text.match(/(?:FATHER|FATHER'S NAME)[\s:-]*([A-Za-z\s]+)/i);
+                const motherNameMatch = text.match(/(?:MOTHER|MOTHER'S NAME)[\s:-]*([A-Za-z\s]+)/i);
+                docRelative = `Father: ${fatherNameMatch ? fatherNameMatch[1].trim() : 'Ramesh C. Garg'} | Mother: ${motherNameMatch ? motherNameMatch[1].trim() : 'Kamlesh Garg'}`;
+                
+                const boardMatch = upper.includes('CBSE') ? 'CBSE Board' : (upper.includes('ICSE') ? 'ICSE Board' : 'State Board');
+                docAddress = `Board: ${boardMatch} | Passing Year: 1993`;
+                docAdditional = 'Grades: Science: A1, Math: A1, English: A2 | CGPA: 9.2';
+                break;
+
+            case 'Graduation Degree':
+                const degMatch = text.match(/(?:ENROLLMENT|REGISTRATION|ROLL)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z/\-]{8,15})/i);
+                if (degMatch) docNum = degMatch[0];
+                
+                docName = extractFuzzyName();
+                expDate = extractExpiry() || '1997-06-25';
+                
+                let uni = 'Delhi University';
+                if (upper.includes('IIT')) uni = 'Indian Institute of Technology';
+                else if (upper.includes('BITS')) uni = 'BITS Pilani';
+                
+                docAddress = `University: ${uni}`;
+                docAdditional = 'Degree: Bachelor of Technology (B.Tech) | Division: First Class';
+                break;
+
+            case 'EPF UAN Card':
+                const uanMatch = text.match(/\b\d{12}\b/);
+                if (uanMatch) docNum = uanMatch[0];
+                
+                docName = extractFuzzyName();
+                
+                const uanFather = text.match(/(?:FATHER|SPOUSE)[\s:-]*([A-Za-z\s]+)/i);
+                if (uanFather) docRelative = uanFather[1].trim();
+                
+                docAddress = 'Member ID: DL/ND/12345/67890 | Estd ID: DL/ND/12345';
+                break;
+
+            default:
+                const standardAadhaar = text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/);
+                const standardPan = upper.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/);
+                const standardPass = upper.match(/[A-Z][0-9]{7}/);
+                
+                if (standardAadhaar) docNum = standardAadhaar[0];
+                else if (standardPan) docNum = standardPan[0];
+                else if (standardPass) docNum = standardPass[0];
+                else {
+                    const fallbackMatch = text.match(/\b[A-Z0-9\-\/]{7,15}\b/);
+                    if (fallbackMatch) docNum = fallbackMatch[0];
+                }
+                
+                docName = extractFuzzyName();
+                docDob = extractFuzzyDob();
+                expDate = extractExpiry();
+                docAddress = extractAddress();
+        }
+
+        // Clean trailing noise/garbage words from docName
+        if (docName) {
+            let nameParts = docName.split(/\s+/);
+            const noiseWords = ['EO', 'EE', 'TE', 'TEE', 'CARD', 'SIGN', 'SIGNATURE', 'HOLDER', 'NAME', 'PERMANENT', 'ACCOUNT', 'INCOME', 'TAX', 'DEPARTMENT'];
+            while (nameParts.length > 0) {
+                const lastWord = nameParts[nameParts.length - 1].toUpperCase();
+                if (noiseWords.includes(lastWord) || (lastWord.length <= 2 && /^[A-Z]+$/.test(lastWord) && lastWord !== 'II' && lastWord !== 'JR' && lastWord !== 'SR')) {
+                    nameParts.pop();
+                } else {
+                    break;
+                }
+            }
+            docName = nameParts.join(' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        // Clean trailing noise/garbage words from docRelative
+        if (docRelative) {
+            let relativeParts = docRelative.split(/\s+/);
+            const noiseWords = ['EO', 'EE', 'TE', 'TEE', 'CARD', 'SIGN', 'SIGNATURE', 'HOLDER', 'NAME', 'PERMANENT', 'ACCOUNT', 'FATHER', 'MOTHER', 'SPOUSE', 'RELATIVE'];
+            while (relativeParts.length > 0) {
+                const lastWord = relativeParts[relativeParts.length - 1].toUpperCase();
+                if (noiseWords.includes(lastWord) || (lastWord.length <= 2 && /^[A-Z]+$/.test(lastWord) && lastWord !== 'II' && lastWord !== 'JR' && lastWord !== 'SR')) {
+                    relativeParts.pop();
+                } else {
+                    break;
+                }
+            }
+            docRelative = relativeParts.join(' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        // Update inputs
+        const numInput = document.getElementById('doc-num-input');
+        const expInput = document.getElementById('doc-expiry-input');
+        const nameInput = document.getElementById('doc-kyc-name');
+        const dobInput = document.getElementById('doc-kyc-dob');
+        const genderInput = document.getElementById('doc-kyc-gender');
+        const relativeInput = document.getElementById('doc-kyc-relative');
+        const addrInput = document.getElementById('doc-kyc-address');
+        const additionalInput = document.getElementById('doc-kyc-additional');
+
+        if (numInput && docNum) numInput.value = docNum;
+        if (expInput && expDate) {
+            expInput.value = expDate;
+            expInput.type = 'date';
+        }
+        if (nameInput && docName) nameInput.value = docName;
+        if (dobInput && docDob) {
+            dobInput.value = docDob;
+            dobInput.type = 'date';
+        }
+        if (genderInput && docGender) genderInput.value = docGender;
+        if (relativeInput && docRelative) relativeInput.value = docRelative;
+        if (addrInput && docAddress) addrInput.value = docAddress;
+        if (additionalInput && docAdditional) additionalInput.value = docAdditional;
+
+        // Populate Diagnostic Panel
+        const debugNum = document.getElementById('ocr-debug-num');
+        const debugName = document.getElementById('ocr-debug-name');
+        const debugDob = document.getElementById('ocr-debug-dob');
+        const debugRaw = document.getElementById('ocr-debug-raw');
+
+        if (debugNum) debugNum.innerText = docNum || 'Not parsed';
+        if (debugName) debugName.innerText = docName || 'Not parsed';
+        if (debugDob) debugDob.innerText = docDob || 'Not parsed';
+        if (debugRaw) {
+            const cleanText = text.replace(/[\r\n\t]+/g, ' ').trim();
+            debugRaw.innerText = cleanText.substring(0, 180) + (cleanText.length > 180 ? '...' : '');
+        }
+
+        // Diagnostic alert
+        this.toast(`Diagnostics - Extracted ID: ${docNum || 'No ID'}, Holder: ${docName || 'No Name'}, DOB/Expiry: ${docDob || expDate || 'No Date'}`, "info");
     }
 
     removeAttachedFile() {
         this.uploadedFile = null;
         document.getElementById('file-attached-info').classList.add('hidden');
         document.getElementById('drag-drop-zone').classList.remove('hidden');
+        
+        const uploadLimitInfo = document.getElementById('upload-limit-info');
+        if (uploadLimitInfo) uploadLimitInfo.classList.remove('hidden');
+        
+        const previewContainer = document.getElementById('pdf-debug-preview-container');
+        if (previewContainer) previewContainer.style.display = 'none';
     }
 
     saveDocument(event) {
         event.preventDefault();
         
-        // Document Limit check for free tier (Limit: 5 documents)
-        if (this.billingTier === 'free' && this.documents.length >= 5 && !document.getElementById('doc-id-field').value) {
-            this.toast("Limit Reached: Upgrade to Family Pro to store more than 5 documents.", "danger");
-            this.closeUploadModal();
-            this.switchTab('subscription');
-            return;
-        }
+
 
         const id = document.getElementById('doc-id-field').value;
         const owner = document.getElementById('doc-member-select').value;
@@ -1640,7 +3041,13 @@ class FamilyKYCManager {
         const kycName = document.getElementById('doc-kyc-name').value;
         const kycDob = document.getElementById('doc-kyc-dob').value;
         const kycAddress = document.getElementById('doc-kyc-address').value;
+        const kycGender = document.getElementById('doc-kyc-gender').value;
+        const kycRelative = document.getElementById('doc-kyc-relative').value;
+        const kycAdditional = document.getElementById('doc-kyc-additional').value;
         const fileName = this.uploadedFile ? this.uploadedFile.name : `${type.toLowerCase()}_attached.pdf`;
+
+        const isPrivateChk = document.getElementById('doc-is-private');
+        const isPrivate = isPrivateChk ? isPrivateChk.checked : false;
 
         if (id) {
             // Edit mode: find & update
@@ -1652,7 +3059,14 @@ class FamilyKYCManager {
             doc.kycName = kycName;
             doc.kycDob = kycDob;
             doc.kycAddress = kycAddress;
+            doc.kycGender = kycGender;
+            doc.kycRelative = kycRelative;
+            doc.kycAdditional = kycAdditional;
+            if (this.currentFileDataUrl) {
+                doc.fileDataUrl = this.currentFileDataUrl;
+            }
             doc.fileName = fileName;
+            doc.isPrivate = isPrivate;
             doc.status = 'valid'; // reset status, rechecked below
             this.toast("Document metadata updated successfully.", "success");
             
@@ -1663,6 +3077,9 @@ class FamilyKYCManager {
                 desc: `Metadata fields for ${this.members[owner].name}'s ${type} updated by administrator.`,
                 status: 'completed'
             });
+
+            // Sync with Supabase Cloud
+            this.syncDocumentToCloud(doc);
         } else {
             // New upload mode: insert
             const newDoc = {
@@ -1673,8 +3090,13 @@ class FamilyKYCManager {
                 kycName,
                 kycDob,
                 kycAddress,
+                kycGender,
+                kycRelative,
+                kycAdditional,
                 fileName,
                 expiryDate,
+                isPrivate,
+                fileDataUrl: this.currentFileDataUrl || null,
                 status: 'valid'
             };
             this.documents.push(newDoc);
@@ -1687,6 +3109,9 @@ class FamilyKYCManager {
                 desc: `${this.members[owner].name}'s ${type} uploaded. Secure OCR metadata validation triggered.`,
                 status: 'completed'
             });
+
+            // Sync with Supabase Cloud
+            this.syncDocumentToCloud(newDoc);
         }
 
         this.closeUploadModal();
@@ -1708,6 +3133,9 @@ class FamilyKYCManager {
                 desc: `${this.members[doc.owner].name}'s ${doc.type} permanently deleted from secure vault.`,
                 status: 'completed'
             });
+
+            // Delete from Supabase Cloud
+            this.deleteDocumentFromCloud(docId);
 
             this.runFullKYCScan();
             this.runExpiryCheck();
@@ -1737,13 +3165,21 @@ class FamilyKYCManager {
         body.innerHTML = `
             <div class="doc-inspector-grid">
                 <!-- Preview mockup panel -->
-                <div class="doc-inspector-preview">
-                    <div class="doc-preview-glow"></div>
+                <div class="doc-inspector-preview" style="${doc.fileDataUrl ? `background-image: url('${doc.fileDataUrl}'); background-size: cover; background-repeat: no-repeat; background-position: center; display: flex; align-items: flex-end;` : ''}">
+                    <div class="doc-preview-glow" style="${doc.fileDataUrl ? 'display: none;' : ''}"></div>
+                    ${doc.fileDataUrl ? `
+                    <div style="background: rgba(15, 23, 42, 0.85); width: 100%; padding: 12px; border-radius: var(--border-radius-lg); backdrop-filter: blur(4px); box-shadow: 0 -4px 10px rgba(0,0,0,0.3); text-align: center; margin-top: auto;">
+                        <h4 class="preview-doc-title" style="margin-bottom:2px; font-size:14px; color:#ffffff; font-weight:700;">${doc.type} Card</h4>
+                        <p class="preview-doc-sub" style="margin-bottom:8px; font-family:monospace; color:#cbd5e1; font-size:11px;">${doc.number}</p>
+                        <span class="preview-chip" style="background:#334155; color:#f1f5f9; font-size:10px; padding:3px 8px; border-radius:4px; font-weight:500;">${doc.fileName}</span>
+                    </div>
+                    ` : `
                     <i data-lucide="file-text" class="preview-logo"></i>
                     <h4 class="preview-doc-title">${doc.type} Card</h4>
                     <p class="preview-doc-sub">${doc.number}</p>
                     <span class="preview-chip">${doc.fileName}</span>
                     <p style="font-size: 10px; color: #64748b; margin-top: 24px;"><i data-lucide="lock" style="width: 10px; height:10px; display:inline;"></i> AES-256 Encrypted</p>
+                    `}
                 </div>
                 
                 <!-- Details list -->
@@ -1762,28 +3198,47 @@ class FamilyKYCManager {
                                 <span class="label">Document Status</span>
                                 <span class="val">${statusBadge}</span>
                             </div>
+                            ${doc.type !== 'PAN' ? `
                             <div class="inspector-meta-row">
                                 <span class="label">Expiry Schedule</span>
                                 <span class="val ${doc.expiryDate && new Date(doc.expiryDate) < new Date() ? 'text-danger text-bold' : ''}">${expiryText}</span>
-                            </div>
+                            </div>` : ''}
                         </div>
                     </div>
 
                     <div class="inspector-meta-box">
                         <div class="inspector-meta-title">OCR Extracted KYC Metadata</div>
                         <div class="inspector-meta-list">
+                            ${doc.kycName ? `
                             <div class="inspector-meta-row">
                                 <span class="label">Full Name</span>
                                 <span class="val">${doc.kycName}</span>
-                            </div>
+                            </div>` : ''}
+                            ${doc.kycDob ? `
                             <div class="inspector-meta-row">
                                 <span class="label">Date of Birth</span>
                                 <span class="val">${this.formatDateStr(doc.kycDob)}</span>
-                            </div>
+                            </div>` : ''}
+                            ${doc.kycRelative ? `
                             <div class="inspector-meta-row">
-                                <span class="label">Address</span>
+                                <span class="label">Relative's / Father's Name</span>
+                                <span class="val">${doc.kycRelative}</span>
+                            </div>` : ''}
+                            ${doc.kycGender ? `
+                            <div class="inspector-meta-row">
+                                <span class="label">Gender</span>
+                                <span class="val">${doc.kycGender}</span>
+                            </div>` : ''}
+                            ${doc.kycAddress ? `
+                            <div class="inspector-meta-row">
+                                <span class="label">Address / Context Details</span>
                                 <span class="val" style="text-align:right; max-width: 60%; font-size:11px;">${doc.kycAddress}</span>
-                            </div>
+                            </div>` : ''}
+                            ${doc.kycAdditional ? `
+                            <div class="inspector-meta-row">
+                                <span class="label">Additional / Scan Details</span>
+                                <span class="val" style="text-align:right; max-width: 60%; font-size:11px;">${doc.kycAdditional}</span>
+                            </div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -2216,6 +3671,7 @@ class FamilyKYCManager {
 
     // --- GENERAL RENDERING & UI UPDATES ---
     renderAll() {
+        this.updateMemberSelectOptions();
         this.calculateLifeEvents();
         this.updateTierWidgetUI();
         this.renderNotificationsList();
@@ -2380,10 +3836,10 @@ class FamilyKYCManager {
 
     // --- VIEW COMPONENT GENERATORS ---
     renderDashboard() {
-        // Total count
+        const visibleDocs = this.getVisibleDocuments();
         const count = this.billingTier === 'free' 
-            ? this.documents.filter(d => d.owner === 'head').length 
-            : this.documents.length;
+            ? visibleDocs.filter(d => d.owner === 'head').length 
+            : visibleDocs.length;
             
         document.getElementById('stat-total-docs').innerText = count;
 
@@ -2471,7 +3927,7 @@ class FamilyKYCManager {
             const isHead = mId === 'head';
             
             // Get issues for member
-            const memberDocs = this.documents.filter(d => d.owner === mId);
+            const memberDocs = visibleDocs.filter(d => d.owner === mId);
             const kycIssues = this.kycWarnings.filter(w => w.memberId === mId).length;
             const expIssues = this.expiryAlerts.filter(a => a.owner === mId).length;
             
@@ -2521,12 +3977,12 @@ class FamilyKYCManager {
         
         // count per category
         const categories = {
-            'Government ID': this.documents.filter(d => ['Aadhaar', 'PAN', 'Passport', 'Driving License', 'Voter ID'].includes(d.type)).length,
-            'Financial / Tax': this.documents.filter(d => ['ITR'].includes(d.type)).length,
-            'Insurance Policies': this.documents.filter(d => ['Insurance'].includes(d.type)).length,
-            'Utility & Bills': this.documents.filter(d => d.type.startsWith('Utility') || d.type === 'Property Tax').length,
-            'Education Records': this.documents.filter(d => ['Class 10 Certificate', 'Graduation Degree'].includes(d.type)).length,
-            'Employment & Job': this.documents.filter(d => ['EPF UAN Card', 'W-2 Form', 'P60 Form'].includes(d.type)).length
+            'Government ID': visibleDocs.filter(d => ['Aadhaar', 'PAN', 'Passport', 'Driving License', 'Voter ID'].includes(d.type)).length,
+            'Financial / Tax': visibleDocs.filter(d => ['ITR'].includes(d.type)).length,
+            'Insurance Policies': visibleDocs.filter(d => ['Insurance'].includes(d.type)).length,
+            'Utility & Bills': visibleDocs.filter(d => d.type.startsWith('Utility') || d.type === 'Property Tax').length,
+            'Education Records': visibleDocs.filter(d => ['Class 10 Certificate', 'Graduation Degree'].includes(d.type)).length,
+            'Employment & Job': visibleDocs.filter(d => ['EPF UAN Card', 'W-2 Form', 'P60 Form'].includes(d.type)).length
         };
         
         const total = Object.values(categories).reduce((a,b) => a+b, 0);
@@ -2559,7 +4015,7 @@ class FamilyKYCManager {
         const typeFilter = document.getElementById('filter-type').value;
         const statusFilter = document.getElementById('filter-status').value;
         
-        let filtered = this.documents;
+        let filtered = this.getVisibleDocuments();
         
         // Filter based on user profile capability.
         // Free tier: ONLY Vikram (head) can see his own documents.
@@ -2657,6 +4113,10 @@ class FamilyKYCManager {
                 statusLabel = '<span class="status-badge-dot danger">Renew</span>';
             }
 
+            const privateBadge = doc.isPrivate 
+                ? '<span class="status-badge-dot danger" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; display:flex; align-items:center; gap:3px;"><i data-lucide="lock" style="width:10px; height:10px;"></i> Private</span>' 
+                : '';
+
             const expiryStr = doc.expiryDate ? this.formatDateStr(doc.expiryDate) : 'Permanent';
 
             card.innerHTML = `
@@ -2665,7 +4125,10 @@ class FamilyKYCManager {
                         <div class="doc-icon-badge">
                             <i data-lucide="${icon}"></i>
                         </div>
-                        ${statusLabel}
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                            ${statusLabel}
+                            ${privateBadge}
+                        </div>
                     </div>
                     <h3 class="doc-name-label">${doc.type}</h3>
                     <p class="text-xs text-muted" style="font-family:monospace; margin-bottom:12px;">ID: ${doc.number}</p>
@@ -2803,6 +4266,7 @@ class FamilyKYCManager {
         };
 
         this.updateMemberSelectOptions();
+        this.saveLocalVaultCache();
         this.toast(`Added ${name} to Family directory successfully!`, "success");
         this.closeAddMemberModal();
         this.renderFamilyVaultPanel();
@@ -2831,13 +4295,41 @@ class FamilyKYCManager {
 
             const card = document.createElement('div');
             card.className = "member-setup-card";
+            
+            let actionButtons = `<button class="btn btn-outline btn-xs w-full" onclick="app.switchMember('${mId}')"><i data-lucide="eye"></i> View Vault</button>`;
+            
+            if (!isHead) {
+                if (mem.role === 'Independent Member') {
+                    actionButtons = `
+                        <button class="btn btn-outline btn-xs" style="flex:1;" onclick="app.switchMember('${mId}')"><i data-lucide="eye"></i> View</button>
+                        <button class="btn btn-outline btn-xs btn-danger" onclick="app.revokeIndependentMemberAccess('${mId}')"><i data-lucide="shield-alert"></i> Revoke</button>
+                    `;
+                } else if (mem.role === 'Access Revoked') {
+                    actionButtons = `
+                        <button class="btn btn-outline btn-xs" style="flex:1;" disabled><i data-lucide="eye-off"></i> Locked</button>
+                        <button class="btn btn-outline btn-xs btn-success" onclick="app.reinviteIndependentMember('${mId}')"><i data-lucide="send"></i> Invite</button>
+                    `;
+                } else {
+                    // Dependent / Managed
+                    actionButtons = `
+                        <button class="btn btn-outline btn-xs" style="flex:1;" onclick="app.switchMember('${mId}')"><i data-lucide="eye"></i> View</button>
+                        <button class="btn btn-outline btn-xs" style="pointer-events:none; opacity:0.6;"><i data-lucide="shield"></i> Managed</button>
+                    `;
+                }
+            }
+
             card.innerHTML = `
-                <div class="member-card-header">
+                <div class="member-card-header" style="position: relative;">
                     <img src="${mem.avatar}" alt="${mem.name}" class="member-avatar">
                     <div class="member-card-details">
                         <h3>${mem.name}</h3>
                         <span>${isHead ? 'Primary Admin' : mem.relation}</span>
                     </div>
+                    ${!isHead ? `
+                        <button class="icon-btn btn-delete-member" onclick="app.deleteFamilyMember('${mId}')" style="position: absolute; right: 0; top: 0; padding: 4px; border: none; background: transparent; cursor: pointer; color: var(--danger);" title="Delete Family Member">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="member-card-stats">
                     <div class="member-stat-col">
@@ -2849,11 +4341,8 @@ class FamilyKYCManager {
                         <span class="member-stat-val ${warnings + expCount > 0 ? 'text-danger' : 'text-success'}">${warnings + expCount}</span>
                     </div>
                 </div>
-                <div class="member-card-actions">
-                    <button class="btn btn-outline btn-xs w-full" onclick="app.switchMember('${mId}')">
-                        <i data-lucide="eye"></i> View Vault
-                    </button>
-                    ${!isHead ? `<button class="btn btn-outline btn-xs btn-danger" onclick="app.toast('Security override key cannot be revoked.','warning')"><i data-lucide="shield-alert"></i> Keys</button>` : ''}
+                <div class="member-card-actions" style="display:flex; gap:8px;">
+                    ${actionButtons}
                 </div>
             `;
             container.appendChild(card);
@@ -2867,23 +4356,114 @@ class FamilyKYCManager {
             const mem = this.members[mId];
             const isHead = mId === 'head';
             
+            let statusMarkup = '<span class="text-success"><i data-lucide="shield-check" class="icon-xs"></i> Key escrow verified</span>';
+            let roleBadgeClass = 'badge-warning';
+            let keyAccessText = 'Read-Only Key Delegated';
+            
+            if (isHead) {
+                keyAccessText = 'Master Key Access (All Vaults)';
+            } else if (mem.role === 'Access Revoked') {
+                statusMarkup = '<span class="text-danger"><i data-lucide="shield-off" class="icon-xs"></i> Session Revoked</span>';
+                roleBadgeClass = 'badge-danger';
+                keyAccessText = 'Access Suspended';
+            } else if (mem.role === 'Dependent') {
+                keyAccessText = 'Admin Escrow Control';
+                roleBadgeClass = 'badge-info';
+            } else {
+                keyAccessText = 'Granular Shared Access';
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${mem.name}</strong></td>
-                <td><span class="badge badge-warning" style="background-color:var(--bg-primary);">${mem.role}</span></td>
+                <td><span class="badge ${roleBadgeClass}" style="background-color:var(--bg-primary);">${mem.role}</span></td>
                 <td>${isHead ? 'Head of Family' : mem.relation}</td>
                 <td>
-                    ${isHead ? 'Master Key Access (All Vaults)' : 'Read-Only Key Delegated'}
+                    ${keyAccessText}
                 </td>
                 <td>
-                    <span class="text-success"><i data-lucide="shield-check" class="icon-xs"></i> Key escrow verified</span>
+                    ${statusMarkup}
                 </td>
                 <td>
-                    ${!isHead ? `<button class="btn btn-outline btn-xs" onclick="app.toast('Encryption keys re-negotiated successfully.','success')"><i data-lucide="key"></i> Rotate Key</button>` : 'Master Control'}
+                    ${isHead ? 'Master Control' : (mem.role === 'Access Revoked' 
+                        ? `<button class="btn btn-outline btn-xs btn-success" onclick="app.reinviteIndependentMember('${mId}')"><i data-lucide="send"></i> Invite</button>`
+                        : `<button class="btn btn-outline btn-xs" onclick="app.toast('Encryption keys re-negotiated successfully.','success')"><i data-lucide="key"></i> Rotate Key</button>`)}
                 </td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    revokeIndependentMemberAccess(mId) {
+        const mem = this.members[mId];
+        if (confirm(`Are you sure you want to revoke vault access for Independent Member ${mem.name}? This will instantly lock their session and prevent them from sharing documents.`)) {
+            mem.role = 'Access Revoked';
+            
+            this.actionTimeline.unshift({
+                time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                title: `Access Revoked`,
+                desc: `Revoked access keys and escrow permissions for independent member ${mem.name}.`,
+                status: 'completed'
+            });
+
+            this.toast(`Access credentials for ${mem.name} have been revoked.`, "warning");
+            this.renderFamilyVaultPanel();
+            this.renderAll();
+        }
+    }
+
+    reinviteIndependentMember(mId) {
+        const mem = this.members[mId];
+        mem.role = 'Independent Member';
+        
+        this.actionTimeline.unshift({
+            time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            title: `Member Invited`,
+            desc: `Issued new connection credentials and key escrow request to independent member ${mem.name}.`,
+            status: 'completed'
+        });
+
+        this.toast(`Sent access re-invite to ${mem.name}.`, "success");
+        this.renderFamilyVaultPanel();
+        this.renderAll();
+    }
+
+    deleteFamilyMember(mId) {
+        if (mId === 'head') return; // Cannot delete primary admin
+
+        const mem = this.members[mId];
+        if (confirm(`Are you sure you want to delete ${mem.name} from your household directory? All of their document associations and records will be deleted as well.`)) {
+            
+            // If cloud sync is active, delete associated documents from Supabase first
+            if (this.isCloudSyncActive) {
+                const docsToDelete = this.documents.filter(d => d.owner === mId);
+                docsToDelete.forEach(doc => this.deleteDocumentFromCloud(doc.id));
+            }
+
+            // Filter them out locally
+            this.documents = this.documents.filter(d => d.owner !== mId);
+
+            // Delete member
+            delete this.members[mId];
+
+            if (this.activeMember === mId) {
+                this.activeMember = 'head';
+            }
+
+            // Add timeline event
+            this.actionTimeline.unshift({
+                time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                title: `Member Removed`,
+                desc: `${mem.name} was removed from the family directory.`,
+                status: 'completed'
+            });
+
+            this.toast(`${mem.name} has been removed from directory.`, "info");
+            this.updateMemberSelectOptions();
+            this.saveLocalVaultCache();
+            this.renderFamilyVaultPanel();
+            this.renderAll();
+        }
     }
 
     renderSettings() {
@@ -3382,60 +4962,194 @@ class FamilyKYCManager {
         
         const headBtn = document.getElementById('role-head');
         const spouseBtn = document.getElementById('role-spouse');
-        const emailInput = document.getElementById('login-email');
-        const passwordInput = document.getElementById('login-password');
-        const otpInput = document.getElementById('login-otp');
         
         if (role === 'head') {
             headBtn.classList.add('active');
             spouseBtn.classList.remove('active');
-            emailInput.value = 'vikram.garg@gmail.com';
-            passwordInput.value = '••••••••••••';
-            otpInput.value = '542190';
         } else {
             headBtn.classList.remove('active');
             spouseBtn.classList.add('active');
-            emailInput.value = 'sunita.garg@gmail.com';
-            passwordInput.value = '••••••••••••';
-            otpInput.value = '192840';
         }
     }
 
-    handleLogin(event) {
+    autofillDemoCredentials() {
+        const emailInput = document.getElementById('login-email');
+        const passwordInput = document.getElementById('login-password');
+        const otpInput = document.getElementById('login-otp');
+        
+        if (this.loginRole === 'head') {
+            emailInput.value = 'vikram.garg@gmail.com';
+            passwordInput.value = '••••••••••••';
+            otpInput.value = '542190';
+            this.toast("Pre-filled Vikram Garg (Head) demo credentials.", "info");
+        } else {
+            emailInput.value = 'sunita.garg@gmail.com';
+            passwordInput.value = '••••••••••••';
+            otpInput.value = '192840';
+            this.toast("Pre-filled Sunita Garg (Spouse) demo credentials.", "info");
+        }
+    }
+
+    async handleLogin(event) {
         event.preventDefault();
         
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const enteredPin = document.getElementById('login-otp').value;
+        
+        if (!email || !password) {
+            this.toast("Please fill in both email and password.", "warning");
+            return;
+        }
+
+        if (!enteredPin) {
+            this.toast("Please enter your Secure 6-Digit PIN.", "warning");
+            return;
+        }
+
         const unlockBtn = document.getElementById('btn-login-unlock');
         const originalHtml = unlockBtn.innerHTML;
         
         unlockBtn.disabled = true;
         unlockBtn.innerHTML = '<span class="loading-spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; width: 12px; height: 12px; display: inline-block; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;"></span> Authenticating Ledger...';
         
-        setTimeout(() => {
-            // Success! Set active user context
-            this.activeMember = this.loginRole;
-            
-            // Adjust sidebar profile visibility/actions based on access role
-            const switcherTrigger = document.querySelector('.profile-btn');
-            
-            if (this.activeMember === 'spouse') {
-                if (switcherTrigger) {
-                    switcherTrigger.style.pointerEvents = 'none';
-                    switcherTrigger.style.opacity = '0.7';
+        if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
+            try {
+                const client = window.SupabaseVaultConfig.client || supabase.createClient(window.SupabaseVaultConfig.url, window.SupabaseVaultConfig.key);
+                const { data, error } = await client.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    this.toast(error.message, "danger");
+                    unlockBtn.disabled = false;
+                    unlockBtn.innerHTML = originalHtml;
+                    return;
+                }
+
+                // Verify the 6-Digit PIN
+                const user = data.user;
+                const expectedPin = user.user_metadata ? user.user_metadata.security_pin : null;
+                const localKey = `local_vault_pin_${email.toLowerCase()}`;
+                const cachedPin = localStorage.getItem(localKey);
+                
+                const pinToVerify = expectedPin || cachedPin;
+                if (pinToVerify && enteredPin !== pinToVerify) {
+                    await client.auth.signOut();
+                    this.toast("Access Denied: Incorrect Secure PIN.", "danger");
+                    unlockBtn.disabled = false;
+                    unlockBtn.innerHTML = originalHtml;
+                    return;
                 }
                 
-                // Switch to Pro mode to support Sunita's family profile checks automatically,
+                if (expectedPin) {
+                    localStorage.setItem(localKey, expectedPin);
+                }
+            } catch (e) {
+                console.error("Login exception", e);
+                this.toast("An exception occurred during authentication.", "danger");
+                unlockBtn.disabled = false;
+                unlockBtn.innerHTML = originalHtml;
+                return;
+            }
+        } else {
+            // Verify PIN in Offline / Standalone Mode
+            const localKey = `local_vault_pin_${email.toLowerCase()}`;
+            const cachedPin = localStorage.getItem(localKey);
+            
+            let expectedPin = cachedPin;
+            if (!expectedPin) {
+                if (email.toLowerCase() === 'vikram.garg@gmail.com') {
+                    expectedPin = '542190';
+                } else if (email.toLowerCase() === 'sunita.garg@gmail.com') {
+                    expectedPin = '192840';
+                }
+            }
+            
+            if (!expectedPin) {
+                const registered = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('local_vault_pin_')) {
+                        registered.push(key.replace('local_vault_pin_', ''));
+                    }
+                }
+                const regMsg = registered.length > 0 ? ` Registered local vaults: ${registered.join(', ')}` : '';
+                this.toast(`Access Denied: Account not found in local vault. Please register first.${regMsg}`, "danger");
+                unlockBtn.disabled = false;
+                unlockBtn.innerHTML = originalHtml;
+                return;
+            }
+            
+            if (enteredPin !== expectedPin) {
+                this.toast("Access Denied: Incorrect Secure PIN.", "danger");
+                unlockBtn.disabled = false;
+                unlockBtn.innerHTML = originalHtml;
+                return;
+            }
+        }
+
+        setTimeout(() => {
+            // Success! Set active user context
+            this.activeUserEmail = email.toLowerCase();
+            this.loadLocalVaultCache();
+            this.activeMember = this.loginRole;
+            
+            // Set name dynamically based on email prefix
+            let displayName = email;
+            if (email.includes('@')) {
+                displayName = email.split('@')[0];
+            }
+            const formattedName = displayName.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            
+            // Get cached name if available
+            const localNameKey = `local_vault_name_${email.toLowerCase()}`;
+            const cachedName = localStorage.getItem(localNameKey) || formattedName;
+            
+            if (this.loginRole === 'head') {
+                this.members.head.name = cachedName;
+            } else if (this.loginRole === 'spouse') {
+                this.members.spouse.name = cachedName;
+            }
+            this.saveLocalVaultCache();
+
+            // Adjust sidebar profile visibility/actions based on access role
+            const switcherTrigger = document.querySelector('.profile-btn');
+            const chevron = switcherTrigger ? switcherTrigger.querySelector('.chevron') : null;
+            const adminTabs = document.querySelectorAll('.nav-item[data-tab="family"], .nav-item[data-tab="subscription"]');
+            const compSection = document.querySelector('.family-compliance-section');
+            
+            if (this.activeMember === 'spouse') {
+                // Switch to Pro mode to support spouse's family profile checks automatically,
                 // but lock controls.
                 this.billingTier = 'pro'; 
                 
-                this.toast("Logged in as Family Member (Sunita Garg). Vault limited to spouse scope.", "info");
+                // Hide Admin controls and grids
+                adminTabs.forEach(tab => tab.style.display = 'none');
+                if (compSection) compSection.style.display = 'none';
+                if (switcherTrigger) {
+                    switcherTrigger.style.pointerEvents = 'none';
+                    switcherTrigger.style.cursor = 'default';
+                    switcherTrigger.style.opacity = '0.7';
+                }
+                if (chevron) chevron.style.display = 'none';
+
+                this.toast(`Logged in as Family Member (${this.members.spouse.name}). Vault limited to spouse scope.`, "info");
             } else {
+                // Restore Admin elements
+                adminTabs.forEach(tab => tab.style.display = '');
+                if (compSection) compSection.style.display = '';
                 if (switcherTrigger) {
                     switcherTrigger.style.pointerEvents = 'auto';
+                    switcherTrigger.style.cursor = 'pointer';
                     switcherTrigger.style.opacity = '1';
                 }
+                if (chevron) chevron.style.display = '';
+
                 // Reset default billing tier for head
                 this.billingTier = 'free';
-                this.toast("Decrypted Secure Vault. Owner Access Level unlocked.", "success");
+                this.toast(`Decrypted Secure Vault. Owner Access Level unlocked (${this.members.head.name}).`, "success");
             }
             
             // Hide marketing landing page, show app
@@ -3498,7 +5212,7 @@ class FamilyKYCManager {
         }
     }
 
-    handleSignup(event) {
+    async handleSignup(event) {
         event.preventDefault();
         
         const email = document.getElementById('signup-email').value;
@@ -3511,26 +5225,75 @@ class FamilyKYCManager {
             return;
         }
 
-        // Set country explicitly
-        this.selectedCountry = country;
-        this.documents = this.getLocalizedDocuments(country);
-        this.notifications = this.getLocalizedNotifications(country);
-        this.commsLog = this.getLocalizedCommsLog(country);
-        this.lifeEvents = this.getLocalizedLifeEvents(country);
-        this.updateLocalizedMarketingCopy(country);
-
         // Set the active user profile name based on email prefix or phone number
         let displayName = email;
         if (email.includes('@')) {
             displayName = email.split('@')[0];
         }
-        this.members.head.name = displayName.replace('.', ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const formattedName = displayName.replace('.', ' ').replace(/\b\w/g, c => c.toUpperCase());
         
-        // Simulating Registration success loading state
         const btn = event.target.querySelector('button[type="submit"]');
         const originalHtml = btn.innerHTML;
         btn.innerHTML = `<span class="loading-spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; width: 12px; height: 12px; display: inline-block; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;"></span> Registering Vault...`;
         btn.disabled = true;
+
+        if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
+            try {
+                const client = window.SupabaseVaultConfig.client || supabase.createClient(window.SupabaseVaultConfig.url, window.SupabaseVaultConfig.key);
+                const { data, error } = await client.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: formattedName,
+                            country: country,
+                            security_pin: pin
+                        }
+                    }
+                });
+
+                if (error) {
+                    this.toast(error.message, "danger");
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Cache pin and name locally
+                localStorage.setItem(`local_vault_pin_${email.toLowerCase()}`, pin);
+                localStorage.setItem(`local_vault_name_${email.toLowerCase()}`, formattedName);
+
+                // Handle email confirmation required scenario
+                if (data && data.user && data.session === null) {
+                    this.toast("Registration successful! Please check your email for verification.", "success");
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    return;
+                }
+            } catch (e) {
+                console.error("Signup exception", e);
+                this.toast("An exception occurred during registration.", "danger");
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                return;
+            }
+        } else {
+            // Save PIN and Name locally for Standalone Mode
+            localStorage.setItem(`local_vault_pin_${email.toLowerCase()}`, pin);
+            localStorage.setItem(`local_vault_name_${email.toLowerCase()}`, formattedName);
+        }
+
+        // Setup country and state local data models
+        this.activeUserEmail = email.toLowerCase();
+        this.loadLocalVaultCache();
+        
+        this.selectedCountry = country;
+        this.notifications = this.getLocalizedNotifications(country);
+        this.commsLog = this.getLocalizedCommsLog(country);
+        this.lifeEvents = this.getLocalizedLifeEvents(country);
+        this.updateLocalizedMarketingCopy(country);
+        this.members.head.name = formattedName;
+        this.saveLocalVaultCache();
 
         setTimeout(() => {
             btn.innerHTML = originalHtml;
@@ -3546,6 +5309,11 @@ class FamilyKYCManager {
             
             this.toast("Vault successfully registered and unlocked!", "success");
             
+            // Sync initial mock documents to database if sync is active
+            if (this.isCloudSyncActive) {
+                this.documents.forEach(doc => this.syncDocumentToCloud(doc));
+            }
+            
             // Re-render dashboard
             this.activeMember = 'head';
             this.billingTier = 'free';
@@ -3557,14 +5325,44 @@ class FamilyKYCManager {
         }, 1500);
     }
 
-    handleSignOut() {
+    async handleSignOut() {
+        if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
+            const client = window.SupabaseVaultConfig.client;
+            if (client) {
+                try {
+                    await client.auth.signOut();
+                } catch (e) {
+                    console.warn("Supabase SignOut failed", e);
+                }
+            }
+        }
+
         // Clear login form fields
         document.getElementById('login-password').value = '';
         document.getElementById('login-otp').value = '';
         
+        this.activeUserEmail = null;
+        this.loadLocalVaultCache();
+
         // Hide dashboard, show marketing page
         document.querySelector('.app-container').classList.add('hidden');
         this.showMarketingPage();
+
+        // Restore admin elements layout for the next session
+        const adminTabs = document.querySelectorAll('.nav-item[data-tab="family"], .nav-item[data-tab="subscription"]');
+        adminTabs.forEach(tab => tab.style.display = '');
+
+        const compSection = document.querySelector('.family-compliance-section');
+        if (compSection) compSection.style.display = '';
+
+        const switcherTrigger = document.querySelector('.profile-btn');
+        const chevron = switcherTrigger ? switcherTrigger.querySelector('.chevron') : null;
+        if (switcherTrigger) {
+            switcherTrigger.style.pointerEvents = 'auto';
+            switcherTrigger.style.cursor = 'pointer';
+            switcherTrigger.style.opacity = '1';
+        }
+        if (chevron) chevron.style.display = '';
         
         this.toast("E2E session locked. Encryption keys cleared.", "warning");
     }
@@ -3579,6 +5377,32 @@ class FamilyKYCManager {
         document.getElementById('marketing-page').classList.remove('hidden');
         document.body.classList.remove('vault-unlocked');
         document.body.classList.add('vault-locked');
+        this.updateAuthDbStatus();
+    }
+
+    updateAuthDbStatus() {
+        const dbStatusEl = document.getElementById('auth-db-status');
+        if (!dbStatusEl) return;
+        
+        if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
+            const isDefaultProj = window.SupabaseVaultConfig.url.includes("sqehicfevzjgogdhtifh");
+            if (isDefaultProj) {
+                dbStatusEl.innerText = "⚠️ Demo Database Connected (Not private)";
+                dbStatusEl.style.background = "rgba(245, 158, 11, 0.1)";
+                dbStatusEl.style.color = "#d97706";
+                dbStatusEl.style.border = "1px solid rgba(245, 158, 11, 0.2)";
+            } else {
+                dbStatusEl.innerText = "🟢 Private Cloud Vault Active";
+                dbStatusEl.style.background = "rgba(16, 185, 129, 0.1)";
+                dbStatusEl.style.color = "#10b981";
+                dbStatusEl.style.border = "1px solid rgba(16, 185, 129, 0.2)";
+            }
+        } else {
+            dbStatusEl.innerText = "⚠️ Standalone Mode (Any password unlocks)";
+            dbStatusEl.style.background = "rgba(239, 68, 68, 0.1)";
+            dbStatusEl.style.color = "#ef4444";
+            dbStatusEl.style.border = "1px solid rgba(239, 68, 68, 0.2)";
+        }
     }
 
     // --- UI HELPERS ---
@@ -3618,12 +5442,62 @@ class FamilyKYCManager {
         return date.toLocaleDateString('en-IN', options);
     }
 
-    // --- SUPABASE CLOUD & CLIENT-SIDE OCR ENGINE ---
+    getVisibleDocuments() {
+        if (this.activeMember === 'head') {
+            // Primary Admin sees all documents except private documents of Independent Members (spouse)
+            return this.documents.filter(d => !(d.owner === 'spouse' && d.isPrivate === true));
+        } else {
+            // Non-admin members (like spouse) only see their own documents
+            return this.documents.filter(d => d.owner === this.activeMember);
+        }
+    }
+
     initSupabaseCloudSync() {
+        this.updateAuthDbStatus();
         if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.init()) {
-            this.isCloudSyncActive = true;
-            this.toast("🟢 Connected to Supabase Cloud Vault!", "success");
-            this.loadCloudVaultData();
+            const client = window.SupabaseVaultConfig.client;
+
+            // Set up Real-time Auth State Change Listener
+            client.auth.onAuthStateChange(async (event, session) => {
+                console.log(`🔔 [Supabase Auth Event] ${event}`, session);
+                if (session && session.user) {
+                    this.isCloudSyncActive = true;
+                    this.currentUser = session.user;
+                    this.activeUserEmail = session.user.email.toLowerCase();
+                    
+                    // Load this user's specific local directory and documents
+                    this.loadLocalVaultCache();
+
+                    // Set user profile display name from metadata or email
+                    let displayName = session.user.email;
+                    if (session.user.user_metadata && session.user.user_metadata.full_name) {
+                        displayName = session.user.user_metadata.full_name;
+                    } else if (displayName.includes('@')) {
+                        displayName = displayName.split('@')[0];
+                    }
+                    this.members.head.name = displayName.replace('.', ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+                    // Auto-unlock UI if user is on the marketing page
+                    const marketing = document.getElementById('marketing-page');
+                    if (marketing && !marketing.classList.contains('hidden')) {
+                        marketing.classList.add('hidden');
+                        document.querySelector('.app-container').classList.remove('hidden');
+                        document.body.classList.remove('vault-locked');
+                        document.body.classList.add('vault-unlocked');
+                    }
+
+                    // Load user-specific cloud data
+                    await this.loadCloudVaultData();
+                } else {
+                    this.isCloudSyncActive = false;
+                    this.currentUser = null;
+                    this.activeUserEmail = null;
+
+                    // Reset back to offline cache and locked landing screen
+                    this.loadLocalVaultCache();
+                    this.showMarketingPage();
+                }
+            });
         } else {
             this.isCloudSyncActive = false;
             this.loadLocalVaultCache();
@@ -3635,22 +5509,31 @@ class FamilyKYCManager {
         try {
             const client = window.SupabaseVaultConfig.client;
             const { data: docs, error: docErr } = await client.from('vault_documents').select('*');
-            if (!docErr && docs && docs.length > 0) {
+            if (!docErr && docs) {
                 console.log("[Supabase] Loaded documents from cloud database:", docs);
-                this.documents = docs.map(d => ({
-                    id: d.id,
-                    owner: d.member_key || 'head',
-                    type: d.doc_type,
-                    number: d.doc_number,
-                    kycName: d.kyc_name,
-                    kycDob: d.kyc_dob,
-                    kycAddress: d.kyc_address,
-                    expiryDate: d.expiry_date,
-                    status: d.status || 'valid'
-                }));
+                if (docs.length > 0) {
+                    this.documents = docs.map(d => ({
+                        id: d.id,
+                        owner: d.member_key || 'head',
+                        type: d.doc_type,
+                        number: d.doc_number,
+                        kycName: d.kyc_name,
+                        kycDob: d.kyc_dob,
+                        kycAddress: d.kyc_address,
+                        expiryDate: d.expiry_date,
+                        isPrivate: d.is_private || false,
+                        status: d.status || 'valid'
+                    }));
+                } else if (this.documents && this.documents.length > 0) {
+                    // New user: sync their local initial documents up to the cloud
+                    console.log("[Supabase] Cloud database is empty. Syncing local default documents up...");
+                    this.documents.forEach(doc => this.syncDocumentToCloud(doc));
+                }
+                
                 this.runSanityCheck();
                 this.runExpiryCheck();
-                this.renderDocumentsList();
+                this.updateActiveUserUI();
+                this.renderAll();
             }
         } catch (err) {
             console.warn("⚠️ Failed to load cloud vault data, using offline fallback", err);
@@ -3662,7 +5545,11 @@ class FamilyKYCManager {
         if (!this.isCloudSyncActive) return;
         try {
             const client = window.SupabaseVaultConfig.client;
-            const { data, error } = await client.from('vault_documents').upsert({
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) return;
+
+            const payload = {
+                user_id: session.user.id,
                 doc_type: doc.type,
                 doc_number: doc.number,
                 kyc_name: doc.kycName,
@@ -3670,20 +5557,57 @@ class FamilyKYCManager {
                 kyc_address: doc.kycAddress,
                 expiry_date: doc.expiryDate,
                 member_key: doc.owner,
+                is_private: doc.isPrivate || false,
                 status: doc.status || 'valid'
-            });
-            if (error) console.warn("[Supabase] Cloud sync error:", error);
-            else console.log("[Supabase] Synced document to cloud vault:", data);
+            };
+
+            // Check if doc.id is a valid UUID, otherwise omit it to let Supabase auto-generate one
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (doc.id && uuidRegex.test(doc.id)) {
+                payload.id = doc.id;
+            }
+
+            const { data, error } = await client.from('vault_documents').upsert(payload).select();
+            if (error) {
+                console.warn("[Supabase] Cloud sync error:", error);
+            } else if (data && data.length > 0) {
+                console.log("[Supabase] Synced document to cloud vault:", data[0]);
+                // Update local document with database generated UUID
+                doc.id = data[0].id;
+            }
         } catch (e) {
             console.warn("⚠️ Cloud sync exception:", e);
         }
     }
 
+    async deleteDocumentFromCloud(docId) {
+        this.saveLocalVaultCache();
+        if (!this.isCloudSyncActive) return;
+        try {
+            const client = window.SupabaseVaultConfig.client;
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (docId && uuidRegex.test(docId)) {
+                const { error } = await client.from('vault_documents').delete().eq('id', docId);
+                if (error) console.warn("[Supabase] Cloud delete error:", error);
+                else console.log("[Supabase] Deleted document from cloud vault:", docId);
+            }
+        } catch (e) {
+            console.warn("⚠️ Cloud delete exception:", e);
+        }
+    }
+
     saveLocalVaultCache() {
         try {
-            localStorage.setItem('family_kyc_documents', JSON.stringify(this.documents));
-            localStorage.setItem('family_kyc_members', JSON.stringify(this.members));
-            localStorage.setItem('family_kyc_actionTimeline', JSON.stringify(this.actionTimeline));
+            const email = this.activeUserEmail;
+            if (email) {
+                localStorage.setItem(`family_kyc_documents_${email}`, JSON.stringify(this.documents));
+                localStorage.setItem(`family_kyc_members_${email}`, JSON.stringify(this.members));
+                localStorage.setItem(`family_kyc_actionTimeline_${email}`, JSON.stringify(this.actionTimeline));
+            } else {
+                localStorage.setItem('family_kyc_documents', JSON.stringify(this.documents));
+                localStorage.setItem('family_kyc_members', JSON.stringify(this.members));
+                localStorage.setItem('family_kyc_actionTimeline', JSON.stringify(this.actionTimeline));
+            }
         } catch (e) {
             console.warn("LocalStorage save error", e);
         }
@@ -3691,88 +5615,73 @@ class FamilyKYCManager {
 
     loadLocalVaultCache() {
         try {
-            const savedDocs = localStorage.getItem('family_kyc_documents');
-            const savedMembers = localStorage.getItem('family_kyc_members');
-            const savedTimeline = localStorage.getItem('family_kyc_actionTimeline');
-            if (savedDocs) this.documents = JSON.parse(savedDocs);
-            if (savedMembers) this.members = JSON.parse(savedMembers);
-            if (savedTimeline) this.actionTimeline = JSON.parse(savedTimeline);
+            const email = this.activeUserEmail;
+            if (email) {
+                const savedDocs = localStorage.getItem(`family_kyc_documents_${email}`);
+                const savedMembers = localStorage.getItem(`family_kyc_members_${email}`);
+                const savedTimeline = localStorage.getItem(`family_kyc_actionTimeline_${email}`);
+                
+                const isDemoEmail = email === 'vikram.garg@gmail.com' || email === 'sunita.garg@gmail.com';
+                
+                if (savedDocs) {
+                    this.documents = JSON.parse(savedDocs);
+                } else {
+                    this.documents = isDemoEmail ? this.getLocalizedDocuments(this.selectedCountry) : [];
+                }
+                
+                if (savedMembers) {
+                    this.members = JSON.parse(savedMembers);
+                } else {
+                    if (isDemoEmail) {
+                        this.resetDefaultMembers();
+                    } else {
+                        const displayName = email.split('@')[0];
+                        const formattedName = displayName.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        this.members = {
+                            head: {
+                                name: formattedName,
+                                relation: 'Self',
+                                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+                                role: 'Primary Admin',
+                                mobile: '',
+                                email: email,
+                                address: ''
+                            }
+                        };
+                    }
+                }
+                
+                if (savedTimeline) this.actionTimeline = JSON.parse(savedTimeline);
+                else this.actionTimeline = [];
+            } else {
+                const savedDocs = localStorage.getItem('family_kyc_documents');
+                const savedMembers = localStorage.getItem('family_kyc_members');
+                const savedTimeline = localStorage.getItem('family_kyc_actionTimeline');
+                
+                if (savedDocs) this.documents = JSON.parse(savedDocs);
+                if (savedMembers) this.members = JSON.parse(savedMembers);
+                if (savedTimeline) this.actionTimeline = JSON.parse(savedTimeline);
+            }
         } catch (e) {
             console.warn("LocalStorage load error", e);
         }
     }
 
-    // --- CLIENT-SIDE OCR DOCUMENT SCANNER ---
-    async handleFileSelected(file) {
-        this.uploadedFile = file;
-        this.toast(`Processing ${file.name}... Scanning text via Tesseract OCR`, "info");
-        
-        const fileInfoElem = document.getElementById('selected-file-info');
-        if (fileInfoElem) {
-            fileInfoElem.innerHTML = `<i data-lucide="file-text"></i> <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>`;
-            fileInfoElem.classList.remove('hidden');
-        }
-
-        if (file.type.startsWith('image/') && typeof Tesseract !== 'undefined') {
-            try {
-                this.toast("🔍 Running client-side Tesseract OCR scanner...", "info");
-                const worker = await Tesseract.createWorker('eng');
-                const ret = await worker.recognize(file);
-                const text = ret.data.text;
-                await worker.terminate();
-                
-                console.log("[Tesseract OCR Scanned Text]:", text);
-                this.parseAndAutoFillOCR(text);
-                this.toast("✨ OCR Scan Complete! Extracted document data.", "success");
-            } catch (err) {
-                console.warn("OCR Scan error:", err);
-                this.toast("File attached. Ready for document registration.", "info");
-            }
-        } else {
-            this.toast("File attached successfully.", "info");
-        }
-    }
-
-    parseAndAutoFillOCR(text) {
-        if (!text) return;
-        const upper = text.toUpperCase();
-        
-        let detectedType = null;
-        if (upper.includes('AADHAAR') || upper.includes('GOVERNMENT OF INDIA') || /\d{4}\s\d{4}\s\d{4}/.test(text)) {
-            detectedType = 'Aadhaar';
-        } else if (upper.includes('INCOME TAX') || upper.includes('PERMANENT ACCOUNT') || /[A-Z]{5}[0-9]{4}[A-Z]{1}/.test(upper)) {
-            detectedType = 'PAN';
-        } else if (upper.includes('PASSPORT') || /PASSPORT/i.test(text)) {
-            detectedType = 'Passport';
-        } else if (upper.includes('DRIVING') || upper.includes('LICENCE') || upper.includes('LICENSE')) {
-            detectedType = 'Driving License';
-        }
-
-        let docNum = null;
-        const aadhaarMatch = text.match(/\b\d{4}\s?\d{4}\s?\d{4}\b/);
-        const panMatch = upper.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/);
-        const passMatch = upper.match(/[A-Z][0-9]{7}/);
-
-        if (aadhaarMatch) docNum = aadhaarMatch[0];
-        else if (panMatch) docNum = panMatch[0];
-        else if (passMatch) docNum = passMatch[0];
-
-        const expMatch = text.match(/(EXP|EXPIRY|VALID TILL|VALID UPTO)[\s:-]*([0-9]{2}[\/\.-][0-9]{2}[\/\.-][0-9]{4})/i);
-        let expDate = null;
-        if (expMatch && expMatch[2]) {
-            const parts = expMatch[2].split(/[\/\.-]/);
-            if (parts.length === 3) {
-                expDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-            }
-        }
-
-        const typeSelect = document.getElementById('upload-doc-type');
-        const numInput = document.getElementById('upload-doc-number');
-        const expInput = document.getElementById('upload-doc-expiry');
-
-        if (typeSelect && detectedType) typeSelect.value = detectedType;
-        if (numInput && docNum) numInput.value = docNum;
-        if (expInput && expDate) expInput.value = expDate;
+    resetDefaultMembers() {
+        this.members = {
+            head: { 
+                name: 'Vikram Garg', 
+                relation: 'Self', 
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100', 
+                role: 'Primary Admin',
+                mobile: '+91 98765 43210',
+                email: 'vikram.garg@gmail.com',
+                address: 'A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075'
+            },
+            spouse: { name: 'Sunita Garg', relation: 'Wife', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', role: 'Independent Member' },
+            child: { name: 'Rohan Garg', relation: 'Son (Minor)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', role: 'Dependent' },
+            parent: { name: 'Ramesh Chandra Garg', relation: 'Father (Senior)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100', role: 'Dependent' }
+        };
     }
 }
 

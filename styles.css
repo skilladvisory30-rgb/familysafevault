@@ -2093,6 +2093,14 @@ input:checked + .toggle-slider:before {
     animation: slideUpModal 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.modal-card form {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
 @keyframes slideUpModal {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -2141,6 +2149,7 @@ input:checked + .toggle-slider:before {
 .modal-body {
     padding: 24px;
     overflow-y: auto;
+    max-height: calc(90vh - 150px); /* Direct viewport constraint to force scrolling */
     flex-grow: 1;
 }
 
@@ -3648,6 +3657,223 @@ input:checked + .toggle-slider:before {
     background: #1d4ed8 !important;
     transform: scale(1.1) translateY(-2px) !important;
     box-shadow: 0 6px 16px rgba(37,99,235,0.4) !important;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   PREMIUM CUSTOM MODERN & ELEGANT UI UPGRADES (Without color/font/function changes)
+   ========================================================================== */
+
+/* 1. Global Interactive Elements Hover Lift & Shadows */
+.btn, .stat-card, .document-card, .shortcut-btn, .compliance-card, .timeline-item, .nav-item, .profile-btn, .notif-item {
+    transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.25, 1),
+                box-shadow 0.22s cubic-bezier(0.25, 0.8, 0.25, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                filter 0.2s ease;
+}
+
+/* 2. Interactive Focus & Border Animations on Form Elements */
+input[type="text"], input[type="password"], input[type="email"], input[type="url"], input[type="date"], select, textarea {
+    transition: border-color 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                transform 0.15s ease;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+    transform: translateY(-0.5px);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14); /* Soft accent highlight outline */
+    border-color: var(--accent) !important;
+    outline: none;
+}
+
+/* 3. Stat Cards Hover Accentuation */
+.stat-card:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06), 0 3px 6px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card:hover .stat-icon i {
+    animation: statIconPulse 0.6s ease-out;
+}
+
+@keyframes statIconPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15) rotate(5deg); }
+    100% { transform: scale(1); }
+}
+
+/* 4. Document Grid Cards High-End Styling */
+.document-card {
+    border-radius: var(--border-radius-xl) !important;
+    overflow: hidden;
+}
+
+.document-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
+    border-color: var(--border-hover) !important;
+}
+
+/* 5. Button Micro-interactions */
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0.5px);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+
+.btn-accent:hover {
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.22);
+}
+
+.btn-gold:hover {
+    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.25);
+}
+
+/* 6. Sidebar Nav Left Indicator Accent & Hover Fades */
+.sidebar-nav ul {
+    position: relative;
+}
+
+.nav-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 15%;
+    height: 70%;
+    width: 3px;
+    background-color: var(--accent);
+    border-radius: 0 4px 4px 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.nav-item.active::before {
+    transform: scaleX(1);
+}
+
+.nav-item a {
+    position: relative;
+    z-index: 2;
+}
+
+.nav-item:hover a {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item.active a {
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+/* 7. Enhanced Frosted Glass Modals & Smooth Scaling */
+.modal-backdrop {
+    backdrop-filter: blur(8px) saturate(110%);
+    background-color: rgba(15, 23, 42, 0.45);
+    transition: opacity 0.25s ease;
+}
+
+.modal-card {
+    border-radius: 20px !important;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.25);
+    animation: slideUpModalScale 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background-color: var(--bg-secondary) !important;
+}
+
+#doc-modal .modal-card {
+    width: 780px !important;
+    max-width: 95% !important;
+}
+
+#doc-form .form-group label:not(.checkbox-label) {
+    display: none !important;
+}
+
+#doc-form .form-group {
+    margin-bottom: 12px !important;
+}
+
+@keyframes slideUpModalScale {
+    from { transform: translateY(30px) scale(0.96); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Modal Input Header styling */
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 20px 24px !important;
+}
+
+/* 8. Super Clean Modern Scrollbars */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 99px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Dark mode scrollbars if needed */
+.dark-theme ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* 9. File Upload Drop Zone Premium Glass Hover */
+.drag-drop-area {
+    transition: border-color 0.22s ease, background-color 0.22s ease;
+    border-radius: 12px !important;
+}
+
+.drag-drop-area:hover {
+    border-color: var(--accent) !important;
+    background-color: rgba(37, 99, 235, 0.02) !important;
+}
+
+/* 10. Compliance check cards hover glow */
+.compliance-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-hover);
+}
+
+/* 11. Profile switcher button premium hover transitions */
+.profile-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.profile-dropdown {
+    border-radius: 14px !important;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 
