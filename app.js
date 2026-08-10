@@ -199,28 +199,32 @@ class FamilyKYCManager {
     }
 
     getLocalizedLifeEvents(country) {
+        const spouseName = (this.members && this.members.spouse && this.members.spouse.name) ? this.members.spouse.name : 'Spouse';
+        const headAddress = (this.members && this.members.head && this.members.head.address) ? this.members.head.address : 'Current Residence';
+        const addressShort = headAddress.split(',')[0].trim() || 'Current Residence';
+
         if (country === 'US') {
             return [
                 {
                     id: 'evt-marriage',
                     title: 'Post-Marriage Name Alignment',
-                    desc: 'Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse SSN Card ("Sunita Garg").',
+                    desc: `Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse SSN Card ("${spouseName}").`,
                     targetMember: 'spouse',
                     tasks: [
-                        { id: 't-m-aadhaar', title: 'Verify SSN Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: 'SSN Card name must be updated with marital surname "Garg".' },
-                        { id: 't-m-pan', title: 'Update State ID Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: 'State ID Card name must match SSN to prevent banking KYC blocks.' },
-                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: 'Driver\'s License name should match SSN.' }
+                        { id: 't-m-aadhaar', title: 'Verify SSN Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: `SSN Card name must be updated with marital surname of "${spouseName}".` },
+                        { id: 't-m-pan', title: 'Update State ID Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: `State ID Card name must match SSN ("${spouseName}") to prevent banking KYC blocks.` },
+                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: `Driver's License name should match SSN.` }
                     ],
                     progress: 0
                 },
                 {
                     id: 'evt-relocation',
                     title: 'Relocation Address Synchronization',
-                    desc: 'After shifting residency, address details must align across all official documents. Anchor document: Primary SSN Card ("Pine Street").',
+                    desc: `After shifting residency, address details must align across all official documents. Anchor document: Primary SSN Card ("${addressShort}").`,
                     targetMember: 'head',
                     tasks: [
-                        { id: 't-r-aadhaar', title: 'Verify SSN Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: 'SSN Card must be updated with Pine Street CA residence.' },
-                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-address', desc: 'Driver\'s License address must align with Pine Street residence.' },
+                        { id: 't-r-aadhaar', title: 'Verify SSN Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: `SSN Card must be updated with "${addressShort}" residence.` },
+                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-address', desc: `Driver's License address must align with "${addressShort}" residence.` },
                         { id: 't-r-passport', title: 'Sync US Passport Address', docType: 'PASSPORT', checkType: 'match-anchor-address', desc: 'US Passport address should match current residency.' }
                     ],
                     progress: 0
@@ -231,23 +235,23 @@ class FamilyKYCManager {
                 {
                     id: 'evt-marriage',
                     title: 'Post-Marriage Name Alignment',
-                    desc: 'Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse NINO Card ("Sunita Garg").',
+                    desc: `Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse NINO Card ("${spouseName}").`,
                     targetMember: 'spouse',
                     tasks: [
-                        { id: 't-m-aadhaar', title: 'Verify NINO Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: 'NINO Card name must be updated with marital surname "Garg".' },
-                        { id: 't-m-pan', title: 'Update National ID Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: 'National ID Card name must match NINO to prevent banking KYC blocks.' },
-                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: 'Driver\'s License name should match NINO.' }
+                        { id: 't-m-aadhaar', title: 'Verify NINO Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: `NINO Card name must be updated with marital surname of "${spouseName}".` },
+                        { id: 't-m-pan', title: 'Update National ID Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: `National ID Card name must match NINO ("${spouseName}") to prevent banking KYC blocks.` },
+                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: `Driver's License name should match NINO.` }
                     ],
                     progress: 0
                 },
                 {
                     id: 'evt-relocation',
                     title: 'Relocation Address Synchronization',
-                    desc: 'After shifting residency, address details must align across all official documents. Anchor document: Primary NINO Card ("Kensington High St").',
+                    desc: `After shifting residency, address details must align across all official documents. Anchor document: Primary NINO Card ("${addressShort}").`,
                     targetMember: 'head',
                     tasks: [
-                        { id: 't-r-aadhaar', title: 'Verify NINO Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: 'NINO Card must be updated with Kensington residence.' },
-                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-address', desc: 'Driver\'s License address must align with Kensington residence.' },
+                        { id: 't-r-aadhaar', title: 'Verify NINO Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: `NINO Card must be updated with "${addressShort}" residence.` },
+                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-address', desc: `Driver's License address must align with "${addressShort}" residence.` },
                         { id: 't-r-passport', title: 'Sync UK Passport Address', docType: 'PASSPORT', checkType: 'match-anchor-address', desc: 'UK Passport address should match current residency.' }
                     ],
                     progress: 0
@@ -258,23 +262,23 @@ class FamilyKYCManager {
                 {
                     id: 'evt-marriage',
                     title: 'Post-Marriage Name Alignment',
-                    desc: 'Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse Aadhaar Card ("Sunita Garg").',
+                    desc: `Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse Aadhaar Card ("${spouseName}").`,
                     targetMember: 'spouse',
                     tasks: [
-                        { id: 't-m-aadhaar', title: 'Verify Aadhaar Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: 'Aadhaar Card name must be updated with marital surname "Garg".' },
-                        { id: 't-m-pan', title: 'Update PAN Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: 'PAN Card name must match Aadhaar to prevent banking KYC blocks.' },
-                        { id: 't-m-dl', title: 'Update Driving License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: 'Driving License name should match Aadhaar.' }
+                        { id: 't-m-aadhaar', title: 'Verify Aadhaar Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: `Aadhaar Card name must be updated with marital surname of "${spouseName}".` },
+                        { id: 't-m-pan', title: 'Update PAN Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: `PAN Card name must match Aadhaar ("${spouseName}") to prevent banking KYC blocks.` },
+                        { id: 't-m-dl', title: 'Update Driving License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: `Driving License name should match Aadhaar.` }
                     ],
                     progress: 0
                 },
                 {
                     id: 'evt-relocation',
                     title: 'Relocation Address Synchronization',
-                    desc: 'After shifting residency, address details must align across all official documents. Anchor document: Primary Aadhaar Card ("Dwarka Apartments").',
+                    desc: `After shifting residency, address details must align across all official documents. Anchor document: Primary Aadhaar Card ("${addressShort}").`,
                     targetMember: 'head',
                     tasks: [
-                        { id: 't-r-aadhaar', title: 'Verify Aadhaar Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: 'Aadhaar Card must be updated with Dwarka Sector 12 residence.' },
-                        { id: 't-r-voter', title: 'Sync Voter ID Address', docType: 'UTILITY_RECORD', checkType: 'match-anchor-address', desc: 'Voter ID card address must align with Dwarka residence.' },
+                        { id: 't-r-aadhaar', title: 'Verify Aadhaar Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: `Aadhaar Card must be updated with "${addressShort}" residence.` },
+                        { id: 't-r-voter', title: 'Sync Voter ID Address', docType: 'UTILITY_RECORD', checkType: 'match-anchor-address', desc: `Voter ID card address must align with "${addressShort}" residence.` },
                         { id: 't-r-passport', title: 'Sync Passport Address', docType: 'PASSPORT', checkType: 'match-anchor-address', desc: 'Passport address should match current residency.' }
                     ],
                     progress: 0
@@ -5164,6 +5168,7 @@ class FamilyKYCManager {
                 this.actionTimeline = [];
             }
             
+            this.lifeEvents = this.getLocalizedLifeEvents(this.selectedCountry);
             this.runFullKYCScan();
             this.runExpiryCheck();
             this.updateActiveUserUI();
