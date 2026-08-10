@@ -5517,14 +5517,25 @@ class FamilyKYCManager {
             const { data: { session } } = await client.auth.getSession();
             if (!session || !session.user) return;
 
+            const normalizeDate = (val) => {
+                if (!val || typeof val !== 'string') return null;
+                const trimmed = val.trim();
+                if (trimmed === '' || trimmed.includes('[') || trimmed.includes('Extracting') || trimmed.includes('Scanning')) {
+                    return null;
+                }
+                const d = new Date(trimmed);
+                if (isNaN(d.getTime())) return null;
+                return d.toISOString().split('T')[0];
+            };
+
             const payload = {
                 user_id: session.user.id,
                 doc_type: doc.type,
                 doc_number: doc.number,
                 kyc_name: doc.kycName,
-                kyc_dob: doc.kycDob,
+                kyc_dob: normalizeDate(doc.kycDob),
                 kyc_address: doc.kycAddress,
-                expiry_date: doc.expiryDate,
+                expiry_date: normalizeDate(doc.expiryDate),
                 member_key: doc.owner,
                 is_private: doc.isPrivate || false,
                 status: doc.status || 'valid',
@@ -5547,12 +5558,14 @@ class FamilyKYCManager {
             const { data, error } = await client.from('vault_documents').upsert(payload).select();
             if (error) {
                 console.warn("[Supabase] Cloud sync error:", error);
+                this.toast(`⚠️ Cloud storage sync failed: ${error.message}`, "danger");
             } else if (data && data.length > 0) {
                 console.log("[Supabase] Synced document to cloud vault:", data[0]);
                 doc.id = data[0].id;
             }
         } catch (e) {
             console.warn("⚠️ Cloud sync exception:", e);
+            this.toast(`⚠️ Cloud sync exception: ${e.message || e}`, "danger");
         }
     }
 
