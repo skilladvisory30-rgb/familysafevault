@@ -54,6 +54,8 @@ class FamilyKYCManager {
 
         // Currently attached file in upload simulator
         this.uploadedFile = null;
+        this.currentFileDataUrl = null;
+        this.lastExtractedText = "";
         
         // Selected avatar URL when provisioning family members
         this.selectedMemberAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100';
@@ -1501,6 +1503,7 @@ class FamilyKYCManager {
         form.reset();
         this.uploadedFile = null;
         this.currentFileDataUrl = null;
+        this.lastExtractedText = "";
         
         document.getElementById('doc-expiry-input').type = 'text';
         document.getElementById('doc-kyc-dob').type = 'text';
@@ -1523,6 +1526,7 @@ class FamilyKYCManager {
             // Edit Mode
             const doc = this.documents.find(d => d.id === docId);
             this.currentFileDataUrl = doc.fileDataUrl || null;
+            this.lastExtractedText = doc.rawOcrText || '';
             document.getElementById('modal-title').innerText = "Edit Document Metadata";
             const saveBtn = document.getElementById('btn-save-doc');
             if (saveBtn) saveBtn.innerText = "Save Changes";
@@ -1573,6 +1577,7 @@ class FamilyKYCManager {
 
     closeUploadModal() {
         document.getElementById('doc-modal').classList.add('hidden');
+        this.lastExtractedText = "";
         
         const previewContainer = document.getElementById('pdf-debug-preview-container');
         if (previewContainer) previewContainer.style.display = 'none';
@@ -2175,6 +2180,7 @@ class FamilyKYCManager {
                     }
                 }
                 
+                this.lastExtractedText = text || '';
                 this.logOCR("Starting parser logic (parseAndAutoFillOCR)...");
                 this.parseAndAutoFillOCR(text);
                 this.logOCR("Autofill and diagnostics completed successfully!", "success");
@@ -2328,6 +2334,7 @@ class FamilyKYCManager {
                     }
                 });
                 const text = ret.data.text;
+                this.lastExtractedText = text || '';
                 this.logOCR(`Tesseract OCR finished. Scanned text length: ${text.length}`);
                 
                 this.logOCR("Starting parser logic (parseAndAutoFillOCR)...");
@@ -2867,6 +2874,9 @@ class FamilyKYCManager {
             if (this.currentFileDataUrl) {
                 doc.fileDataUrl = this.currentFileDataUrl;
             }
+            if (this.lastExtractedText) {
+                doc.rawOcrText = this.lastExtractedText;
+            }
             doc.fileName = fileName;
             doc.isPrivate = isPrivate;
             doc.status = 'valid'; // reset status, rechecked below
@@ -2899,6 +2909,7 @@ class FamilyKYCManager {
                 expiryDate,
                 isPrivate,
                 fileDataUrl: this.currentFileDataUrl || null,
+                rawOcrText: this.lastExtractedText || '',
                 status: 'valid'
             };
             this.documents.push(newDoc);
@@ -3043,6 +3054,16 @@ class FamilyKYCManager {
                             </div>` : ''}
                         </div>
                     </div>
+                    
+                    ${doc.rawOcrText ? `
+                    <div class="inspector-meta-box" style="margin-top: 16px;">
+                        <div class="inspector-meta-title" style="display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="scan-text" style="width:14px; height:14px; color:var(--accent);"></i>
+                            Extracted OCR Text Layer
+                        </div>
+                        <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-family: monospace; font-size: 10px; color: var(--text-secondary); max-height: 120px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 8px; text-align: left;">${doc.rawOcrText}</div>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -5425,7 +5446,8 @@ class FamilyKYCManager {
                         kycRelative: extra.kycRelative || '',
                         kycAdditional: extra.kycAdditional || '',
                         fileName: extra.fileName || '',
-                        fileDataUrl: extra.fileDataUrl || null
+                        fileDataUrl: extra.fileDataUrl || null,
+                        rawOcrText: extra.rawOcrText || ''
                     };
                 });
             } else {
@@ -5511,7 +5533,8 @@ class FamilyKYCManager {
                     kycRelative: doc.kycRelative || '',
                     kycAdditional: doc.kycAdditional || '',
                     fileName: doc.fileName || '',
-                    fileDataUrl: doc.fileDataUrl || ''
+                    fileDataUrl: doc.fileDataUrl || '',
+                    rawOcrText: doc.rawOcrText || ''
                 })
             };
 
