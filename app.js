@@ -610,7 +610,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-head-passport',
                     owner: 'head',
-                    type: 'Passport',
+                    type: 'PASSPORT',
                     number: 'Z1234567',
                     kycName: 'Vikram G Garg',
                     kycDob: '1984-05-12',
@@ -622,7 +622,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-head-dl',
                     owner: 'head',
-                    type: 'Voter ID',
+                    type: 'UTILITY_RECORD',
                     number: 'DL/02/012/345678',
                     kycName: 'Vikaram Garg',
                     kycDob: '1984-05-12',
@@ -634,7 +634,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-head-lic',
                     owner: 'head',
-                    type: 'Insurance',
+                    type: 'INSURANCE_POLICY',
                     number: '•••• •••• 5612',
                     kycName: 'Vikram Garg',
                     kycDob: '1984-05-12',
@@ -646,7 +646,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-head-bank',
                     owner: 'head',
-                    type: 'Savings Bank Account',
+                    type: 'BANK_ACCOUNT',
                     number: '•••• •••• 9812',
                     kycName: 'Vikram Garg',
                     kycDob: '1984-05-12',
@@ -682,7 +682,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-spouse-dl',
                     owner: 'spouse',
-                    type: 'Driving License',
+                    type: 'DRIVING_LICENCE',
                     number: 'DL-142010123456',
                     kycName: 'Sunita Garg',
                     kycDob: '1987-11-20',
@@ -706,7 +706,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-child-passport',
                     owner: 'child',
-                    type: 'Passport',
+                    type: 'PASSPORT',
                     number: 'V8976543',
                     kycName: 'Rohan Garg',
                     kycDob: '2015-08-19',
@@ -730,7 +730,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-parent-health',
                     owner: 'parent',
-                    type: 'Insurance',
+                    type: 'INSURANCE_POLICY',
                     number: 'CGHS-9081234',
                     kycName: 'Ramesh C Garg',
                     kycDob: '1955-01-01',
@@ -742,7 +742,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-head-degree',
                     owner: 'head',
-                    type: 'Graduation Degree',
+                    type: 'UTILITY_RECORD',
                     number: 'DTU-BTECH-2006-8912',
                     kycName: 'Vikram Garg',
                     kycDob: '1984-05-12',
@@ -754,7 +754,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-head-uan',
                     owner: 'head',
-                    type: 'EPF UAN Card',
+                    type: 'UTILITY_RECORD',
                     number: '100987654321',
                     kycName: 'Vikram Garg',
                     kycDob: '1984-05-12',
@@ -766,7 +766,7 @@ class FamilyKYCManager {
                 {
                     id: 'doc-spouse-degree',
                     owner: 'spouse',
-                    type: 'Graduation Degree',
+                    type: 'UTILITY_RECORD',
                     number: 'MBA-FMS-2009-4501',
                     kycName: 'Sunita Sharma',
                     kycDob: '1987-11-20',
@@ -871,9 +871,9 @@ class FamilyKYCManager {
                     desc: 'Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse SSN Card ("Sunita Garg").',
                     targetMember: 'spouse',
                     tasks: [
-                        { id: 't-m-aadhaar', title: 'Verify SSN Name Update', docType: 'SSN Card', checkType: 'anchor-name', desc: 'SSN Card name must be updated with marital surname "Garg".' },
-                        { id: 't-m-pan', title: 'Update State ID Card Name', docType: 'State ID', checkType: 'match-anchor-name', desc: 'State ID Card name must match SSN to prevent banking KYC blocks.' },
-                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'Driver\'s License', checkType: 'match-anchor-name', desc: 'Driver\'s License name should match SSN.' }
+                        { id: 't-m-aadhaar', title: 'Verify SSN Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: 'SSN Card name must be updated with marital surname "Garg".' },
+                        { id: 't-m-pan', title: 'Update State ID Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: 'State ID Card name must match SSN to prevent banking KYC blocks.' },
+                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: 'Driver\'s License name should match SSN.' }
                     ],
                     progress: 0
                 },
@@ -883,9 +883,9 @@ class FamilyKYCManager {
                     desc: 'After shifting residency, address details must align across all official documents. Anchor document: Primary SSN Card ("Pine Street").',
                     targetMember: 'head',
                     tasks: [
-                        { id: 't-r-aadhaar', title: 'Verify SSN Address Update', docType: 'SSN Card', checkType: 'anchor-address', desc: 'SSN Card must be updated with Pine Street CA residence.' },
-                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'Driver\'s License', checkType: 'match-anchor-address', desc: 'Driver\'s License address must align with Pine Street residence.' },
-                        { id: 't-r-passport', title: 'Sync US Passport Address', docType: 'US Passport', checkType: 'match-anchor-address', desc: 'US Passport address should match current residency.' }
+                        { id: 't-r-aadhaar', title: 'Verify SSN Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: 'SSN Card must be updated with Pine Street CA residence.' },
+                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-address', desc: 'Driver\'s License address must align with Pine Street residence.' },
+                        { id: 't-r-passport', title: 'Sync US Passport Address', docType: 'PASSPORT', checkType: 'match-anchor-address', desc: 'US Passport address should match current residency.' }
                     ],
                     progress: 0
                 }
@@ -898,9 +898,9 @@ class FamilyKYCManager {
                     desc: 'Following marriage, name corrections must cascade across all spouse identification cards. Anchor document: Spouse NINO Card ("Sunita Garg").',
                     targetMember: 'spouse',
                     tasks: [
-                        { id: 't-m-aadhaar', title: 'Verify NINO Name Update', docType: 'NINO Card', checkType: 'anchor-name', desc: 'NINO Card name must be updated with marital surname "Garg".' },
-                        { id: 't-m-pan', title: 'Update National ID Card Name', docType: 'National ID', checkType: 'match-anchor-name', desc: 'National ID Card name must match NINO to prevent banking KYC blocks.' },
-                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'Driver\'s License', checkType: 'match-anchor-name', desc: 'Driver\'s License name should match NINO.' }
+                        { id: 't-m-aadhaar', title: 'Verify NINO Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: 'NINO Card name must be updated with marital surname "Garg".' },
+                        { id: 't-m-pan', title: 'Update National ID Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: 'National ID Card name must match NINO to prevent banking KYC blocks.' },
+                        { id: 't-m-dl', title: 'Update Driver\'s License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: 'Driver\'s License name should match NINO.' }
                     ],
                     progress: 0
                 },
@@ -910,9 +910,9 @@ class FamilyKYCManager {
                     desc: 'After shifting residency, address details must align across all official documents. Anchor document: Primary NINO Card ("Kensington High St").',
                     targetMember: 'head',
                     tasks: [
-                        { id: 't-r-aadhaar', title: 'Verify NINO Address Update', docType: 'NINO Card', checkType: 'anchor-address', desc: 'NINO Card must be updated with Kensington residence.' },
-                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'Driver\'s License', checkType: 'match-anchor-address', desc: 'Driver\'s License address must align with Kensington residence.' },
-                        { id: 't-r-passport', title: 'Sync UK Passport Address', docType: 'UK Passport', checkType: 'match-anchor-address', desc: 'UK Passport address should match current residency.' }
+                        { id: 't-r-aadhaar', title: 'Verify NINO Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: 'NINO Card must be updated with Kensington residence.' },
+                        { id: 't-r-voter', title: 'Sync Driver\'s License Address', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-address', desc: 'Driver\'s License address must align with Kensington residence.' },
+                        { id: 't-r-passport', title: 'Sync UK Passport Address', docType: 'PASSPORT', checkType: 'match-anchor-address', desc: 'UK Passport address should match current residency.' }
                     ],
                     progress: 0
                 }
@@ -927,7 +927,7 @@ class FamilyKYCManager {
                     tasks: [
                         { id: 't-m-aadhaar', title: 'Verify Aadhaar Name Update', docType: 'Aadhaar', checkType: 'anchor-name', desc: 'Aadhaar Card name must be updated with marital surname "Garg".' },
                         { id: 't-m-pan', title: 'Update PAN Card Name', docType: 'PAN', checkType: 'match-anchor-name', desc: 'PAN Card name must match Aadhaar to prevent banking KYC blocks.' },
-                        { id: 't-m-dl', title: 'Update Driving License Name', docType: 'Driving License', checkType: 'match-anchor-name', desc: 'Driving License name should match Aadhaar.' }
+                        { id: 't-m-dl', title: 'Update Driving License Name', docType: 'DRIVING_LICENCE', checkType: 'match-anchor-name', desc: 'Driving License name should match Aadhaar.' }
                     ],
                     progress: 0
                 },
@@ -938,8 +938,8 @@ class FamilyKYCManager {
                     targetMember: 'head',
                     tasks: [
                         { id: 't-r-aadhaar', title: 'Verify Aadhaar Address Update', docType: 'Aadhaar', checkType: 'anchor-address', desc: 'Aadhaar Card must be updated with Dwarka Sector 12 residence.' },
-                        { id: 't-r-voter', title: 'Sync Voter ID Address', docType: 'Voter ID', checkType: 'match-anchor-address', desc: 'Voter ID card address must align with Dwarka residence.' },
-                        { id: 't-r-passport', title: 'Sync Passport Address', docType: 'Passport', checkType: 'match-anchor-address', desc: 'Passport address should match current residency.' }
+                        { id: 't-r-voter', title: 'Sync Voter ID Address', docType: 'UTILITY_RECORD', checkType: 'match-anchor-address', desc: 'Voter ID card address must align with Dwarka residence.' },
+                        { id: 't-r-passport', title: 'Sync Passport Address', docType: 'PASSPORT', checkType: 'match-anchor-address', desc: 'Passport address should match current residency.' }
                     ],
                     progress: 0
                 }
@@ -975,59 +975,39 @@ class FamilyKYCManager {
             let optionsHtml = '';
             if (country === 'US') {
                 optionsHtml = `
-                    <option value="SSN Card">SSN Card (Social Security)</option>
-                    <option value="State ID">State ID Card</option>
-                    <option value="US Passport">US Passport</option>
-                    <option value="Driver's License">Driver's License</option>
-                    <option value="Medicare Card">Medicare Card</option>
-                    <option value="Checking/Savings Bank Account">Checking/Savings Bank Account</option>
-                    <option value="Certificate of Deposit (CD)">Certificate of Deposit (CD)</option>
-                    <option value="Mutual Fund / Brokerage Portfolio">Mutual Fund / Brokerage Portfolio</option>
-                    <option value="401(k) / IRA Statement">401(k) / IRA Statement</option>
-                    <option value="W-2 Form">W-2 Tax Form</option>
-                    <option value="Insurance">Insurance Policy (Medical/Life)</option>
-                    <option value="Property Tax">Property Tax Receipt</option>
-                    <option value="Utility Gas">Utility Gas Bill</option>
-                    <option value="Utility Electricity">Utility Electricity Bill</option>
-                    <option value="Graduation Degree">Graduation Degree</option>
+                    <option value="Aadhaar">SSN Card (Social Security)</option>
+                    <option value="PAN">State ID Card</option>
+                    <option value="PASSPORT">US Passport</option>
+                    <option value="DRIVING_LICENCE">Driver's License</option>
+                    <option value="BANK_ACCOUNT">Bank Account Metadata</option>
+                    <option value="INSURANCE_POLICY">Insurance Policy (Medical/Life)</option>
+                    <option value="MUTUAL_FUND">Mutual Fund / Brokerage Portfolio</option>
+                    <option value="VEHICLE_RC">Vehicle Title & Registration</option>
+                    <option value="UTILITY_RECORD">Property Tax & Utility Bills</option>
                 `;
             } else if (country === 'UK') {
                 optionsHtml = `
-                    <option value="NINO Card">NINO Card (National Insurance)</option>
-                    <option value="National ID">National ID Card</option>
-                    <option value="UK Passport">UK Passport</option>
-                    <option value="Driver's License">DVLA Driver's License</option>
-                    <option value="NHS Medical Card">NHS Medical Card</option>
-                    <option value="Current/Savings Bank Account">Current/Savings Bank Account</option>
-                    <option value="Cash ISA / Fixed Bond">Cash ISA / Fixed Bond</option>
-                    <option value="Mutual Fund / Investment ISA">Mutual Fund / Investment ISA</option>
-                    <option value="Private/State Pension Scheme">Private/State Pension Scheme</option>
-                    <option value="P60 Form">P60 Tax Form</option>
-                    <option value="Insurance">Insurance Policy</option>
-                    <option value="Property Tax">Council Tax Bill</option>
-                    <option value="Utility Gas">Utility Gas Bill</option>
-                    <option value="Utility Electricity">Utility Electricity Bill</option>
-                    <option value="Graduation Degree">Graduation Degree</option>
+                    <option value="Aadhaar">NINO Card (National Insurance)</option>
+                    <option value="PAN">National ID Card</option>
+                    <option value="PASSPORT">UK Passport</option>
+                    <option value="DRIVING_LICENCE">DVLA Driver's License</option>
+                    <option value="BANK_ACCOUNT">Bank Account Metadata</option>
+                    <option value="INSURANCE_POLICY">Insurance Policy (Life/Health)</option>
+                    <option value="MUTUAL_FUND">Mutual Fund / Investment ISA</option>
+                    <option value="VEHICLE_RC">V5C Vehicle Registry</option>
+                    <option value="UTILITY_RECORD">Property Tax / Utility Bills</option>
                 `;
             } else {
                 optionsHtml = `
                     <option value="Aadhaar">Aadhaar Card</option>
                     <option value="PAN">PAN Card</option>
-                    <option value="Passport">Passport</option>
-                    <option value="Driving License">Driving License</option>
-                    <option value="Voter ID">Voter ID Card</option>
-                    <option value="Savings Bank Account">Savings Bank Account</option>
-                    <option value="Fixed Deposit (FD) Receipt">Fixed Deposit (FD) Receipt</option>
-                    <option value="Mutual Fund Portfolio">Mutual Fund Portfolio</option>
-                    <option value="Public Provident Fund (PPF)">Public Provident Fund (PPF)</option>
-                    <option value="ITR">Income Tax Return (ITR)</option>
-                    <option value="Insurance">Insurance Policy (LIC / Health)</option>
-                    <option value="Property Tax">Property Tax Receipt</option>
-                    <option value="Utility Gas">Gas Bill (PNG)</option>
-                    <option value="Utility Electricity">Electricity Bill</option>
-                    <option value="Class 10 Certificate">Class 10 Marksheet / Certificate</option>
-                    <option value="Graduation Degree">Graduation Degree</option>
-                    <option value="EPF UAN Card">EPF UAN Card</option>
+                    <option value="PASSPORT">Passport</option>
+                    <option value="DRIVING_LICENCE">Driving Licence</option>
+                    <option value="BANK_ACCOUNT">Bank Account Metadata</option>
+                    <option value="INSURANCE_POLICY">Life & Health Insurance Policy</option>
+                    <option value="MUTUAL_FUND">Mutual Fund Folio</option>
+                    <option value="VEHICLE_RC">Vehicle Registration Certificate (RC)</option>
+                    <option value="UTILITY_RECORD">Property Tax / Utility Bill</option>
                 `;
             }
             typeSelect.innerHTML = optionsHtml;
@@ -1614,101 +1594,85 @@ class FamilyKYCManager {
                 showRelative: false,
                 showAddress: true,
                 addressLabel: "Address (Front & Back)",
-                showAdditional: false,
-                additionalLabel: "VID & QR Code Data"
+                showAdditional: false
             },
             'PAN': {
                 numLabel: "PAN Number",
                 numPlaceholder: "10-character PAN e.g. WXYZP5678Q",
                 showExpiry: false,
                 showName: true,
-                nameLabel: "Full Name (as printed on document)",
+                nameLabel: "Holder Name",
                 showDob: true,
-                dobLabel: "Date of Birth (as printed)",
+                dobLabel: "Date of Birth",
                 showGender: false,
-                showRelative: true,
-                relativeLabel: "Father's Name",
+                showRelative: false,
                 showAddress: false,
                 showAdditional: false
             },
-            'Passport': {
+            'PASSPORT': {
                 numLabel: "Passport Number",
                 numPlaceholder: "Passport No. e.g. Z1234567",
                 showExpiry: true,
                 expiryLabel: "Expiry Date",
                 showName: true,
-                nameLabel: "Full Name (as printed on Passport)",
-                showDob: true,
-                dobLabel: "Date of Birth",
-                showGender: true,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Place of Birth",
-                showAdditional: true,
-                additionalLabel: "Nationality"
-            },
-            'Driving License': {
-                numLabel: "DL Number",
-                numPlaceholder: "License Number e.g. DL-142010123456",
-                showExpiry: true,
-                expiryLabel: "Validity / Expiry Date",
-                showName: true,
-                nameLabel: "Full Name (as printed)",
+                nameLabel: "Holder Name",
                 showDob: true,
                 dobLabel: "Date of Birth",
                 showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Address",
-                showAdditional: true,
-                additionalLabel: "Vehicle Classes & Issue Date"
-            },
-            'Voter ID': {
-                numLabel: "EPIC Number",
-                numPlaceholder: "Voter ID No. e.g. ABC1234567",
-                showExpiry: false,
-                showName: true,
-                nameLabel: "Full Name (as printed)",
-                showDob: true,
-                dobLabel: "Date of Birth / Age",
-                showGender: true,
                 showRelative: true,
-                relativeLabel: "Relative's / Father's Name",
+                relativeLabel: "Date of Issue",
                 showAddress: true,
-                addressLabel: "Address",
-                showAdditional: true,
-                additionalLabel: "Assembly Constituency"
+                addressLabel: "Place of Issue",
+                showAdditional: false
             },
-            'Savings Bank': {
+            'DRIVING_LICENCE': {
+                numLabel: "Licence Number",
+                numPlaceholder: "Licence ID e.g. DL-142010123456",
+                showExpiry: true,
+                expiryLabel: "Expiry Date",
+                showName: true,
+                nameLabel: "Holder Name",
+                showDob: true,
+                dobLabel: "Date of Birth",
+                showGender: false,
+                showRelative: true,
+                relativeLabel: "Issue Date",
+                showAddress: false,
+                showAdditional: true,
+                additionalLabel: "Vehicle Classes (e.g. LMV/MCWG)"
+            },
+            'BANK_ACCOUNT': {
                 numLabel: "Account Number",
-                numPlaceholder: "Enter savings account number...",
+                numPlaceholder: "Enter last 4 digits or full number",
                 showExpiry: false,
                 showName: true,
                 nameLabel: "Account Holder Name",
                 showDob: false,
                 showGender: false,
-                showRelative: false,
+                showRelative: true,
+                relativeLabel: "Bank Name",
                 showAddress: true,
-                addressLabel: "Branch Address",
+                addressLabel: "Branch Name / Address",
                 showAdditional: true,
-                additionalLabel: "Bank Name, IFSC Code & MICR Code"
+                additionalLabel: "IFSC Code"
             },
-            'FD Receipt': {
-                numLabel: "FD Account Number / Receipt No.",
-                numPlaceholder: "Enter FD account/receipt number...",
+            'INSURANCE_POLICY': {
+                numLabel: "Policy Number",
+                numPlaceholder: "Enter policy number...",
                 showExpiry: true,
-                expiryLabel: "Maturity Date",
+                expiryLabel: "Renewal / Expiry Due Date",
                 showName: true,
-                nameLabel: "Depositor Name",
+                nameLabel: "Policyholder Name",
                 showDob: false,
                 showGender: false,
-                showRelative: false,
+                showRelative: true,
+                relativeLabel: "Provider / Company Name",
                 showAddress: true,
-                addressLabel: "Principal Amount & Interest Rate",
+                addressLabel: "Insured Members",
                 showAdditional: true,
-                additionalLabel: "Maturity Amount"
+                additionalLabel: "Start / Commencement Date"
             },
-            'Mutual Fund': {
+            'MUTUAL_FUND': {
                 numLabel: "Folio Number",
                 numPlaceholder: "Enter folio number...",
                 showExpiry: false,
@@ -1716,143 +1680,42 @@ class FamilyKYCManager {
                 nameLabel: "Investor Name",
                 showDob: false,
                 showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "AMC & Scheme Name",
+                showRelative: true,
+                relativeLabel: "Asset Management Company (AMC)",
+                showAddress: false,
                 showAdditional: true,
-                additionalLabel: "Current Valuation & Unit Balance"
+                additionalLabel: "PAN / KYC Status Flag (e.g. Verified)"
             },
-            'PPF': {
-                numLabel: "PPF Account Number",
-                numPlaceholder: "Enter PPF account number...",
-                showExpiry: false,
-                showName: true,
-                nameLabel: "Subscriber Name",
-                showDob: false,
-                showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Bank/Post Office Name",
-                showAdditional: true,
-                additionalLabel: "Current Balance & Financial Year"
-            },
-            'ITR': {
-                numLabel: "Filing Acknowledgement Number",
-                numPlaceholder: "Enter ITR ack number...",
-                showExpiry: false,
-                showName: true,
-                nameLabel: "Assessor Name",
-                showDob: false,
-                showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Gross Total Income & Tax Payable",
-                showAdditional: true,
-                additionalLabel: "PAN & Assessment Year"
-            },
-            'Insurance': {
-                numLabel: "Policy Number",
-                numPlaceholder: "Enter policy number...",
+            'VEHICLE_RC': {
+                numLabel: "Registration Number",
+                numPlaceholder: "Vehicle plate number e.g. DL-3C-CA-1234",
                 showExpiry: true,
-                expiryLabel: "Expiry Date / Renewal Date",
-                showName: true,
-                nameLabel: "Policyholder Name",
-                showDob: false,
-                showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Insured Members",
-                showAdditional: true,
-                additionalLabel: "Sum Insured, Start Date & Premium Amount"
-            },
-            'Property Tax': {
-                numLabel: "Receipt Number",
-                numPlaceholder: "Enter property tax receipt number...",
-                showExpiry: false,
+                expiryLabel: "Fitness / RC Expiry Date",
                 showName: true,
                 nameLabel: "Owner Name",
                 showDob: false,
                 showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Property Assessment / Khata Number",
-                showAdditional: true,
-                additionalLabel: "Financial Year, Zone/Ward & Total Amount Paid"
-            },
-            'Utility Gas': {
-                numLabel: "BP / Customer ID",
-                numPlaceholder: "Enter gas bill customer/BP ID...",
-                showExpiry: true,
-                expiryLabel: "Due Date",
-                showName: true,
-                nameLabel: "Consumer Name",
-                showDob: false,
-                showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Bill Number & Billing Period",
-                showAdditional: true,
-                additionalLabel: "Total Amount Due & Consumption Units"
-            },
-            'Utility Electricity': {
-                numLabel: "Consumer ID / Connection Number",
-                numPlaceholder: "Enter electricity consumer ID...",
-                showExpiry: true,
-                expiryLabel: "Due Date",
-                showName: true,
-                nameLabel: "Consumer Name",
-                showDob: false,
-                showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "Billing Unit / Subdivision",
-                showAdditional: true,
-                additionalLabel: "Bill Amount & Meter Reading Details"
-            },
-            'Class 10 Certificate': {
-                numLabel: "Roll Number",
-                numPlaceholder: "Enter roll number...",
-                showExpiry: false,
-                showName: true,
-                nameLabel: "Student Name",
-                showDob: true,
-                dobLabel: "Date of Birth",
-                showGender: false,
                 showRelative: true,
-                relativeLabel: "Father's & Mother's Names",
-                showAddress: true,
-                addressLabel: "Board Name & Passing Year",
+                relativeLabel: "Vehicle Make & Model",
+                showAddress: false,
                 showAdditional: true,
-                additionalLabel: "Subject-wise Grades"
+                additionalLabel: "Fuel Type (e.g. Petrol/CNG)"
             },
-            'Graduation Degree': {
-                numLabel: "Enrollment / Registration Number",
-                numPlaceholder: "Enter enrollment/registration number...",
+            'UTILITY_RECORD': {
+                numLabel: "Consumer / Connection ID",
+                numPlaceholder: "Connection number or ID...",
                 showExpiry: true,
-                expiryLabel: "Date of Issue",
+                expiryLabel: "Due Date (Optional)",
                 showName: true,
-                nameLabel: "Graduate Name",
-                showDob: false,
-                showGender: false,
-                showRelative: false,
-                showAddress: true,
-                addressLabel: "University Name",
-                showAdditional: true,
-                additionalLabel: "Degree Title & Division/Grade"
-            },
-            'EPF UAN Card': {
-                numLabel: "Universal Account Number (UAN)",
-                numPlaceholder: "Enter 12-digit UAN...",
-                showExpiry: false,
-                showName: true,
-                nameLabel: "Member Name",
+                nameLabel: "Registered Name on Bill",
                 showDob: false,
                 showGender: false,
                 showRelative: true,
-                relativeLabel: "Father's / Spouse's Name",
+                relativeLabel: "Provider / Board Name",
                 showAddress: true,
-                addressLabel: "Member ID & Establishment ID",
-                showAdditional: false
+                addressLabel: "Property Assessment Number (if applicable)",
+                showAdditional: true,
+                additionalLabel: "Utility Sub-type (e.g. Electricity/Gas/Broadband)"
             }
         };
 
@@ -2677,28 +2540,11 @@ class FamilyKYCManager {
                     const panMatch = upper.match(/[A-Z]{5}\s*[0-9]{4}\s*[A-Z]{1}/);
                     if (panMatch) docNum = panMatch[0].replace(/\s+/g, '');
                 }
-
-                let dobLineIdx = -1;
-                for (let i = 0; i < lines.length; i++) {
-                    if (/\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b/.test(lines[i].replace(/[Oo]/g, '0'))) {
-                        dobLineIdx = i;
-                        break;
-                    }
-                }
-                if (dobLineIdx >= 2) {
-                    docName = lines[dobLineIdx - 2].replace(/[^A-Za-z\s]/g, '').trim();
-                    docRelative = lines[dobLineIdx - 1].replace(/[^A-Za-z\s]/g, '').trim();
-                }
-                if (!docName) docName = extractFuzzyName();
-                if (!docRelative) {
-                    const relativeIdx = lines.findIndex(l => l.toUpperCase().includes('FATHER'));
-                    if (relativeIdx !== -1 && relativeIdx + 1 < lines.length) {
-                        docRelative = lines[relativeIdx + 1].replace(/[^A-Za-z\s]/g, '').trim();
-                    }
-                }
+                docName = extractFuzzyName();
                 docDob = extractFuzzyDob();
                 break;
 
+            case 'PASSPORT':
             case 'Passport':
                 const passMatch = upper.match(/[A-Z][0-9]{7}/);
                 if (passMatch) docNum = passMatch[0];
@@ -2707,17 +2553,14 @@ class FamilyKYCManager {
                 docDob = extractFuzzyDob();
                 expDate = extractExpiry();
                 
-                if (upper.includes(' FEMALE ') || upper.includes(' F ')) docGender = 'Female';
-                else if (upper.includes(' MALE ') || upper.includes(' M ')) docGender = 'Male';
+                const issueDateMatch = text.match(/(?:Date of Issue|Issue Date|Date d'emission)[\s:-]*(\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b)/i);
+                if (issueDateMatch) docRelative = issueDateMatch[1].trim();
                 
-                const natMatch = text.match(/(?:NATIONALITY|Nationality)[\s:-]*([A-Za-z]+)/i);
-                if (natMatch) docAdditional = natMatch[1].trim();
-                else docAdditional = upper.includes('INDIAN') ? 'Indian' : '';
-                
-                const pobMatch = text.match(/(?:PLACE OF BIRTH|Place of Birth)[\s:-]*([A-Za-z\s]+)/i);
+                const pobMatch = text.match(/(?:Place of Birth|Lieu de naissance|Place of Issue)[\s:-]*([A-Za-z\s]+)/i);
                 if (pobMatch) docAddress = pobMatch[1].trim();
                 break;
 
+            case 'DRIVING_LICENCE':
             case 'Driving License':
                 const dlMatch = upper.match(/[A-Z]{2}[0-9A-Z/\- ]{10,18}/);
                 if (dlMatch) docNum = dlMatch[0];
@@ -2725,108 +2568,41 @@ class FamilyKYCManager {
                 docName = extractFuzzyName();
                 docDob = extractFuzzyDob();
                 expDate = extractExpiry();
-                docAddress = extractAddress();
+                
+                const dlIssueMatch = text.match(/(?:Date of Issue|Issue Date|DOI)[\s:-]*(\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b)/i);
+                if (dlIssueMatch) docRelative = dlIssueMatch[1].trim();
                 
                 const classes = [];
-                if (upper.includes('MCWG') || upper.includes('MCWOG')) classes.push('MCWG (2-Wheeler)');
-                if (upper.includes('LMV')) classes.push('LMV (4-Wheeler)');
-                docAdditional = classes.length > 0 ? `Classes: ${classes.join(', ')}` : 'Class: LMV';
+                if (upper.includes('MCWG') || upper.includes('MCWOG')) classes.push('MCWG');
+                if (upper.includes('LMV')) classes.push('LMV');
+                docAdditional = classes.length > 0 ? classes.join('/') : 'LMV';
                 break;
 
-            case 'Voter ID':
-                const voterMatch = upper.match(/[A-Z]{3}[0-9]{7}/);
-                if (voterMatch) docNum = voterMatch[0];
-                
-                docName = extractFuzzyName();
-                docDob = extractFuzzyDob();
-                
-                const relIdx = lines.findIndex(l => l.toUpperCase().includes('FATHER') || l.toUpperCase().includes('HUSBAND') || l.toUpperCase().includes('RELATIVE'));
-                if (relIdx !== -1 && relIdx + 1 < lines.length) {
-                    docRelative = lines[relIdx + 1].replace(/[^A-Za-z\s]/g, '').trim();
+            case 'BANK_ACCOUNT':
+            case 'Savings Bank':
+                const bankAccMatch = text.match(/(?:A\/C|ACCOUNT|ACC)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
+                if (bankAccMatch) {
+                    docNum = bankAccMatch[1];
+                } else {
+                    const genericNum = text.match(/\b[0-9]{9,18}\b/);
+                    if (genericNum) docNum = genericNum[0];
                 }
                 
-                docAddress = extractAddress();
-                
-                const acMatch = text.match(/(?:CONSTITUENCY|Constituency)[\s:-]*([A-Za-z0-9\s]+)/i);
-                if (acMatch) docAdditional = acMatch[1].trim();
-                break;
-
-            case 'Savings Bank':
-                const accMatch = text.match(/(?:A\/C|ACCOUNT|ACC)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
-                if (accMatch) docNum = accMatch[1];
-                
                 docName = extractFuzzyName();
-                docAddress = extractAddress() || 'Branch Address: New Delhi, India';
+                docAddress = extractAddress() || 'New Delhi Dwarka Branch';
                 
-                const ifscMatch = upper.match(/[A-Z]{4}0[A-Z0-9]{6}/);
-                const micrMatch = text.match(/\b[0-9]{9}\b/);
-                let bankName = 'Savings Bank';
-                if (upper.includes('HDFC')) bankName = 'HDFC Bank';
-                else if (upper.includes('ICICI')) bankName = 'ICICI Bank';
-                else if (upper.includes('STATE BANK') || upper.includes('SBI')) bankName = 'State Bank of India';
-                else if (upper.includes('AXIS')) bankName = 'Axis Bank';
+                const ifscCodeMatch = upper.match(/[A-Z]{4}0[A-Z0-9]{6}/);
+                let selectedBankName = 'Savings Bank';
+                if (upper.includes('HDFC')) selectedBankName = 'HDFC Bank';
+                else if (upper.includes('ICICI')) selectedBankName = 'ICICI Bank';
+                else if (upper.includes('STATE BANK') || upper.includes('SBI')) selectedBankName = 'State Bank of India';
+                else if (upper.includes('AXIS')) selectedBankName = 'Axis Bank';
                 
-                docAdditional = `Bank: ${bankName}`;
-                if (ifscMatch) docAdditional += `, IFSC: ${ifscMatch[0]}`;
-                if (micrMatch) docAdditional += `, MICR: ${micrMatch[0]}`;
+                docRelative = selectedBankName;
+                if (ifscCodeMatch) docAdditional = ifscCodeMatch[0];
                 break;
 
-            case 'FD Receipt':
-                const fdAccMatch = text.match(/(?:FD|RECEIPT|ACCOUNT)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
-                if (fdAccMatch) docNum = fdAccMatch[0];
-                
-                docName = extractFuzzyName();
-                expDate = extractExpiry();
-                
-                const principalMatch = text.match(/(?:PRINCIPAL|DEPOSIT AMOUNT|AMOUNT)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                const rateMatch = text.match(/(?:RATE|INTEREST)[\s:-]*([0-9.]+\s*%?)/i);
-                const matAmtMatch = text.match(/(?:MATURITY VALUE|MATURITY AMOUNT)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                
-                docAddress = `Principal: Rs. ${principalMatch ? principalMatch[1] : '10,000'} | Rate: ${rateMatch ? rateMatch[1] : '7.1%'}`;
-                if (matAmtMatch) docAdditional = `Maturity Amt: Rs. ${matAmtMatch[1]}`;
-                break;
-
-            case 'Mutual Fund':
-                const folioMatch = text.match(/(?:FOLIO)[\s:-]*(?:NO|NUMBER)?\s*([0-9\/]{7,15})/i);
-                if (folioMatch) docNum = folioMatch[1];
-                
-                docName = extractFuzzyName();
-                
-                let scheme = 'Equity Growth Scheme';
-                let amc = 'HDFC Mutual Fund';
-                if (upper.includes('SBI')) amc = 'SBI Mutual Fund';
-                else if (upper.includes('NIPPON')) amc = 'Nippon India Mutual Fund';
-                else if (upper.includes('ICICI')) amc = 'ICICI Prudential MF';
-                
-                docAddress = `AMC: ${amc} | Scheme: ${scheme}`;
-                
-                const valMatch = text.match(/(?:VALUATION|VALUE|PORTFOLIO VALUE)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                docAdditional = `Current Value: Rs. ${valMatch ? valMatch[1] : '50,000'}`;
-                break;
-
-            case 'PPF':
-                const ppfMatch = text.match(/(?:PPF|ACCOUNT)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{9,18})/i);
-                if (ppfMatch) docNum = ppfMatch[1];
-                
-                docName = extractFuzzyName();
-                docAddress = upper.includes('POST OFFICE') ? 'Post Office Savings' : 'State Bank of India';
-                docAdditional = 'Current Balance: Rs. 1,50,000 | FY: 2026-27';
-                break;
-
-            case 'ITR':
-                const ackMatch = text.match(/(?:ACK\s*NO|ACKNOWLEDGEMENT NUMBER)[\s:-]*([0-9]{15})/i);
-                if (ackMatch) docNum = ackMatch[1];
-                
-                docName = extractFuzzyName();
-                
-                const ayMatch = text.match(/(?:ASSESSMENT YEAR|AY)[\s:-]*([0-9]{4}\s*-\s*[0-9]{2,4})/i);
-                const grossMatch = text.match(/(?:GROSS TOTAL INCOME|GROSS INCOME)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                const taxMatch = text.match(/(?:TAX PAYABLE|TOTAL TAX)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                
-                docAddress = `Gross Income: Rs. ${grossMatch ? grossMatch[1] : '8,50,000'} | Tax: Rs. ${taxMatch ? taxMatch[1] : '15,000'}`;
-                docAdditional = `AY: ${ayMatch ? ayMatch[1] : '2026-27'}`;
-                break;
-
+            case 'INSURANCE_POLICY':
             case 'Insurance':
                 const policyMatch = text.match(/(?:POLICY)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{8,12})/i);
                 if (policyMatch) docNum = policyMatch[1];
@@ -2834,53 +2610,78 @@ class FamilyKYCManager {
                 docName = extractFuzzyName();
                 expDate = extractExpiry();
                 
-                const sumInsuredMatch = text.match(/(?:SUM ASSURED|SUM INSURED)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                const premiumMatch = text.match(/(?:PREMIUM|PREMIUM AMOUNT)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                let providerName = 'Star Health Insurance';
+                if (upper.includes('LIC')) providerName = 'LIC of India';
+                else if (upper.includes('HDFC')) providerName = 'HDFC Ergo';
+                else if (upper.includes('MAX')) providerName = 'Max Life Insurance';
                 
-                docAddress = 'Insured: Self, Spouse, Child';
-                docAdditional = `Sum Insured: Rs. ${sumInsuredMatch ? sumInsuredMatch[1] : '5,00,000'} | Premium: Rs. ${premiumMatch ? premiumMatch[1] : '12,500'}`;
+                docRelative = providerName;
+                docAddress = 'Self, Spouse, Child';
+                
+                const commMatch = text.match(/(?:COMMENCEMENT|START|EFFECTIVE)[\s:-]*(?:DATE)?\s*(\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b)/i);
+                if (commMatch) docAdditional = commMatch[1].trim();
                 break;
 
-            case 'Property Tax':
-                const propMatch = text.match(/(?:RECEIPT)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z/\-]{8,15})/i);
-                if (propMatch) docNum = propMatch[0];
+            case 'MUTUAL_FUND':
+            case 'Mutual Fund':
+                const folioMatch = text.match(/(?:FOLIO)[\s:-]*(?:NO|NUMBER)?\s*([0-9\/]{7,15})/i);
+                if (folioMatch) docNum = folioMatch[1];
                 
                 docName = extractFuzzyName();
                 
-                const khataMatch = text.match(/(?:KHATA|ASSESSMENT)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z/\-]{8,15})/i);
-                const propAmtMatch = text.match(/(?:TOTAL AMOUNT PAID|AMOUNT PAID|PAID)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                let amcName = 'HDFC Mutual Fund';
+                if (upper.includes('SBI')) amcName = 'SBI Mutual Fund';
+                else if (upper.includes('NIPPON')) amcName = 'Nippon India Mutual Fund';
+                else if (upper.includes('ICICI')) amcName = 'ICICI Prudential Mutual Fund';
                 
-                docAddress = `Khata / Assessment No: ${khataMatch ? khataMatch[1] : 'WARD-21-KHATA-44'}`;
-                docAdditional = `FY: 2025-26 | Zone: South | Paid: Rs. ${propAmtMatch ? propAmtMatch[1] : '4,200'}`;
+                docRelative = amcName;
+                docAdditional = upper.includes('KYC COMPLIANT') || upper.includes('KYC VERIFIED') ? 'KYC Active' : 'KYC Incomplete';
                 break;
 
-            case 'Utility Gas':
-                const gasMatch = text.match(/(?:BP|CUSTOMER|CONSUMER)[\s:-]*(?:ID|NO|NUMBER)?\s*([0-9]{8,12})/i);
-                if (gasMatch) docNum = gasMatch[1];
-                
-                docName = extractFuzzyName();
-                expDate = extractExpiry();
-                
-                const gasBillMatch = text.match(/(?:BILL)[\s:-]*(?:NO|NUMBER)?\s*([0-9A-Z]{8,12})/i);
-                const gasAmtMatch = text.match(/(?:AMOUNT DUE|TOTAL DUE)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
-                
-                docAddress = `Bill No: ${gasBillMatch ? gasBillMatch[1] : 'GAS-789012'} | Period: June 2026`;
-                docAdditional = `Amount Due: Rs. ${gasAmtMatch ? gasAmtMatch[1] : '850'} | Units: 42 SCM`;
-                break;
-
-            case 'Utility Electricity':
-                const elecMatch = text.match(/(?:CONSUMER|CONNECTION|ACCOUNT)[\s:-]*(?:ID|NO|NUMBER)?\s*([0-9]{9,15})/i);
-                if (elecMatch) docNum = elecMatch[1];
+            case 'VEHICLE_RC':
+                const rcMatch = upper.match(/[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}/);
+                if (rcMatch) docNum = rcMatch[0];
                 
                 docName = extractFuzzyName();
                 expDate = extractExpiry();
                 
-                const subdivisionMatch = text.match(/(?:SUBDIVISION|BILLING UNIT)[\s:-]*([A-Za-z0-9\s]+)/i);
-                const elecAmtMatch = text.match(/(?:BILL AMOUNT|AMOUNT DUE)[\s:-]*(?:RS|INR)?\s*([0-9,]+)/i);
+                let makeModel = 'Maruti Swift Dzire';
+                if (upper.includes('HYUNDAI')) makeModel = 'Hyundai i20';
+                else if (upper.includes('HONDA')) makeModel = 'Honda City';
+                else if (upper.includes('TATA')) makeModel = 'Tata Nexon';
                 
-                docAddress = `Subdivision: ${subdivisionMatch ? subdivisionMatch[1] : 'Noida Zone 2'}`;
-                docAdditional = `Bill Amount: Rs. ${elecAmtMatch ? elecAmtMatch[1] : '4,850'} | Readings: 412 Units`;
+                docRelative = makeModel;
+                docAdditional = upper.includes('DIESEL') ? 'Diesel' : (upper.includes('CNG') ? 'CNG' : 'Petrol');
                 break;
+
+            case 'UTILITY_RECORD':
+                const connMatch = text.match(/(?:CONSUMER|CONNECTION|CUSTOMER|BP)[\s:-]*(?:ID|NO|NUMBER)?\s*([0-9]{8,15})/i);
+                if (connMatch) docNum = connMatch[1];
+                else {
+                    const fallbackNum = text.match(/\b[0-9]{8,15}\b/);
+                    if (fallbackNum) docNum = fallbackNum[0];
+                }
+                
+                docName = extractFuzzyName();
+                expDate = extractExpiry();
+                
+                let board = 'Delhi Jal Board';
+                if (upper.includes('BSES') || upper.includes('BYPL')) board = 'BSES Yamuna Power';
+                else if (upper.includes('NDPL') || upper.includes('TATA POWER')) board = 'Tata Power DDL';
+                else if (upper.includes('GAS') || upper.includes('IGL')) board = 'Indraprastha Gas Limited';
+                else if (upper.includes('AIRTEL') || upper.includes('TELEPHONE')) board = 'Airtel Broadband';
+                
+                docRelative = board;
+                
+                const assessMatch = text.match(/(?:PROPERTY ASSESSMENT|ASSESSMENT|KHATA)[\s:-]*(?:NO|NUMBER)?\s*([A-Z0-9\-]{8,16})/i);
+                if (assessMatch) docAddress = assessMatch[1].trim();
+                
+                let subType = 'Broadband Bill';
+                if (upper.includes('ELECT') || upper.includes('POWER')) subType = 'Electricity Bill';
+                else if (upper.includes('GAS')) subType = 'Piped Gas Bill';
+                else if (upper.includes('TAX') || upper.includes('PROPERTY')) subType = 'Property Tax Receipt';
+                
+                docAdditional = subType;
 
             case 'Class 10 Certificate':
                 const rollMatch = text.match(/(?:ROLL)[\s:-]*(?:NO|NUMBER)?\s*([0-9]{7,10})/i);
@@ -4040,10 +3841,14 @@ class FamilyKYCManager {
 
         // Apply drop down toolbar filters
         if (typeFilter !== 'all') {
-            if (typeFilter === 'Utility') {
-                filtered = filtered.filter(d => d.type.startsWith('Utility') || d.type === 'Property Tax');
-            } else {
-                filtered = filtered.filter(d => d.type === typeFilter);
+            if (typeFilter === 'Government') {
+                filtered = filtered.filter(d => ['Aadhaar', 'PAN', 'PASSPORT', 'DRIVING_LICENCE', 'VEHICLE_RC'].includes(d.type));
+            } else if (typeFilter === 'Financial') {
+                filtered = filtered.filter(d => ['BANK_ACCOUNT', 'MUTUAL_FUND'].includes(d.type));
+            } else if (typeFilter === 'Insurance') {
+                filtered = filtered.filter(d => ['INSURANCE_POLICY'].includes(d.type));
+            } else if (typeFilter === 'Utility') {
+                filtered = filtered.filter(d => ['UTILITY_RECORD'].includes(d.type));
             }
         }
         
@@ -4074,36 +3879,39 @@ class FamilyKYCManager {
             const owner = this.members[doc.owner];
             
             const card = document.createElement('div');
+            // Format nice human-readable display names
+            const displayNames = {
+                'Aadhaar': 'Aadhaar Card',
+                'PAN': 'PAN Card',
+                'PASSPORT': 'Passport',
+                'DRIVING_LICENCE': 'Driving Licence',
+                'BANK_ACCOUNT': 'Bank Account Metadata',
+                'INSURANCE_POLICY': 'Insurance Policy',
+                'MUTUAL_FUND': 'Mutual Fund',
+                'VEHICLE_RC': 'Vehicle RC',
+                'UTILITY_RECORD': 'Utility Record'
+            };
+            const readableType = displayNames[doc.type] || doc.type;
+
             // Add custom classification classes
             let classType = 'Utility';
-            if (['Aadhaar','PAN','Passport','Driving License','Voter ID'].includes(doc.type)) classType = doc.type;
-            if (doc.type === 'ITR') classType = 'ITR';
-            if (doc.type === 'Insurance') classType = 'Insurance';
-            if (doc.type === 'Property Tax') classType = 'Property';
-            if (doc.type === 'Class 10 Certificate') classType = 'Class10';
-            if (doc.type === 'Graduation Degree') classType = 'Degree';
-            if (doc.type === 'Employment Offer Letter') classType = 'Offer';
-            if (doc.type === 'Salary Slip') classType = 'Salary';
-            if (doc.type === 'EPF UAN Card') classType = 'UAN';
+            if (['Aadhaar','PAN','PASSPORT','DRIVING_LICENCE','BANK_ACCOUNT','INSURANCE_POLICY','MUTUAL_FUND','VEHICLE_RC','UTILITY_RECORD'].includes(doc.type)) {
+                classType = doc.type;
+            }
 
             card.className = `doc-card ${classType}`;
             
             // Format icon
             let icon = 'file-text';
             if (doc.type === 'Aadhaar') icon = 'fingerprint';
-            if (doc.type === 'PAN') icon = 'credit-card';
-            if (doc.type === 'Passport') icon = 'globe';
-            if (doc.type === 'Driving License') icon = 'car';
-            if (doc.type === 'Voter ID') icon = 'user';
-            if (doc.type === 'ITR') icon = 'receipt';
-            if (doc.type === 'Insurance') icon = 'heart-handshake';
-            if (doc.type === 'Property Tax') icon = 'home';
-            if (doc.type.startsWith('Utility')) icon = 'droplet';
-            if (doc.type === 'Class 10 Certificate') icon = 'graduation-cap';
-            if (doc.type === 'Graduation Degree') icon = 'award';
-            if (doc.type === 'Employment Offer Letter') icon = 'briefcase';
-            if (doc.type === 'Salary Slip') icon = 'wallet';
-            if (doc.type === 'EPF UAN Card') icon = 'shield';
+            else if (doc.type === 'PAN') icon = 'credit-card';
+            else if (doc.type === 'PASSPORT') icon = 'globe';
+            else if (doc.type === 'DRIVING_LICENCE') icon = 'car';
+            else if (doc.type === 'BANK_ACCOUNT') icon = 'wallet';
+            else if (doc.type === 'INSURANCE_POLICY') icon = 'heart-handshake';
+            else if (doc.type === 'MUTUAL_FUND') icon = 'briefcase';
+            else if (doc.type === 'VEHICLE_RC') icon = 'truck';
+            else if (doc.type === 'UTILITY_RECORD') icon = 'receipt';
 
             let statusLabel = '';
             if (doc.status === 'valid') {
@@ -4131,7 +3939,7 @@ class FamilyKYCManager {
                             ${privateBadge}
                         </div>
                     </div>
-                    <h3 class="doc-name-label">${doc.type}</h3>
+                    <h3 class="doc-name-label">${readableType}</h3>
                     <p class="text-xs text-muted" style="font-family:monospace; margin-bottom:12px;">ID: ${doc.number}</p>
                     
                     <div class="doc-metadata-brief">
