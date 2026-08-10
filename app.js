@@ -34,6 +34,7 @@ class FamilyKYCManager {
 
         // Document Database
         this.documents = this.getLocalizedDocuments('India');
+        this.lastSyncedEventTime = null;
 
         // Alerts / KYC discrepancies list
         this.kycWarnings = [];
@@ -4267,6 +4268,7 @@ class FamilyKYCManager {
 
         this.updateMemberSelectOptions();
         this.saveLocalVaultCache();
+        this.syncMemberToCloud(mId, this.members[mId]);
         this.toast(`Added ${name} to Family directory successfully!`, "success");
         this.closeAddMemberModal();
         this.renderFamilyVaultPanel();
@@ -4434,10 +4436,11 @@ class FamilyKYCManager {
         const mem = this.members[mId];
         if (confirm(`Are you sure you want to delete ${mem.name} from your household directory? All of their document associations and records will be deleted as well.`)) {
             
-            // If cloud sync is active, delete associated documents from Supabase first
+            // If cloud sync is active, delete associated documents and member from Supabase
             if (this.isCloudSyncActive) {
                 const docsToDelete = this.documents.filter(d => d.owner === mId);
                 docsToDelete.forEach(doc => this.deleteDocumentFromCloud(doc.id));
+                this.deleteMemberFromCloud(mId);
             }
 
             // Filter them out locally
@@ -5508,11 +5511,25 @@ class FamilyKYCManager {
         if (!this.isCloudSyncActive) return;
         try {
             const client = window.SupabaseVaultConfig.client;
-            const { data: docs, error: docErr } = await client.from('vault_documents').select('*');
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) return;
+
+            const userId = session.user.id;
+
+            // 1. Load Documents
+            const { data: docs, error: docErr } = await client.from('vault_documents').select('*').eq('user_id', userId);
             if (!docErr && docs) {
                 console.log("[Supabase] Loaded documents from cloud database:", docs);
-                if (docs.length > 0) {
-                    this.documents = docs.map(d => ({
+                this.documents = docs.map(d => {
+                    let extra = {};
+                    if (d.encrypted_payload) {
+                        try {
+                            extra = JSON.parse(d.encrypted_payload);
+                        } catch (e) {
+                            console.warn("Failed to parse encrypted_payload", e);
+                        }
+                    }
+                    return {
                         id: d.id,
                         owner: d.member_key || 'head',
                         type: d.doc_type,
@@ -5522,21 +5539,70 @@ class FamilyKYCManager {
                         kycAddress: d.kyc_address,
                         expiryDate: d.expiry_date,
                         isPrivate: d.is_private || false,
-                        status: d.status || 'valid'
-                    }));
-                } else if (this.documents && this.documents.length > 0) {
-                    // New user: sync their local initial documents up to the cloud
-                    console.log("[Supabase] Cloud database is empty. Syncing local default documents up...");
-                    this.documents.forEach(doc => this.syncDocumentToCloud(doc));
-                }
-                
-                this.runSanityCheck();
-                this.runExpiryCheck();
-                this.updateActiveUserUI();
-                this.renderAll();
+                        status: d.status || 'valid',
+                        kycGender: extra.kycGender || '',
+                        kycRelative: extra.kycRelative || '',
+                        kycAdditional: extra.kycAdditional || '',
+                        fileName: extra.fileName || '',
+                        fileDataUrl: extra.fileDataUrl || null
+                    };
+                });
+            } else {
+                this.documents = [];
             }
+
+            // 2. Load Family Members
+            const { data: dbMembers, error: memErr } = await client.from('family_members').select('*').eq('user_id', userId);
+            if (!memErr && dbMembers) {
+                console.log("[Supabase] Loaded family members from cloud database:", dbMembers);
+                if (dbMembers.length > 0) {
+                    const loadedMembers = {};
+                    dbMembers.forEach(m => {
+                        loadedMembers[m.member_key] = {
+                            name: m.name,
+                            relation: m.relation,
+                            avatar: m.avatar,
+                            role: m.role,
+                            mobile: m.mobile || '',
+                            email: m.email || '',
+                            address: m.address || ''
+                        };
+                    });
+                    this.members = loadedMembers;
+                } else {
+                    console.log("[Supabase] Cloud members empty. Seeding defaults up...");
+                    this.resetDefaultMembers();
+                    for (let mId in this.members) {
+                        await this.syncMemberToCloud(mId, this.members[mId]);
+                    }
+                }
+            } else {
+                this.resetDefaultMembers();
+            }
+
+            // 3. Load Timeline Logs
+            const { data: dbLogs, error: logErr } = await client.from('audit_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+            if (!logErr && dbLogs) {
+                console.log("[Supabase] Loaded timeline logs from cloud database:", dbLogs);
+                this.actionTimeline = dbLogs.map(l => ({
+                    time: new Date(l.created_at).toISOString().replace('T', ' ').substring(0, 19),
+                    title: l.title,
+                    desc: l.description,
+                    status: l.status || 'completed'
+                }));
+                if (this.actionTimeline.length > 0) {
+                    this.lastSyncedEventTime = this.actionTimeline[0].time;
+                }
+            } else {
+                this.actionTimeline = [];
+            }
+            
+            this.runSanityCheck();
+            this.runExpiryCheck();
+            this.updateActiveUserUI();
+            this.renderAll();
         } catch (err) {
-            console.warn("⚠️ Failed to load cloud vault data, using offline fallback", err);
+            console.warn("⚠️ Failed to load cloud vault data", err);
         }
     }
 
@@ -5558,7 +5624,14 @@ class FamilyKYCManager {
                 expiry_date: doc.expiryDate,
                 member_key: doc.owner,
                 is_private: doc.isPrivate || false,
-                status: doc.status || 'valid'
+                status: doc.status || 'valid',
+                encrypted_payload: JSON.stringify({
+                    kycGender: doc.kycGender || '',
+                    kycRelative: doc.kycRelative || '',
+                    kycAdditional: doc.kycAdditional || '',
+                    fileName: doc.fileName || '',
+                    fileDataUrl: doc.fileDataUrl || ''
+                })
             };
 
             // Check if doc.id is a valid UUID, otherwise omit it to let Supabase auto-generate one
@@ -5572,7 +5645,6 @@ class FamilyKYCManager {
                 console.warn("[Supabase] Cloud sync error:", error);
             } else if (data && data.length > 0) {
                 console.log("[Supabase] Synced document to cloud vault:", data[0]);
-                // Update local document with database generated UUID
                 doc.id = data[0].id;
             }
         } catch (e) {
@@ -5596,75 +5668,98 @@ class FamilyKYCManager {
         }
     }
 
-    saveLocalVaultCache() {
+    async syncMemberToCloud(mId, member) {
+        if (!this.isCloudSyncActive) return;
         try {
-            const email = this.activeUserEmail;
-            if (email) {
-                localStorage.setItem(`family_kyc_documents_${email}`, JSON.stringify(this.documents));
-                localStorage.setItem(`family_kyc_members_${email}`, JSON.stringify(this.members));
-                localStorage.setItem(`family_kyc_actionTimeline_${email}`, JSON.stringify(this.actionTimeline));
+            const client = window.SupabaseVaultConfig.client;
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) return;
+
+            const payload = {
+                user_id: session.user.id,
+                member_key: mId,
+                name: member.name,
+                relation: member.relation,
+                role: member.role,
+                avatar: member.avatar,
+                mobile: member.mobile || '',
+                email: member.email || '',
+                address: member.address || ''
+            };
+
+            const { data, error } = await client.from('family_members')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .eq('member_key', mId);
+
+            if (!error && data && data.length > 0) {
+                await client.from('family_members').update(payload).eq('id', data[0].id);
             } else {
-                localStorage.setItem('family_kyc_documents', JSON.stringify(this.documents));
-                localStorage.setItem('family_kyc_members', JSON.stringify(this.members));
-                localStorage.setItem('family_kyc_actionTimeline', JSON.stringify(this.actionTimeline));
+                await client.from('family_members').insert(payload);
             }
+            console.log("[Supabase] Synced family member to cloud vault:", mId);
         } catch (e) {
-            console.warn("LocalStorage save error", e);
+            console.warn("⚠️ Cloud member sync exception:", e);
+        }
+    }
+
+    async deleteMemberFromCloud(mId) {
+        if (!this.isCloudSyncActive) return;
+        try {
+            const client = window.SupabaseVaultConfig.client;
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) return;
+
+            const { error } = await client.from('family_members')
+                .delete()
+                .eq('user_id', session.user.id)
+                .eq('member_key', mId);
+            if (error) console.warn("[Supabase] Cloud member delete error:", error);
+            else console.log("[Supabase] Deleted family member from cloud vault:", mId);
+        } catch (e) {
+            console.warn("⚠️ Cloud member delete exception:", e);
+        }
+    }
+
+    async syncTimelineToCloud(event) {
+        if (!this.isCloudSyncActive) return;
+        try {
+            const client = window.SupabaseVaultConfig.client;
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) return;
+
+            const payload = {
+                user_id: session.user.id,
+                title: event.title,
+                description: event.desc,
+                status: event.status || 'completed'
+            };
+
+            const { error } = await client.from('audit_logs').insert(payload);
+            if (error) console.warn("[Supabase] Cloud timeline sync error:", error);
+            else console.log("[Supabase] Synced timeline event to cloud vault:", event.title);
+        } catch (e) {
+            console.warn("⚠️ Cloud timeline sync exception:", e);
+        }
+    }
+
+    saveLocalVaultCache() {
+        // Completely delinked from local storage for records!
+        // We only trigger audit timeline sync to Supabase here when active
+        if (this.isCloudSyncActive && this.actionTimeline.length > 0) {
+            const latestEvent = this.actionTimeline[0];
+            if (latestEvent && latestEvent.time !== this.lastSyncedEventTime) {
+                this.syncTimelineToCloud(latestEvent);
+                this.lastSyncedEventTime = latestEvent.time;
+            }
         }
     }
 
     loadLocalVaultCache() {
-        try {
-            const email = this.activeUserEmail;
-            if (email) {
-                const savedDocs = localStorage.getItem(`family_kyc_documents_${email}`);
-                const savedMembers = localStorage.getItem(`family_kyc_members_${email}`);
-                const savedTimeline = localStorage.getItem(`family_kyc_actionTimeline_${email}`);
-                
-                const isDemoEmail = email === 'vikram.garg@gmail.com' || email === 'sunita.garg@gmail.com';
-                
-                if (savedDocs) {
-                    this.documents = JSON.parse(savedDocs);
-                } else {
-                    this.documents = isDemoEmail ? this.getLocalizedDocuments(this.selectedCountry) : [];
-                }
-                
-                if (savedMembers) {
-                    this.members = JSON.parse(savedMembers);
-                } else {
-                    if (isDemoEmail) {
-                        this.resetDefaultMembers();
-                    } else {
-                        const displayName = email.split('@')[0];
-                        const formattedName = displayName.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                        this.members = {
-                            head: {
-                                name: formattedName,
-                                relation: 'Self',
-                                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
-                                role: 'Primary Admin',
-                                mobile: '',
-                                email: email,
-                                address: ''
-                            }
-                        };
-                    }
-                }
-                
-                if (savedTimeline) this.actionTimeline = JSON.parse(savedTimeline);
-                else this.actionTimeline = [];
-            } else {
-                const savedDocs = localStorage.getItem('family_kyc_documents');
-                const savedMembers = localStorage.getItem('family_kyc_members');
-                const savedTimeline = localStorage.getItem('family_kyc_actionTimeline');
-                
-                if (savedDocs) this.documents = JSON.parse(savedDocs);
-                if (savedMembers) this.members = JSON.parse(savedMembers);
-                if (savedTimeline) this.actionTimeline = JSON.parse(savedTimeline);
-            }
-        } catch (e) {
-            console.warn("LocalStorage load error", e);
-        }
+        // Delinked from local storage. Initialize empty/default in-memory states.
+        this.documents = [];
+        this.resetDefaultMembers();
+        this.actionTimeline = [];
     }
 
     resetDefaultMembers() {
