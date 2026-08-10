@@ -4296,9 +4296,82 @@ class FamilyKYCManager {
                 nameInput.value = headMember.name;
             }
             
+            const mobileInput = document.getElementById('settings-mobile');
+            if (mobileInput && mobileInput.value !== headMember.mobile) {
+                mobileInput.value = headMember.mobile || '';
+            }
+            
+            const emailInput = document.getElementById('settings-email');
+            if (emailInput && emailInput.value !== headMember.email) {
+                emailInput.value = headMember.email || '';
+            }
+            
             const addrInput = document.getElementById('settings-address');
             if (addrInput && addrInput.value !== headMember.address) {
                 addrInput.value = headMember.address || '';
+            }
+        }
+    }
+
+    async saveProfileSettings(event) {
+        if (event) event.preventDefault();
+        
+        const name = document.getElementById('settings-admin-name').value.trim();
+        const mobile = document.getElementById('settings-mobile').value.trim();
+        const email = document.getElementById('settings-email').value.trim();
+        const address = document.getElementById('settings-address').value.trim();
+        
+        if (!name) {
+            this.toast("Please enter a legal name.", "warning");
+            return;
+        }
+        if (!email) {
+            this.toast("Please enter an email address.", "warning");
+            return;
+        }
+        
+        const saveBtn = document.getElementById('btn-save-settings');
+        const originalHtml = saveBtn ? saveBtn.innerHTML : 'Save Settings';
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="loading-spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; width: 12px; height: 12px; display: inline-block; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;"></span> Saving...';
+        }
+        
+        try {
+            // Update in-memory member details
+            this.members['head'].name = name;
+            this.members['head'].mobile = mobile;
+            this.members['head'].email = email;
+            this.members['head'].address = address;
+            
+            // Sync to Supabase cloud database if connected
+            if (this.isCloudSyncActive) {
+                await this.syncMemberToCloud('head', this.members['head']);
+            }
+            
+            this.saveLocalVaultCache();
+            
+            // Log timeline event
+            this.actionTimeline.unshift({
+                time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                title: 'Profile Settings Saved',
+                desc: 'Primary Admin profile settings saved and synced successfully.',
+                status: 'completed'
+            });
+            
+            // Re-run rules checks to update warnings based on updated settings values
+            this.runFullKYCScan();
+            this.updateActiveUserUI();
+            this.renderAll();
+            
+            this.toast("✨ Profile settings saved and synced successfully!", "success");
+        } catch (e) {
+            console.error("Save settings error", e);
+            this.toast("⚠️ Error saving settings. Please check database state.", "danger");
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalHtml;
             }
         }
     }
