@@ -146,12 +146,15 @@
                                 </div>
 
                                 <div class="form-group w-full mt-sm">
-                                    <label for="login-password">Decryption Key / Master Password</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="key-round"></i>
-                                        <input type="password" id="login-password" required placeholder="Enter password">
-                                    </div>
-                                </div>
+                                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                         <label for="login-password" style="margin: 0;">Decryption Key / Master Password</label>
+                                         <a href="#" onclick="app.showForgotPasswordView(event)" style="font-size: 11px; color: var(--accent); font-weight: 600; text-decoration: none; margin-bottom: 2px;">Forgot Password?</a>
+                                     </div>
+                                     <div class="input-icon-wrapper">
+                                         <i data-lucide="key-round"></i>
+                                         <input type="password" id="login-password" required placeholder="Enter password">
+                                     </div>
+                                 </div>
 
                                 <div class="form-group w-full mt-sm" id="otp-group">
                                     <label for="login-otp" id="login-otp-label">Secure 6-Digit PIN</label>
@@ -1473,6 +1476,64 @@
             <div class="modal-footer" style="display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                 <button class="btn btn-outline w-full" onclick="app.closePaymentModal()">Cancel</button>
                 <button class="btn btn-primary w-full" onclick="app.processPaymentSubmit()" id="btn-pay-submit">Pay & Activate Plan</button>
+            </div>
+        <!-- MODAL: FORGOT PASSWORD / KEY RECOVERY -->
+    <div class="modal-backdrop hidden" id="forgot-password-modal">
+        <div class="modal-content" style="max-width: 420px; border-radius: var(--border-radius-xl); box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color); background: var(--bg-card); padding: 24px;">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
+                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i data-lucide="help-circle" class="text-accent" style="width: 20px; height: 20px;"></i> Recovery Key Portal</h3>
+                <button type="button" class="close-btn" onclick="app.closeForgotPasswordModal()" style="background: none; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer; line-height: 1;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6;">Enter your registered recovery email address below to receive secure decryption key reset instructions.</p>
+                <div class="form-group w-full">
+                    <label for="recovery-email">Recovery Email Address</label>
+                    <div class="input-icon-wrapper" style="margin-top: 6px;">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="recovery-email" required placeholder="name@domain.com" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: var(--bg-primary); color: var(--text-primary);">
+                    </div>
+                </div>
+                
+                <!-- Offline Fallback recovery information (conditionally shown) -->
+                <div id="offline-recovery-info" style="display: none; background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 12px; color: var(--text-secondary);">
+                    <div style="font-weight: 700; color: var(--accent); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="info" style="width: 12px; height: 12px;"></i> Offline Mode Key Cache Found</div>
+                    <div id="offline-cached-key-text" style="font-family: monospace; white-space: pre-wrap; font-size: 11px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button class="btn btn-outline w-full" onclick="app.closeForgotPasswordModal()">Cancel</button>
+                <button class="btn btn-primary w-full" onclick="app.handleForgotPasswordSubmit(event)" id="btn-recovery-submit">Request Reset Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RESET PASSWORD / NEW DECRYPTION KEY -->
+    <div class="modal-backdrop hidden" id="reset-password-modal">
+        <div class="modal-content" style="max-width: 420px; border-radius: var(--border-radius-xl); box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color); background: var(--bg-card); padding: 24px;">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 20px;">
+                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i data-lucide="key-round" class="text-success" style="width: 20px; height: 20px;"></i> Reset Master Password</h3>
+                <button type="button" class="close-btn" onclick="app.closeResetPasswordModal()" style="background: none; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer; line-height: 1;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.6;">Setup a new decryption key to unlock your family safety ledger.</p>
+                <div class="form-group w-full">
+                    <label for="reset-new-password">New Master Password</label>
+                    <div class="input-icon-wrapper" style="margin-top: 6px;">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="reset-new-password" required placeholder="Enter new password" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: var(--bg-primary); color: var(--text-primary);">
+                    </div>
+                </div>
+                <div class="form-group w-full">
+                    <label for="reset-confirm-password">Confirm New Password</label>
+                    <div class="input-icon-wrapper" style="margin-top: 6px;">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="reset-confirm-password" required placeholder="Confirm new password" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: var(--bg-primary); color: var(--text-primary);">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button class="btn btn-outline w-full" onclick="app.closeResetPasswordModal()">Cancel</button>
+                <button class="btn btn-primary w-full" onclick="app.handleResetPasswordSubmit(event)" id="btn-reset-key-submit">Save New Key</button>
             </div>
         </div>
     </div>

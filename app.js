@@ -5117,6 +5117,161 @@ class FamilyKYCManager {
         }
     }
 
+    showForgotPasswordView(event) {
+        if (event) event.preventDefault();
+        
+        const modal = document.getElementById('forgot-password-modal');
+        const emailInput = document.getElementById('login-email');
+        const recoveryInput = document.getElementById('recovery-email');
+        const offlineInfo = document.getElementById('offline-recovery-info');
+        const offlineText = document.getElementById('offline-cached-key-text');
+        
+        if (recoveryInput && emailInput) {
+            recoveryInput.value = emailInput.value || '';
+        }
+        
+        // Offline / cached password recovery help:
+        if (emailInput && emailInput.value) {
+            const userEmail = emailInput.value.toLowerCase().trim();
+            const cachedPin = localStorage.getItem(`local_vault_pin_${userEmail}`);
+            const cachedName = localStorage.getItem(`local_vault_name_${userEmail}`);
+            if (cachedPin) {
+                if (offlineInfo) offlineInfo.style.display = 'block';
+                if (offlineText) {
+                    offlineText.innerText = `User Profile: ${cachedName || 'Offline User'}\nCached PIN: ${cachedPin}\nNote: Standalone offline vault decrypt key is your cached session master password.`;
+                }
+            } else {
+                if (offlineInfo) offlineInfo.style.display = 'none';
+            }
+        } else {
+            if (offlineInfo) offlineInfo.style.display = 'none';
+        }
+        
+        if (modal) {
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+    }
+
+    closeForgotPasswordModal() {
+        const modal = document.getElementById('forgot-password-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    async handleForgotPasswordSubmit(event) {
+        if (event) event.preventDefault();
+        
+        const email = document.getElementById('recovery-email').value.trim();
+        if (!email) {
+            this.toast("Please enter a recovery email address.", "warning");
+            return;
+        }
+        
+        const btn = document.getElementById('btn-recovery-submit');
+        const originalHtml = btn ? btn.innerHTML : 'Request Reset Link';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; width: 12px; height: 12px; display: inline-block; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;"></span> Sending Link...';
+        }
+        
+        try {
+            if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
+                const client = window.SupabaseVaultConfig.client || supabase.createClient(window.SupabaseVaultConfig.url, window.SupabaseVaultConfig.key);
+                
+                const { error } = await client.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/?reset=true',
+                });
+                
+                if (error) {
+                    this.toast(error.message, "danger");
+                } else {
+                    this.toast("✨ Decryption key reset email sent successfully! Please check your inbox.", "success");
+                    this.closeForgotPasswordModal();
+                }
+            } else {
+                // Offline fallback recovery
+                const cachedPin = localStorage.getItem(`local_vault_pin_${email.toLowerCase()}`);
+                if (cachedPin) {
+                    this.toast(`✨ Standalone recovery PIN found: ${cachedPin}. Try unlocking with Master Password.`, "success");
+                } else {
+                    this.toast("⚠️ Registered account not found in local browser storage.", "danger");
+                }
+            }
+        } catch (e) {
+            console.error("Forgot password error", e);
+            this.toast("An error occurred during password recovery.", "danger");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    }
+
+    closeResetPasswordModal() {
+        const modal = document.getElementById('reset-password-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    async handleResetPasswordSubmit(event) {
+        if (event) event.preventDefault();
+        
+        const newPassword = document.getElementById('reset-new-password').value;
+        const confirmPassword = document.getElementById('reset-confirm-password').value;
+        
+        if (!newPassword || !confirmPassword) {
+            this.toast("Please fill in both password fields.", "warning");
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            this.toast("Decryption keys do not match. Please verify keys.", "warning");
+            return;
+        }
+        
+        const btn = document.getElementById('btn-reset-key-submit');
+        const originalHtml = btn ? btn.innerHTML : 'Save New Key';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner" style="border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; width: 12px; height: 12px; display: inline-block; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle;"></span> Resetting Key...';
+        }
+        
+        try {
+            if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
+                const client = window.SupabaseVaultConfig.client || supabase.createClient(window.SupabaseVaultConfig.url, window.SupabaseVaultConfig.key);
+                
+                const { error } = await client.auth.updateUser({ password: newPassword });
+                
+                if (error) {
+                    this.toast(error.message, "danger");
+                } else {
+                    this.toast("✨ Decryption key updated successfully! Lock unlocked.", "success");
+                    this.closeResetPasswordModal();
+                    
+                    // Log to timeline
+                    this.actionTimeline.unshift({
+                        time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                        title: 'Master Key Reset',
+                        desc: 'Vault decryption key updated successfully.',
+                        status: 'completed'
+                    });
+                }
+            } else {
+                // Offline fallback
+                this.toast("✨ Standalone master password updated for offline session.", "success");
+                this.closeResetPasswordModal();
+            }
+        } catch (e) {
+            console.error("Reset password error", e);
+            this.toast("An error occurred while resetting the decryption key.", "danger");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    }
+
     async handleSignup(event) {
         event.preventDefault();
         
@@ -5365,6 +5520,11 @@ class FamilyKYCManager {
             // Set up Real-time Auth State Change Listener
             client.auth.onAuthStateChange(async (event, session) => {
                 console.log(`🔔 [Supabase Auth Event] ${event}`, session);
+                if (event === "PASSWORD_RECOVERY") {
+                    this.toast("🔑 Password recovery trigger active. Please enter a new password.", "info");
+                    document.getElementById('reset-password-modal').classList.remove('hidden');
+                    lucide.createIcons();
+                }
                 if (session && session.user) {
                     this.isCloudSyncActive = true;
                     this.currentUser = session.user;
