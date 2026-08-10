@@ -5663,7 +5663,7 @@ class FamilyKYCManager {
                         kycDob: d.kyc_dob,
                         kycAddress: d.kyc_address,
                         expiryDate: d.expiry_date,
-                        isPrivate: d.is_private || false,
+                        isPrivate: extra.isPrivate || d.is_private || false,
                         status: d.status || 'valid',
                         kycGender: extra.kycGender || '',
                         kycRelative: extra.kycRelative || '',
@@ -5760,7 +5760,6 @@ class FamilyKYCManager {
                 kyc_address: doc.kycAddress,
                 expiry_date: normalizeDate(doc.expiryDate),
                 member_key: doc.owner,
-                is_private: doc.isPrivate || false,
                 status: doc.status || 'valid',
                 encrypted_payload: JSON.stringify({
                     kycGender: doc.kycGender || '',
@@ -5768,7 +5767,8 @@ class FamilyKYCManager {
                     kycAdditional: doc.kycAdditional || '',
                     fileName: doc.fileName || '',
                     fileDataUrl: doc.fileDataUrl || '',
-                    rawOcrText: doc.rawOcrText || ''
+                    rawOcrText: doc.rawOcrText || '',
+                    isPrivate: doc.isPrivate || false
                 })
             };
 
