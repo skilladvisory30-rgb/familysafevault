@@ -5347,6 +5347,8 @@ class FamilyKYCManager {
         this.commsLog = [];
         this.resetDefaultMembers();
         this.actionTimeline = [];
+        this.kycWarnings = [];
+        this.expiryAlerts = [];
     }
 
     resetDefaultMembers() {
