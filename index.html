@@ -566,7 +566,7 @@
                 </button>
                 <div class="topbar-left">
                     <h1 id="page-title">Dashboard Overview</h1>
-                    <p class="subtitle" id="page-subtitle">Welcome back, Vikram. Here is your family's safety health status.</p>
+                    <p class="subtitle" id="page-subtitle">Welcome back, Administrator. Here is your family's safety health status.</p>
                 </div>
                 
                 <div class="topbar-right">
@@ -606,8 +606,8 @@
                         <button class="profile-btn" onclick="app.toggleProfileDropdown()">
                             <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" alt="Avatar" class="avatar-sm" id="active-user-avatar">
                             <div class="profile-btn-info">
-                                <span class="profile-name" id="active-user-name">Vikram Garg</span>
-                                <span class="profile-role" id="active-user-role">Head of Family</span>
+                                <span class="profile-name" id="active-user-name">Administrator</span>
+                                <span class="profile-role" id="active-user-role">Primary Admin</span>
                             </div>
                             <i data-lucide="chevron-down" class="chevron"></i>
                         </button>
@@ -1084,19 +1084,19 @@
                                 </div>
                                 <div class="form-group w-full">
                                     <label for="settings-admin-name">Primary Admin Legal Name</label>
-                                    <input type="text" id="settings-admin-name" value="Vikram Garg" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                    <input type="text" id="settings-admin-name" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
                                 </div>
                                 <div class="form-group w-full mt-sm">
                                     <label for="settings-mobile">Primary Mobile Number (OTP Auth)</label>
-                                    <input type="text" id="settings-mobile" value="+91 98765 43210" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                    <input type="text" id="settings-mobile" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
                                 </div>
                                 <div class="form-group w-full mt-sm">
                                     <label for="settings-email">Email Address (Recovery & Alerts)</label>
-                                    <input type="email" id="settings-email" value="vikram.garg@gmail.com" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                    <input type="email" id="settings-email" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
                                 </div>
                                 <div class="form-group w-full mt-sm" style="margin-bottom: 16px;">
                                     <label for="settings-address">Admin Residential Address</label>
-                                    <textarea id="settings-address" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; min-height: 60px; outline: none; resize: vertical;">A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075</textarea>
+                                    <textarea id="settings-address" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; min-height: 60px; outline: none; resize: vertical;"></textarea>
                                 </div>
                                 <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
                                     <button class="btn btn-primary" id="btn-save-settings" onclick="app.saveProfileSettings(event)" style="padding: 10px 24px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Settings</button>
@@ -1454,7 +1454,7 @@
                 
                 <div class="form-group w-full">
                     <label>Cardholder Name</label>
-                    <input type="text" id="pay-card-name" value="Vikram Garg" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                    <input type="text" id="pay-card-name" placeholder="e.g. Vikram Garg" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
                 </div>
                 
                 <div class="form-group w-full mt-sm">
