@@ -3110,19 +3110,16 @@ class FamilyKYCManager {
         });
         
         // Add KYC warnings next
-        // If Free Tier, show message that KYC warning list requires PRO upgrade
-        if (this.billingTier === 'pro') {
-            this.kycWarnings.forEach(wr => {
-                allIssues.push({
-                    type: 'kyc',
-                    id: wr.id,
-                    severity: wr.severity,
-                    title: `KYC Inconsistency: Mismatched ${wr.field}`,
-                    desc: wr.desc,
-                    meta: `Owner: ${wr.memberName}`
-                });
+        this.kycWarnings.forEach(wr => {
+            allIssues.push({
+                type: 'kyc',
+                id: wr.id,
+                severity: wr.severity,
+                title: `KYC Inconsistency: Mismatched ${wr.field}`,
+                desc: wr.desc,
+                meta: `Owner: ${wr.memberName}`
             });
-        }
+        });
         
         if (allIssues.length === 0) {
             alertsList.innerHTML = `
@@ -3923,21 +3920,6 @@ class FamilyKYCManager {
         const warningsList = document.getElementById('kyc-warnings-list');
         warningsList.innerHTML = '';
 
-        // If free plan, block KYC cross-scan!
-        if (this.billingTier === 'free') {
-            warningsList.innerHTML = `
-                <div class="family-paywall-overlay" style="padding:32px; border-style:dashed;">
-                    <div class="paywall-card">
-                        <div class="paywall-icon"><i data-lucide="lock"></i></div>
-                        <h3>Automated Cross-Check Mismatches Locked</h3>
-                        <p style="font-size:12px;">Automatic KYC database verification and spellcheck matching across PAN, Passport and Aadhaar requires a Family Pro Upgrade.</p>
-                        <button class="btn btn-gold btn-sm mt-md" onclick="app.switchTab('subscription')">Upgrade to Pro</button>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
         if (this.kycWarnings.length === 0) {
             warningsList.innerHTML = `
                 <div class="empty-state" style="padding:40px;">
@@ -3946,46 +3928,67 @@ class FamilyKYCManager {
                     <p>No name typos, date of birth conflicts or old address fields were detected by the sentinel.</p>
                 </div>
             `;
-            return;
+        } else {
+            this.kycWarnings.forEach(wr => {
+                const item = document.createElement('div');
+                item.className = `kyc-warning-item ${wr.severity === 'critical' ? 'critical' : ''}`;
+                
+                const severityBadge = wr.severity === 'critical' 
+                    ? '<span class="badge badge-danger">Critical Discrepancy</span>'
+                    : '<span class="badge badge-warning">Consistency Warning</span>';
+
+                item.innerHTML = `
+                    <div class="kyc-warning-header">
+                        <div class="kyc-w-title-area">
+                            <span class="kyc-w-title">${wr.field} Conflict</span>
+                            <span class="kyc-w-member-badge">${wr.memberName}</span>
+                            ${severityBadge}
+                        </div>
+                        <button class="btn btn-primary btn-xs" onclick="app.openResolutionModal('${wr.id}')">
+                            <i data-lucide="wrench"></i> Resolve Loop
+                        </button>
+                    </div>
+                    <p class="kyc-w-desc">${wr.desc}</p>
+                    <div class="kyc-w-comparison">
+                        <div class="comparison-header-row">
+                            <span>Document Source</span>
+                            <span>Extracted Metadata Value</span>
+                        </div>
+                        <div class="comparison-row mt-sm">
+                            <span class="comp-doc">${wr.anchorDocType} (Anchor)</span>
+                            <div><span class="comp-val">${wr.value1}</span></div>
+                        </div>
+                        <div class="comparison-row mt-sm">
+                            <span class="comp-doc">${wr.docType} (Conflict)</span>
+                            <div><span class="comp-val mismatch">${wr.value2}</span></div>
+                        </div>
+                    </div>
+                `;
+                warningsList.appendChild(item);
+            });
         }
 
-        this.kycWarnings.forEach(wr => {
-            const item = document.createElement('div');
-            item.className = `kyc-warning-item ${wr.severity === 'critical' ? 'critical' : ''}`;
-            
-            const severityBadge = wr.severity === 'critical' 
-                ? '<span class="badge badge-danger">Critical Discrepancy</span>'
-                : '<span class="badge badge-warning">Consistency Warning</span>';
-
-            item.innerHTML = `
-                <div class="kyc-warning-header">
-                    <div class="kyc-w-title-area">
-                        <span class="kyc-w-title">${wr.field} Conflict</span>
-                        <span class="kyc-w-member-badge">${wr.memberName}</span>
-                        ${severityBadge}
+        // Promo upgrade card inline for Free Tier
+        if (this.billingTier === 'free') {
+            const promo = document.createElement('div');
+            promo.className = "family-paywall-overlay";
+            promo.style.marginTop = "24px";
+            promo.style.padding = "24px";
+            promo.style.borderStyle = "dashed";
+            promo.innerHTML = `
+                <div class="paywall-card" style="max-width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; text-align: left; background: none; border: none; box-shadow: none; padding: 0;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div class="paywall-icon" style="margin: 0; width: 36px; height: 36px; min-width: 36px; background: rgba(245, 158, 11, 0.1); color: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i data-lucide="lock" style="width: 18px; height: 18px;"></i></div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: var(--text-primary);">Family Household Scanning Locked</h4>
+                            <p style="margin: 3px 0 0 0; font-size: 11px; color: var(--text-secondary);">Upgrade to Family Pro Plan to run automated KYC matching across spouse, child, and parent records.</p>
+                        </div>
                     </div>
-                    <button class="btn btn-primary btn-xs" onclick="app.openResolutionModal('${wr.id}')">
-                        <i data-lucide="wrench"></i> Resolve Loop
-                    </button>
-                </div>
-                <p class="kyc-w-desc">${wr.desc}</p>
-                <div class="kyc-w-comparison">
-                    <div class="comparison-header-row">
-                        <span>Document Source</span>
-                        <span>Extracted Metadata Value</span>
-                    </div>
-                    <div class="comparison-row mt-sm">
-                        <span class="comp-doc">${wr.anchorDocType} (Anchor)</span>
-                        <div><span class="comp-val">${wr.value1}</span></div>
-                    </div>
-                    <div class="comparison-row mt-sm">
-                        <span class="comp-doc">${wr.docType} (Conflict)</span>
-                        <div><span class="comp-val mismatch">${wr.value2}</span></div>
-                    </div>
+                    <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')" style="white-space: nowrap;">Upgrade to Pro</button>
                 </div>
             `;
-            warningsList.appendChild(item);
-        });
+            warningsList.appendChild(promo);
+        }
     }
 
     runFullKYCScanWithFeedback() {
