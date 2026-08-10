@@ -369,8 +369,8 @@ class VerificationEngine {
 
     // Simulates upload limitations based on SaaS tier
     addDocument(owner, docType, kycName, kycDob, kycAddress, expiryDate = null) {
-        if (this.billingTier === 'free' && this.documents.length >= 5) {
-            throw new Error("Limit Reached: Cannot add more than 5 documents on the Free tier.");
+        if (this.billingTier === 'free' && this.documents.length >= 25) {
+            throw new Error("Limit Reached: Cannot add more than 25 documents on the Free tier.");
         }
         
         const newDoc = {
@@ -505,19 +505,22 @@ function runTests() {
     // Temporarily switch back to Free plan to test quota capping
     engine.billingTier = 'free';
     
-    // Temporarily slice documents down to 5 items to test the exact cap of 5
+    // Temporarily slice documents down to 25 items to test the exact cap of 25
     const originalDocs = [...engine.documents];
-    engine.documents = engine.documents.slice(0, 5);
+    engine.documents = engine.documents.slice(0, 25);
+    while (engine.documents.length < 25) {
+        engine.documents.push({ id: `doc-pad-${engine.documents.length}` });
+    }
     
-    console.log("   Action: Simulating uploading up to 5 documents on Free Tier...");
-    assert.equal(engine.documents.length, 5, "Document count should be exactly 5.");
-    console.log("   Document count reached limit cap: 5 / 5 documents.");
+    console.log("   Action: Simulating uploading up to 25 documents on Free Tier...");
+    assert.equal(engine.documents.length, 25, "Document count should be exactly 25.");
+    console.log("   Document count reached limit cap: 25 / 25 documents.");
     
-    // Attempt adding a 6th document on Free Tier (must fail)
+    // Attempt adding a 26th document on Free Tier (must fail)
     try {
-        console.log("   Action: Attempting to upload 6th document on Free Plan (Expect Failure)...");
+        console.log("   Action: Attempting to upload 26th document on Free Plan (Expect Failure)...");
         engine.addDocument('head', 'Utility Power', 'Vikram Garg', '1984-05-12', 'Sector 12, Dwarka', null);
-        assert.fail("Free plan must reject 6th document addition.");
+        assert.fail("Free plan must reject 26th document addition.");
     } catch(err) {
         console.log(`✔ Checked: Blocked successfully! Error message: "${err.message}"`);
     }

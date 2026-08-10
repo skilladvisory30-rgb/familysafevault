@@ -3546,8 +3546,8 @@ class FamilyKYCManager {
         if (this.billingTier === 'free') {
             sidebarTierName.innerText = "Free Tier";
             sidebarTierName.className = "tier-label text-warning";
-            sidebarTierLimit.innerText = `${countSelf} / 5 docs`;
-            const pct = Math.min(100, Math.round((countSelf / 5) * 100));
+            sidebarTierLimit.innerText = `${countSelf} / 25 docs`;
+            const pct = Math.min(100, Math.round((countSelf / 25) * 100));
             sidebarProgressBar.style.width = `${pct}%`;
             sidebarProgressBar.style.backgroundColor = "var(--warning)";
             sidebarTierMsg.innerText = "1 User Only. Upgrade for Family access.";
@@ -3558,7 +3558,7 @@ class FamilyKYCManager {
             document.querySelectorAll('.free-only').forEach(el => el.classList.remove('hidden'));
             document.querySelectorAll('.pro-only').forEach(el => el.classList.add('hidden'));
             
-            document.getElementById('stat-free-cap').innerText = "Free tier (max 5 docs)";
+            document.getElementById('stat-free-cap').innerText = "Free tier (max 25 docs)";
         } else {
             // Pro Tier
             sidebarTierName.innerText = "Family Pro Vault";
