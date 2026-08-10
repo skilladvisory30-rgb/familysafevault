@@ -4331,6 +4331,21 @@ class FamilyKYCManager {
             if (addrInput && addrInput.value !== headMember.address) {
                 addrInput.value = headMember.address || '';
             }
+
+            const pinInput = document.getElementById('settings-secure-pin');
+            if (pinInput) {
+                const localPinKey = `local_vault_pin_${headMember.email.toLowerCase()}`;
+                const cachedPin = localStorage.getItem(localPinKey);
+                if (cachedPin) {
+                    pinInput.value = cachedPin;
+                } else if (headMember.email.toLowerCase() === 'vikram.garg@gmail.com') {
+                    pinInput.value = '542190';
+                } else if (headMember.email.toLowerCase() === 'sunita.garg@gmail.com') {
+                    pinInput.value = '192840';
+                } else {
+                    pinInput.value = '';
+                }
+            }
         }
     }
 
@@ -4341,6 +4356,7 @@ class FamilyKYCManager {
         const mobile = document.getElementById('settings-mobile').value.trim();
         const email = document.getElementById('settings-email').value.trim();
         const address = document.getElementById('settings-address').value.trim();
+        const securePin = document.getElementById('settings-secure-pin').value.trim();
         
         if (!name) {
             this.toast("Please enter a legal name.", "warning");
@@ -4348,6 +4364,10 @@ class FamilyKYCManager {
         }
         if (!email) {
             this.toast("Please enter an email address.", "warning");
+            return;
+        }
+        if (securePin && (securePin.length !== 6 || isNaN(securePin))) {
+            this.toast("Security PIN must be exactly 6 numeric digits.", "warning");
             return;
         }
         
@@ -4368,6 +4388,17 @@ class FamilyKYCManager {
             // Sync to Supabase cloud database if connected
             if (this.isCloudSyncActive) {
                 await this.syncMemberToCloud('head', this.members['head']);
+                
+                if (securePin) {
+                    const client = window.SupabaseVaultConfig.client;
+                    await client.auth.updateUser({
+                        data: { security_pin: securePin }
+                    });
+                }
+            }
+            
+            if (securePin) {
+                localStorage.setItem(`local_vault_pin_${email.toLowerCase()}`, securePin);
             }
             
             this.saveLocalVaultCache();
@@ -4394,6 +4425,22 @@ class FamilyKYCManager {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalHtml;
             }
+        }
+    }
+
+    togglePinVisibility(event) {
+        if (event) event.preventDefault();
+        const pinInput = document.getElementById('settings-secure-pin');
+        const eyeIcon = document.getElementById('pin-eye-icon');
+        if (pinInput) {
+            if (pinInput.type === 'password') {
+                pinInput.type = 'text';
+                if (eyeIcon) eyeIcon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                pinInput.type = 'password';
+                if (eyeIcon) eyeIcon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
         }
     }
 
@@ -5218,14 +5265,20 @@ class FamilyKYCManager {
         
         const newPassword = document.getElementById('reset-new-password').value;
         const confirmPassword = document.getElementById('reset-confirm-password').value;
+        const newPin = document.getElementById('reset-new-pin').value.trim();
         
-        if (!newPassword || !confirmPassword) {
-            this.toast("Please fill in both password fields.", "warning");
+        if (!newPassword || !confirmPassword || !newPin) {
+            this.toast("Please fill in all decryption fields.", "warning");
             return;
         }
         
         if (newPassword !== confirmPassword) {
             this.toast("Decryption keys do not match. Please verify keys.", "warning");
+            return;
+        }
+
+        if (newPin.length !== 6 || isNaN(newPin)) {
+            this.toast("Security PIN must be exactly 6 numeric digits.", "warning");
             return;
         }
         
@@ -5240,25 +5293,35 @@ class FamilyKYCManager {
             if (window.SupabaseVaultConfig && window.SupabaseVaultConfig.isConfigured()) {
                 const client = window.SupabaseVaultConfig.client || supabase.createClient(window.SupabaseVaultConfig.url, window.SupabaseVaultConfig.key);
                 
-                const { error } = await client.auth.updateUser({ password: newPassword });
+                const { data, error } = await client.auth.updateUser({ 
+                    password: newPassword,
+                    data: { security_pin: newPin }
+                });
                 
                 if (error) {
                     this.toast(error.message, "danger");
                 } else {
-                    this.toast("✨ Decryption key updated successfully! Lock unlocked.", "success");
+                    const email = data.user && data.user.email ? data.user.email.toLowerCase() : this.activeUserEmail;
+                    if (email) {
+                        localStorage.setItem(`local_vault_pin_${email}`, newPin);
+                    }
+                    this.toast("✨ Decryption key and Secure PIN updated successfully! Lock unlocked.", "success");
                     this.closeResetPasswordModal();
                     
                     // Log to timeline
                     this.actionTimeline.unshift({
                         time: new Date().toISOString().replace('T', ' ').substring(0, 19),
                         title: 'Master Key Reset',
-                        desc: 'Vault decryption key updated successfully.',
+                        desc: 'Vault decryption key and security PIN updated successfully.',
                         status: 'completed'
                     });
                 }
             } else {
                 // Offline fallback
-                this.toast("✨ Standalone master password updated for offline session.", "success");
+                const emailInput = document.getElementById('login-email');
+                const email = emailInput ? emailInput.value.toLowerCase().trim() : 'offline';
+                localStorage.setItem(`local_vault_pin_${email}`, newPin);
+                this.toast("✨ Standalone master password and PIN updated for offline session.", "success");
                 this.closeResetPasswordModal();
             }
         } catch (e) {

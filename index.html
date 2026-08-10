@@ -1181,12 +1181,18 @@
                                     </div>
                                     <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')">Upgrade Plan</button>
                                 </div>
-
                                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; cursor: pointer;">
+                                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; cursor: pointer; margin-bottom: 12px;">
                                         <span>Biometric Authentication (Face ID / Touch ID)</span>
                                         <input type="checkbox" id="settings-biometric" checked style="width: 16px; height: 16px;">
                                     </label>
+                                    <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                                        <label for="settings-secure-pin" style="font-weight: 600; font-size: 13px; color: var(--text-primary);">Secure 6-Digit Decryption PIN</label>
+                                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+                                            <input type="password" id="settings-secure-pin" value="******" maxlength="6" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: var(--bg-primary); color: var(--text-primary); font-family: monospace; letter-spacing: 4px; text-align: center;">
+                                            <button type="button" class="btn btn-outline" onclick="app.togglePinVisibility(event)" style="padding: 10px; border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center;"><i data-lucide="eye" id="pin-eye-icon" style="width: 16px; height: 16px;"></i></button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Data Privacy Badge -->
@@ -1528,6 +1534,13 @@
                     <div class="input-icon-wrapper" style="margin-top: 6px;">
                         <i data-lucide="lock"></i>
                         <input type="password" id="reset-confirm-password" required placeholder="Confirm new password" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: var(--bg-primary); color: var(--text-primary);">
+                    </div>
+                </div>
+                <div class="form-group w-full">
+                    <label for="reset-new-pin">New Secure 6-Digit PIN</label>
+                    <div class="input-icon-wrapper" style="margin-top: 6px;">
+                        <i data-lucide="fingerprint"></i>
+                        <input type="text" id="reset-new-pin" maxlength="6" required placeholder="Enter new 6-digit PIN" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; background: var(--bg-primary); color: var(--text-primary); font-family: monospace; letter-spacing: 4px; text-align: center;">
                     </div>
                 </div>
             </div>
