@@ -319,7 +319,10 @@ class FamilyKYCManager {
                     <option value="INSURANCE_POLICY">Insurance Policy (Medical/Life)</option>
                     <option value="MUTUAL_FUND">Mutual Fund / Brokerage Portfolio</option>
                     <option value="VEHICLE_RC">Vehicle Title & Registration</option>
-                    <option value="UTILITY_RECORD">Property Tax & Utility Bills</option>
+                    <option value="LPG_CYLINDER">LPG Gas Cylinder Bill</option>
+                    <option value="ELECTRICITY_BILL">Electricity Bill</option>
+                    <option value="PROPERTY_TAX">Property Tax Receipt</option>
+                    <option value="UTILITY_RECORD">Other Property Tax / Utility Bill</option>
                 `;
             } else if (country === 'UK') {
                 optionsHtml = `
@@ -331,7 +334,10 @@ class FamilyKYCManager {
                     <option value="INSURANCE_POLICY">Insurance Policy (Life/Health)</option>
                     <option value="MUTUAL_FUND">Mutual Fund / Investment ISA</option>
                     <option value="VEHICLE_RC">V5C Vehicle Registry</option>
-                    <option value="UTILITY_RECORD">Property Tax / Utility Bills</option>
+                    <option value="LPG_CYLINDER">LPG Gas Cylinder Bill</option>
+                    <option value="ELECTRICITY_BILL">Electricity Bill</option>
+                    <option value="PROPERTY_TAX">Property Tax Receipt</option>
+                    <option value="UTILITY_RECORD">Other Property Tax / Utility Bill</option>
                 `;
             } else {
                 optionsHtml = `
@@ -343,7 +349,10 @@ class FamilyKYCManager {
                     <option value="INSURANCE_POLICY">Life & Health Insurance Policy</option>
                     <option value="MUTUAL_FUND">Mutual Fund Folio</option>
                     <option value="VEHICLE_RC">Vehicle Registration Certificate (RC)</option>
-                    <option value="UTILITY_RECORD">Property Tax / Utility Bill</option>
+                    <option value="LPG_CYLINDER">LPG Gas Cylinder Bill</option>
+                    <option value="ELECTRICITY_BILL">Electricity Bill</option>
+                    <option value="PROPERTY_TAX">Property Tax Receipt</option>
+                    <option value="UTILITY_RECORD">Other Property Tax / Utility Bill</option>
                 `;
             }
             typeSelect.innerHTML = optionsHtml;
