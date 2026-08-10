@@ -1895,13 +1895,13 @@ class FamilyKYCManager {
     }
 
     async handleFileSelected(file) {
-        const isPdf = false;
-        // Enforce format validation (JPG/PNG only)
-        const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        // Enforce format validation (JPG/PNG/PDF)
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
         const fileNameLower = file.name.toLowerCase();
         const isValidExtension = allowedExtensions.some(ext => fileNameLower.endsWith(ext));
         if (!isValidExtension) {
-            this.toast("⚠️ Invalid format. Only JPG, JPEG, and PNG images are allowed.", "danger");
+            this.toast("⚠️ Invalid format. Only JPG, JPEG, PNG images, and PDF files are allowed.", "danger");
             this.removeAttachedFile();
             return;
         }
@@ -5565,26 +5565,59 @@ class FamilyKYCManager {
 
     loadLocalVaultCache() {
         // Delinked from local storage. Initialize empty/default in-memory states.
-        this.documents = [];
+        const email = this.activeUserEmail || '';
+        const isDemo = !email || email === 'vikram.garg@gmail.com' || email === 'sunita.garg@gmail.com';
+        
+        if (isDemo) {
+            this.documents = this.getLocalizedDocuments(this.selectedCountry);
+            this.notifications = this.getLocalizedNotifications(this.selectedCountry);
+            this.commsLog = this.getLocalizedCommsLog(this.selectedCountry);
+        } else {
+            this.documents = [];
+            this.notifications = [];
+            this.commsLog = [];
+        }
         this.resetDefaultMembers();
         this.actionTimeline = [];
     }
 
     resetDefaultMembers() {
-        this.members = {
-            head: { 
-                name: 'Vikram Garg', 
-                relation: 'Self', 
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100', 
-                role: 'Primary Admin',
-                mobile: '+91 98765 43210',
-                email: 'vikram.garg@gmail.com',
-                address: 'A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075'
-            },
-            spouse: { name: 'Sunita Garg', relation: 'Wife', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', role: 'Independent Member' },
-            child: { name: 'Rohan Garg', relation: 'Son (Minor)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', role: 'Dependent' },
-            parent: { name: 'Ramesh Chandra Garg', relation: 'Father (Senior)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100', role: 'Dependent' }
-        };
+        const email = this.activeUserEmail || '';
+        const isDemo = !email || email === 'vikram.garg@gmail.com' || email === 'sunita.garg@gmail.com';
+        
+        if (isDemo) {
+            this.members = {
+                head: { 
+                    name: 'Vikram Garg', 
+                    relation: 'Self', 
+                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100', 
+                    role: 'Primary Admin',
+                    mobile: '+91 98765 43210',
+                    email: 'vikram.garg@gmail.com',
+                    address: 'A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075'
+                },
+                spouse: { name: 'Sunita Garg', relation: 'Wife', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', role: 'Independent Member' },
+                child: { name: 'Rohan Garg', relation: 'Son (Minor)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', role: 'Dependent' },
+                parent: { name: 'Ramesh Chandra Garg', relation: 'Father (Senior)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100', role: 'Dependent' }
+            };
+        } else {
+            let displayName = email;
+            if (email.includes('@')) {
+                displayName = email.split('@')[0];
+            }
+            const formattedName = displayName.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            this.members = {
+                head: {
+                    name: formattedName,
+                    relation: 'Self',
+                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+                    role: 'Primary Admin',
+                    mobile: '',
+                    email: email,
+                    address: ''
+                }
+            };
+        }
     }
 }
 
