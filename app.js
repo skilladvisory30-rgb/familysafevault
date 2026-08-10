@@ -512,10 +512,18 @@ class FamilyKYCManager {
         });
         
         // Update stats
-        document.getElementById('stat-kyc-alerts').innerText = this.kycWarnings.length;
-        document.getElementById('kyc-badge-count').innerText = this.kycWarnings.length;
-        if (document.getElementById('kyc-card-badge')) {
-            document.getElementById('kyc-card-badge').innerText = `${this.kycWarnings.length} Warnings`;
+        if (this.billingTier === 'free') {
+            document.getElementById('stat-kyc-alerts').innerText = '0';
+            document.getElementById('kyc-badge-count').innerText = 'Locked';
+            if (document.getElementById('kyc-card-badge')) {
+                document.getElementById('kyc-card-badge').innerText = 'Locked';
+            }
+        } else {
+            document.getElementById('stat-kyc-alerts').innerText = this.kycWarnings.length;
+            document.getElementById('kyc-badge-count').innerText = this.kycWarnings.length;
+            if (document.getElementById('kyc-card-badge')) {
+                document.getElementById('kyc-card-badge').innerText = `${this.kycWarnings.length} Warnings`;
+            }
         }
     }
 
@@ -3110,16 +3118,18 @@ class FamilyKYCManager {
         });
         
         // Add KYC warnings next
-        this.kycWarnings.forEach(wr => {
-            allIssues.push({
-                type: 'kyc',
-                id: wr.id,
-                severity: wr.severity,
-                title: `KYC Inconsistency: Mismatched ${wr.field}`,
-                desc: wr.desc,
-                meta: `Owner: ${wr.memberName}`
+        if (this.billingTier === 'pro') {
+            this.kycWarnings.forEach(wr => {
+                allIssues.push({
+                    type: 'kyc',
+                    id: wr.id,
+                    severity: wr.severity,
+                    title: `KYC Inconsistency: Mismatched ${wr.field}`,
+                    desc: wr.desc,
+                    meta: `Owner: ${wr.memberName}`
+                });
             });
-        });
+        }
         
         if (allIssues.length === 0) {
             alertsList.innerHTML = `
@@ -3920,6 +3930,21 @@ class FamilyKYCManager {
         const warningsList = document.getElementById('kyc-warnings-list');
         warningsList.innerHTML = '';
 
+        // If free plan, block KYC cross-scan!
+        if (this.billingTier === 'free') {
+            warningsList.innerHTML = `
+                <div class="family-paywall-overlay" style="padding:32px; border-style:dashed;">
+                    <div class="paywall-card">
+                        <div class="paywall-icon"><i data-lucide="lock"></i></div>
+                        <h3>Automated Cross-Check Mismatches Locked</h3>
+                        <p style="font-size:12px;">Automatic KYC database verification and spellcheck matching across PAN, Passport and Aadhaar requires a Family Pro Upgrade.</p>
+                        <button class="btn btn-gold btn-sm mt-md" onclick="app.switchTab('subscription')">Upgrade to Pro</button>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         if (this.kycWarnings.length === 0) {
             warningsList.innerHTML = `
                 <div class="empty-state" style="padding:40px;">
@@ -3966,28 +3991,6 @@ class FamilyKYCManager {
                 `;
                 warningsList.appendChild(item);
             });
-        }
-
-        // Promo upgrade card inline for Free Tier
-        if (this.billingTier === 'free') {
-            const promo = document.createElement('div');
-            promo.className = "family-paywall-overlay";
-            promo.style.marginTop = "24px";
-            promo.style.padding = "24px";
-            promo.style.borderStyle = "dashed";
-            promo.innerHTML = `
-                <div class="paywall-card" style="max-width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; text-align: left; background: none; border: none; box-shadow: none; padding: 0;">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <div class="paywall-icon" style="margin: 0; width: 36px; height: 36px; min-width: 36px; background: rgba(245, 158, 11, 0.1); color: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i data-lucide="lock" style="width: 18px; height: 18px;"></i></div>
-                        <div>
-                            <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: var(--text-primary);">Family Household Scanning Locked</h4>
-                            <p style="margin: 3px 0 0 0; font-size: 11px; color: var(--text-secondary);">Upgrade to Family Pro Plan to run automated KYC matching across spouse, child, and parent records.</p>
-                        </div>
-                    </div>
-                    <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')" style="white-space: nowrap;">Upgrade to Pro</button>
-                </div>
-            `;
-            warningsList.appendChild(promo);
         }
     }
 
