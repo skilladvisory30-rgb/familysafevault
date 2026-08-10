@@ -2679,7 +2679,7 @@ class FamilyKYCManager {
         this.commsLog.unshift({
             id: Date.now() + 1,
             channel: 'email',
-            recipient: ownerId === 'head' ? 'vikram.garg@gmail.com' : 'family.member@familykyc.com',
+            recipient: (this.members[ownerId]?.email) || this.activeUserEmail || 'family.member@familykyc.com',
             subject: `[Resolved] KYC Loop Closed for ${docType}`,
             body: `Dear Family Account Holder,\n\nThis is to notify you that the database mismatch warning on your ${docType} has been successfully audited and resolved by the Head of Family on ${timestamp}.\n\nNo further actions are required from your side.\n\nThank you for choosing Family KYC Manager.`,
             timestamp
@@ -2790,8 +2790,8 @@ class FamilyKYCManager {
                     ? (this.billingCycle === 'yearly' ? '£24.99' : '£2.49')
                     : (this.billingCycle === 'yearly' ? '₹2,868' : '₹299'));
 
-            const headEmail = this.members['head'].email || 'vikram.garg@gmail.com';
-            const headMobile = this.members['head'].mobile || '+91 98765 43210';
+            const headEmail = this.members['head'].email || this.activeUserEmail || '';
+            const headMobile = this.members['head'].mobile || '';
 
             // Send Confirmation Email
             this.commsLog.unshift({
@@ -3134,14 +3134,34 @@ class FamilyKYCManager {
         
         // count per category
         const categories = {
-            'Government ID': visibleDocs.filter(d => ['Aadhaar', 'PAN', 'Passport', 'Driving License', 'Voter ID'].includes(d.type)).length,
-            'Financial / Tax': visibleDocs.filter(d => ['ITR'].includes(d.type)).length,
-            'Insurance Policies': visibleDocs.filter(d => ['Insurance'].includes(d.type)).length,
-            'Utility & Bills': visibleDocs.filter(d => d.type.startsWith('Utility') || d.type === 'Property Tax').length,
-            'Education Records': visibleDocs.filter(d => ['Class 10 Certificate', 'Graduation Degree'].includes(d.type)).length,
-            'Employment & Job': visibleDocs.filter(d => ['EPF UAN Card', 'W-2 Form', 'P60 Form'].includes(d.type)).length
+            'Government ID': 0,
+            'Financial / Tax': 0,
+            'Insurance Policies': 0,
+            'Utility & Bills': 0,
+            'Education Records': 0,
+            'Employment & Job': 0,
+            'Other Vault Files': 0
         };
-        
+
+        visibleDocs.forEach(d => {
+            const type = (d.type || '').toLowerCase();
+            if (type.includes('aadhaar') || type.includes('pan') || type.includes('passport') || type.includes('license') || type.includes('licence') || type.includes('voter') || type.includes('ssn') || type.includes('nino') || type.includes('national id') || type.includes('state id')) {
+                categories['Government ID']++;
+            } else if (type.includes('itr') || type.includes('tax') || type.includes('bank') || type.includes('saving') || type.includes('checking') || type.includes('statement') || type.includes('financial') || type.includes('investment')) {
+                categories['Financial / Tax']++;
+            } else if (type.includes('insurance') || type.includes('policy') || type.includes('medicare') || type.includes('health card')) {
+                categories['Insurance Policies']++;
+            } else if (type.includes('utility') || type.includes('bill') || type.includes('rent') || type.includes('property')) {
+                categories['Utility & Bills']++;
+            } else if (type.includes('degree') || type.includes('certificate') || type.includes('transcript') || type.includes('diploma') || type.includes('class 10') || type.includes('class 12') || type.includes('education')) {
+                categories['Education Records']++;
+            } else if (type.includes('epf') || type.includes('uan') || type.includes('w-2') || type.includes('p60') || type.includes('job') || type.includes('salary') || type.includes('payslip')) {
+                categories['Employment & Job']++;
+            } else {
+                categories['Other Vault Files']++;
+            }
+        });
+
         const total = Object.values(categories).reduce((a,b) => a+b, 0);
 
         Object.keys(categories).forEach(cat => {
@@ -5057,7 +5077,7 @@ class FamilyKYCManager {
                 this.actionTimeline = [];
             }
             
-            this.runSanityCheck();
+            this.runFullKYCScan();
             this.runExpiryCheck();
             this.updateActiveUserUI();
             this.renderAll();
@@ -5230,60 +5250,31 @@ class FamilyKYCManager {
     }
 
     loadLocalVaultCache() {
-        // Delinked from local storage. Initialize empty/default in-memory states.
-        const email = this.activeUserEmail || '';
-        const isDemo = !email || email === 'vikram.garg@gmail.com' || email === 'sunita.garg@gmail.com';
-        
-        if (isDemo) {
-            this.documents = this.getLocalizedDocuments(this.selectedCountry);
-            this.notifications = this.getLocalizedNotifications(this.selectedCountry);
-            this.commsLog = this.getLocalizedCommsLog(this.selectedCountry);
-        } else {
-            this.documents = [];
-            this.notifications = [];
-            this.commsLog = [];
-        }
+        this.documents = [];
+        this.notifications = [];
+        this.commsLog = [];
         this.resetDefaultMembers();
         this.actionTimeline = [];
     }
 
     resetDefaultMembers() {
         const email = this.activeUserEmail || '';
-        const isDemo = !email || email === 'vikram.garg@gmail.com' || email === 'sunita.garg@gmail.com';
-        
-        if (isDemo) {
-            this.members = {
-                head: { 
-                    name: 'Vikram Garg', 
-                    relation: 'Self', 
-                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100', 
-                    role: 'Primary Admin',
-                    mobile: '+91 98765 43210',
-                    email: 'vikram.garg@gmail.com',
-                    address: 'A-402, Shanti Apartments, Sector 12, Dwarka, New Delhi - 110075'
-                },
-                spouse: { name: 'Sunita Garg', relation: 'Wife', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100', role: 'Independent Member' },
-                child: { name: 'Rohan Garg', relation: 'Son (Minor)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', role: 'Dependent' },
-                parent: { name: 'Ramesh Chandra Garg', relation: 'Father (Senior)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100', role: 'Dependent' }
-            };
-        } else {
-            let displayName = email;
-            if (email.includes('@')) {
-                displayName = email.split('@')[0];
-            }
-            const formattedName = displayName.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            this.members = {
-                head: {
-                    name: formattedName,
-                    relation: 'Self',
-                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
-                    role: 'Primary Admin',
-                    mobile: '',
-                    email: email,
-                    address: ''
-                }
-            };
+        let displayName = email || 'Administrator';
+        if (email && email.includes('@')) {
+            displayName = email.split('@')[0];
         }
+        const formattedName = displayName.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        this.members = {
+            head: {
+                name: formattedName,
+                relation: 'Self',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+                role: 'Primary Admin',
+                mobile: '',
+                email: email,
+                address: ''
+            }
+        };
     }
 }
 
