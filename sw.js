@@ -1,6 +1,6 @@
 // FamilyKYCManager - Service Worker for PWA Offline Caching
 
-const CACHE_NAME = 'family-kyc-v1';
+const CACHE_NAME = 'family-kyc-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

@@ -426,7 +426,7 @@ class FamilyKYCManager {
                     this.kycWarnings.push({
                         id: `kyc-err-${doc.id}-name`,
                         memberId: mId,
-                        memberName: this.members[mId].name,
+                        memberName: this.members[mId] ? this.members[mId].name : 'Unknown',
                         docType: doc.type,
                         anchorDocType: anchorDoc.type,
                         field: 'Full Name',
@@ -447,7 +447,7 @@ class FamilyKYCManager {
                     this.kycWarnings.push({
                         id: `kyc-err-${doc.id}-dob`,
                         memberId: mId,
-                        memberName: this.members[mId].name,
+                        memberName: this.members[mId] ? this.members[mId].name : 'Unknown',
                         docType: doc.type,
                         anchorDocType: anchorDoc.type,
                         field: 'Date of Birth',
@@ -460,7 +460,7 @@ class FamilyKYCManager {
                     });
                     doc.status = 'warning';
                 }
-
+ 
                 // Rule C: Address major mismatch check
                 if (doc.type !== 'Insurance' && doc.kycAddress) { // Ignore address match on insurance
                     const cleanAddr1 = this.cleanAddress(correctAddress);
@@ -470,7 +470,7 @@ class FamilyKYCManager {
                         this.kycWarnings.push({
                             id: `kyc-err-${doc.id}-addr`,
                             memberId: mId,
-                            memberName: this.members[mId].name,
+                            memberName: this.members[mId] ? this.members[mId].name : 'Unknown',
                             docType: doc.type,
                             anchorDocType: anchorDoc.type,
                             field: 'Residential Address',
@@ -484,9 +484,9 @@ class FamilyKYCManager {
                         doc.status = 'warning';
                     }
                 }
-
+ 
                 // Rule D: Check against Admin Profile Address (for primary user only)
-                if (mId === 'head' && doc.kycAddress && this.members['head'].address) {
+                if (mId === 'head' && doc.kycAddress && this.members['head'] && this.members['head'].address) {
                     const cleanProfileAddr = this.cleanAddress(this.members['head'].address);
                     const cleanDocAddr = this.cleanAddress(doc.kycAddress);
                     
@@ -494,7 +494,7 @@ class FamilyKYCManager {
                         this.kycWarnings.push({
                             id: `kyc-err-${doc.id}-profile-addr`,
                             memberId: mId,
-                            memberName: this.members[mId].name,
+                            memberName: this.members[mId] ? this.members[mId].name : 'Unknown',
                             docType: doc.type,
                             anchorDocType: 'Profile Settings',
                             field: 'Profile Address Alignment',
@@ -512,15 +512,25 @@ class FamilyKYCManager {
         });
         
         // Update stats
+        const badge = document.getElementById('kyc-badge-count');
         if (this.billingTier === 'free') {
             document.getElementById('stat-kyc-alerts').innerText = '0';
-            document.getElementById('kyc-badge-count').innerText = 'Locked';
+            if (badge) {
+                badge.style.display = 'none';
+            }
             if (document.getElementById('kyc-card-badge')) {
                 document.getElementById('kyc-card-badge').innerText = 'Locked';
             }
         } else {
             document.getElementById('stat-kyc-alerts').innerText = this.kycWarnings.length;
-            document.getElementById('kyc-badge-count').innerText = this.kycWarnings.length;
+            if (badge) {
+                if (this.kycWarnings.length === 0) {
+                    badge.style.display = 'none';
+                } else {
+                    badge.style.display = '';
+                    badge.innerText = this.kycWarnings.length;
+                }
+            }
             if (document.getElementById('kyc-card-badge')) {
                 document.getElementById('kyc-card-badge').innerText = `${this.kycWarnings.length} Warnings`;
             }
@@ -624,7 +634,7 @@ class FamilyKYCManager {
                     id: `exp-alert-${doc.id}`,
                     docId: doc.id,
                     owner: doc.owner,
-                    ownerName: this.members[doc.owner].name,
+                    ownerName: this.members[doc.owner] ? this.members[doc.owner].name : 'Unknown',
                     docType: doc.type,
                     docNum: doc.number,
                     daysRemaining: daysDiff,
@@ -637,7 +647,15 @@ class FamilyKYCManager {
         
         // Update stats
         document.getElementById('stat-renewals').innerText = this.expiryAlerts.length;
-        document.getElementById('renewal-badge-count').innerText = this.expiryAlerts.length;
+        const renewalBadge = document.getElementById('renewal-badge-count');
+        if (renewalBadge) {
+            if (this.expiryAlerts.length === 0) {
+                renewalBadge.style.display = 'none';
+            } else {
+                renewalBadge.style.display = '';
+                renewalBadge.innerText = this.expiryAlerts.length;
+            }
+        }
         if (document.getElementById('renewals-card-badge')) {
             document.getElementById('renewals-card-badge').innerText = `${this.expiryAlerts.length} Urgent`;
         }
@@ -646,7 +664,7 @@ class FamilyKYCManager {
         // Health = (Total Docs - Issues) / Total Docs
         const totalDocs = this.documents.length;
         const issuesCount = this.kycWarnings.length + this.expiryAlerts.length;
-        const healthPercent = Math.max(0, Math.min(100, Math.round(((totalDocs - issuesCount) / totalDocs) * 100)));
+        const healthPercent = totalDocs > 0 ? Math.max(0, Math.min(100, Math.round(((totalDocs - issuesCount) / totalDocs) * 100))) : 100;
         
         const healthVal = document.getElementById('stat-health');
         healthVal.innerText = `${healthPercent}%`;
@@ -4116,6 +4134,19 @@ class FamilyKYCManager {
     // --- LIFE EVENT MAPPING sentinel engine ---
     calculateLifeEvents() {
         this.lifeEvents.forEach(evt => {
+            const targetM = evt.targetMember;
+            const memberDocs = this.documents.filter(d => d.owner === targetM);
+            const anchorType = this.selectedCountry === 'US' ? 'SSN Card' : (this.selectedCountry === 'UK' ? 'NINO Card' : 'Aadhaar');
+            const anchorDoc = memberDocs.find(d => d.type === anchorType);
+
+            // If no documents exist for the target member, mark the event as locked/inactive
+            if (memberDocs.length === 0) {
+                evt.progress = 0;
+                evt.locked = true;
+                evt.tasks.forEach(t => t.status = 'locked');
+                return;
+            }
+
             // If Free tier and target member is not 'head', lock the event (0% progress)
             if (this.billingTier === 'free' && evt.targetMember !== 'head') {
                 evt.progress = 0;
@@ -4126,10 +4157,6 @@ class FamilyKYCManager {
 
             evt.locked = false;
             let completedCount = 0;
-            const targetM = evt.targetMember;
-            const memberDocs = this.documents.filter(d => d.owner === targetM);
-            const anchorType = this.selectedCountry === 'US' ? 'SSN Card' : (this.selectedCountry === 'UK' ? 'NINO Card' : 'Aadhaar');
-            const anchorDoc = memberDocs.find(d => d.type === anchorType);
 
             evt.tasks.forEach(task => {
                 const doc = memberDocs.find(d => d.type === task.docType);
@@ -4182,10 +4209,11 @@ class FamilyKYCManager {
         const activeCount = this.lifeEvents.filter(e => e.progress < 100 && (!e.locked)).length;
         const badge = document.getElementById('life-events-badge');
         if (badge) {
-            badge.innerText = `${activeCount} Active`;
             if (activeCount === 0) {
-                badge.className = "badge badge-success";
+                badge.style.display = 'none';
             } else {
+                badge.style.display = '';
+                badge.innerText = `${activeCount} Active`;
                 badge.className = "badge badge-warning";
             }
         }
@@ -4939,6 +4967,39 @@ class FamilyKYCManager {
         if (chevron) chevron.style.display = '';
         
         this.toast("E2E session locked. Encryption keys cleared.", "warning");
+    }
+
+    async resetSiteCache() {
+        this.toast("Resetting site cache...", "info");
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        if ('serviceWorker' in navigator) {
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+            } catch (e) {
+                console.warn("Failed to unregister service worker", e);
+            }
+        }
+        
+        if ('caches' in window) {
+            try {
+                const names = await caches.keys();
+                for (let name of names) {
+                    await caches.delete(name);
+                }
+            } catch (e) {
+                console.warn("Failed to clear CacheStorage", e);
+            }
+        }
+        
+        this.toast("Cache cleared. Reloading portal...", "success");
+        setTimeout(() => {
+            location.reload();
+        }, 800);
     }
 
     showLoginPage(role) {
