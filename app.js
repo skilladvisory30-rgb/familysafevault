@@ -3893,6 +3893,7 @@ class FamilyKYCManager {
                     <div class="member-card-details">
                         <h3>${mem.name}</h3>
                         <span>${isHead ? 'Primary Admin' : mem.relation}</span>
+                        ${!isHead ? `<a href="#" onclick="event.preventDefault(); app.triggerMemberPhotoChange('${mId}')" style="font-size: 11px; color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 4px; margin-top: 4px; font-weight: 500;"><i data-lucide="camera" style="width: 12px; height: 12px;"></i> Change Photo</a>` : ''}
                     </div>
                     ${!isHead ? `
                         <button class="icon-btn btn-delete-member" onclick="app.deleteFamilyMember('${mId}')" style="position: absolute; right: 0; top: 0; padding: 4px; border: none; background: transparent; cursor: pointer; color: var(--danger);" title="Delete Family Member">
@@ -3995,6 +3996,36 @@ class FamilyKYCManager {
         this.toast(`Sent access re-invite to ${mem.name}.`, "success");
         this.renderFamilyVaultPanel();
         this.renderAll();
+    }
+
+    triggerMemberPhotoChange(mId) {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const dataUrl = event.target.result;
+                this.members[mId].avatar = dataUrl;
+                
+                // Sync to local cache
+                this.saveLocalVaultCache();
+                
+                // Sync to Supabase cloud if connected
+                if (this.isCloudSyncActive) {
+                    await this.syncMemberToCloud(mId, this.members[mId]);
+                }
+                
+                this.toast(`Updated profile photo for ${this.members[mId].name}.`, "success");
+                this.renderFamilyVaultPanel();
+                this.renderAll();
+            };
+            reader.readAsDataURL(file);
+        };
+        fileInput.click();
     }
 
     deleteFamilyMember(mId) {
