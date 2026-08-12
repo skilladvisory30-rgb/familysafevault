@@ -2598,7 +2598,8 @@ class FamilyKYCManager {
                     </div>
                 </div>
             `;
-        } else if (warning.field === 'Residential Address') {
+        } else if (warning.field === 'Residential Address' || warning.field === 'Profile Address Alignment') {
+            const targetAddress = doc1 ? doc1.kycAddress : warning.value1;
             body.innerHTML = `
                 <div class="action-box">
                     <div class="action-icon-circle warning"><i data-lucide="map-pin"></i></div>
@@ -2612,8 +2613,11 @@ class FamilyKYCManager {
 
                     <div class="form-group w-full text-left mt-md">
                         <label>Select Resolution Action:</label>
-                        <button class="btn btn-accent w-full text-left mt-sm justify-start" onclick="app.actionResolveAddress('${warning.id}', '${doc2.id}', '${doc1.kycAddress}')">
+                        <button class="btn btn-accent w-full text-left mt-sm justify-start" onclick="app.actionResolveAddress('${warning.id}', '${doc2.id}', '${targetAddress}')">
                             <i data-lucide="copy"></i> Sync ${warning.docType} Address to Primary
+                        </button>
+                        <button class="btn btn-outline w-full text-left mt-sm justify-start" onclick="app.openUploadModal('${doc2.id}'); app.closeRenewalModal();">
+                            <i data-lucide="upload"></i> Upload Updated Bill / Receipt (Evidence-based)
                         </button>
                         <button class="btn btn-outline w-full text-left mt-sm justify-start" onclick="app.actionDismissMismatch('${warning.id}')">
                             <i data-lucide="eye-off"></i> Ignore / Multi-residence Address is Valid
