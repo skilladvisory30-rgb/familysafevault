@@ -4001,14 +4001,21 @@ class FamilyKYCManager {
         if (mId === 'head') return; // Cannot delete primary admin
 
         const mem = this.members[mId];
-        if (confirm(`Are you sure you want to delete ${mem.name} from your household directory? All of their document associations and records will be deleted as well.`)) {
+        
+        // First Confirmation: Warning Signal
+        const firstConfirm = confirm(`⚠️ WARNING: You are about to permanently delete "${mem.name}" (${mem.relation}) from your family directory.\n\nThis will permanently delete all of their vault documents, OCR data, metadata, and history. This action CANNOT be undone. Do you want to proceed?`);
+        
+        if (firstConfirm) {
+            // Second Confirmation: Double check
+            const secondConfirm = confirm(`🚨 FINAL CONFIRMATION:\n\nAre you absolutely sure you want to delete "${mem.name}" and erase all of their records?\n\nClick OK to confirm deletion.`);
             
-            // If cloud sync is active, delete associated documents and member from Supabase
-            if (this.isCloudSyncActive) {
-                const docsToDelete = this.documents.filter(d => d.owner === mId);
-                docsToDelete.forEach(doc => this.deleteDocumentFromCloud(doc.id));
-                this.deleteMemberFromCloud(mId);
-            }
+            if (secondConfirm) {
+                // If cloud sync is active, delete associated documents and member from Supabase
+                if (this.isCloudSyncActive) {
+                    const docsToDelete = this.documents.filter(d => d.owner === mId);
+                    docsToDelete.forEach(doc => this.deleteDocumentFromCloud(doc.id));
+                    this.deleteMemberFromCloud(mId);
+                }
 
             // Filter them out locally
             this.documents = this.documents.filter(d => d.owner !== mId);
@@ -4033,6 +4040,7 @@ class FamilyKYCManager {
             this.saveLocalVaultCache();
             this.renderFamilyVaultPanel();
             this.renderAll();
+            }
         }
     }
 
