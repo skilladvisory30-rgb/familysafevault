@@ -2524,7 +2524,7 @@ class FamilyKYCManager {
             <button class="btn btn-outline" style="margin-right:auto; color:var(--danger);" onclick="app.deleteDocument('${doc.id}')">
                 <i data-lucide="trash-2"></i> Delete
             </button>
-            <button class="btn btn-outline" onclick="app.openUploadModal('${doc.id}')">
+            <button class="btn btn-outline" onclick="app.closeDetailModal(); app.openUploadModal('${doc.id}')">
                 <i data-lucide="edit"></i> Edit Fields
             </button>
             <button class="btn btn-primary" onclick="app.closeDetailModal()">Done</button>
