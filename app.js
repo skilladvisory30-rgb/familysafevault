@@ -1,5 +1,7 @@
 // Family KYC Manager - Web Portal JavaScript Controller
 
+const NEUTRAL_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><circle cx='12' cy='12' r='12' fill='%23eff6ff'/><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='%233b82f6'/></svg>";
+
 class FamilyKYCManager {
     constructor() {
         this.activeTab = 'dashboard';
@@ -21,7 +23,7 @@ class FamilyKYCManager {
             head: { 
                 name: 'Administrator', 
                 relation: 'Self', 
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100', 
+                avatar: NEUTRAL_AVATAR, 
                 role: 'Primary Admin',
                 mobile: '',
                 email: '',
@@ -4048,6 +4050,16 @@ class FamilyKYCManager {
 
         const headMember = this.members['head'];
         if (headMember) {
+            const avatarPreview = document.getElementById('settings-admin-avatar-preview');
+            if (avatarPreview) {
+                avatarPreview.src = headMember.avatar || NEUTRAL_AVATAR;
+            }
+            const adminPhotoFileInput = document.getElementById('settings-admin-photo');
+            if (adminPhotoFileInput) {
+                adminPhotoFileInput.value = '';
+            }
+            this.tempAdminAvatar = null;
+
             const nameInput = document.getElementById('settings-admin-name');
             if (nameInput && nameInput.value !== headMember.name) {
                 nameInput.value = headMember.name;
@@ -4120,6 +4132,9 @@ class FamilyKYCManager {
             this.members['head'].mobile = mobile;
             this.members['head'].email = email;
             this.members['head'].address = address;
+            if (this.tempAdminAvatar) {
+                this.members['head'].avatar = this.tempAdminAvatar;
+            }
             
             // Sync to Supabase cloud database if connected
             if (this.isCloudSyncActive) {
@@ -4178,6 +4193,24 @@ class FamilyKYCManager {
             }
             lucide.createIcons();
         }
+    }
+
+    handleAdminPhotoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            this.tempAdminAvatar = dataUrl;
+            
+            const avatarPreview = document.getElementById('settings-admin-avatar-preview');
+            if (avatarPreview) {
+                avatarPreview.src = dataUrl;
+            }
+            this.toast("Admin photo uploaded. Click Save Settings to save it.", "success");
+        };
+        reader.readAsDataURL(file);
     }
 
     updateSettingsName(newName) {
@@ -5696,7 +5729,7 @@ class FamilyKYCManager {
             head: {
                 name: formattedName,
                 relation: 'Self',
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+                avatar: NEUTRAL_AVATAR,
                 role: 'Primary Admin',
                 mobile: '',
                 email: email,
