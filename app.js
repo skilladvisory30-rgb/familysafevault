@@ -2389,26 +2389,36 @@ class FamilyKYCManager {
     }
 
     deleteDocument(docId) {
-        if (confirm("Are you sure you want to delete this document from the secure vault? This action cannot be undone.")) {
-            const docIdx = this.documents.findIndex(d => d.id === docId);
-            const doc = this.documents[docIdx];
-            this.documents.splice(docIdx, 1);
-            this.toast(`${doc.type} deleted.`, "info");
+        const docIdx = this.documents.findIndex(d => d.id === docId);
+        if (docIdx === -1) return;
+        const doc = this.documents[docIdx];
+        
+        // First Confirmation: Warning Signal
+        const firstConfirm = confirm(`⚠️ WARNING: You are about to permanently delete "${doc.type}" (ID: ${doc.number}) belonging to ${this.members[doc.owner] ? this.members[doc.owner].name : 'Unknown'}.\n\nThis will remove it from the vault and erase all historical compliance checks. Do you want to proceed?`);
+        
+        if (firstConfirm) {
+            // Second Confirmation: Double check
+            const secondConfirm = confirm(`🚨 FINAL CONFIRMATION:\n\nAre you absolutely sure? This action is permanent and CANNOT be undone.\n\nClick OK to permanently delete this document.`);
             
-            this.actionTimeline.unshift({
-                time: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                title: `${doc.type} Removed`,
-                desc: `${this.members[doc.owner].name}'s ${doc.type} permanently deleted from secure vault.`,
-                status: 'completed'
-            });
+            if (secondConfirm) {
+                this.documents.splice(docIdx, 1);
+                this.toast(`${doc.type} deleted.`, "info");
+                
+                this.actionTimeline.unshift({
+                    time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                    title: `${doc.type} Removed`,
+                    desc: `${this.members[doc.owner] ? this.members[doc.owner].name : 'Unknown'}'s ${doc.type} permanently deleted from secure vault.`,
+                    status: 'completed'
+                });
 
-            // Delete from Supabase Cloud
-            this.deleteDocumentFromCloud(docId);
+                // Delete from Supabase Cloud
+                this.deleteDocumentFromCloud(docId);
 
-            this.runFullKYCScan();
-            this.runExpiryCheck();
-            this.renderAll();
-            this.closeDetailModal();
+                this.runFullKYCScan();
+                this.runExpiryCheck();
+                this.renderAll();
+                this.closeDetailModal();
+            }
         }
     }
 
