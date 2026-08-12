@@ -3787,14 +3787,13 @@ class FamilyKYCManager {
         if (fileInput) fileInput.value = '';
     }
 
-    handleMemberPhotoUpload(event) {
+    async handleMemberPhotoUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const dataUrl = e.target.result;
-            this.selectedMemberAvatar = dataUrl;
+        try {
+            const compressedDataUrl = await this.compressProfilePhoto(file);
+            this.selectedMemberAvatar = compressedDataUrl;
             
             // Clear presets selection
             document.querySelectorAll('.avatar-select-btn').forEach(btn => {
@@ -3807,9 +3806,11 @@ class FamilyKYCManager {
             if (customInput) {
                 customInput.value = "[Uploaded Profile Photo File]";
             }
-            this.toast("Profile photo uploaded successfully.", "success");
-        };
-        reader.readAsDataURL(file);
+            this.toast("Profile photo uploaded and optimized successfully.", "success");
+        } catch (e) {
+            console.error("Photo upload compression failed", e);
+            this.toast("Failed to process profile photo.", "warning");
+        }
     }
 
     handleAddMember(event) {
@@ -4006,24 +4007,27 @@ class FamilyKYCManager {
             const file = e.target.files[0];
             if (!file) return;
             
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                const dataUrl = event.target.result;
-                this.members[mId].avatar = dataUrl;
-                
-                // Sync to local cache
-                this.saveLocalVaultCache();
-                
-                // Sync to Supabase cloud if connected
-                if (this.isCloudSyncActive) {
-                    await this.syncMemberToCloud(mId, this.members[mId]);
+            (async () => {
+                try {
+                    const compressedDataUrl = await this.compressProfilePhoto(file);
+                    this.members[mId].avatar = compressedDataUrl;
+                    
+                    // Sync to local cache
+                    this.saveLocalVaultCache();
+                    
+                    // Sync to Supabase cloud if connected
+                    if (this.isCloudSyncActive) {
+                        await this.syncMemberToCloud(mId, this.members[mId]);
+                    }
+                    
+                    this.toast(`Updated and optimized profile photo for ${this.members[mId].name}.`, "success");
+                    this.renderFamilyVaultPanel();
+                    this.renderAll();
+                } catch (err) {
+                    console.error("Change photo compression failed", err);
+                    this.toast("Failed to process profile photo.", "warning");
                 }
-                
-                this.toast(`Updated profile photo for ${this.members[mId].name}.`, "success");
-                this.renderFamilyVaultPanel();
-                this.renderAll();
-            };
-            reader.readAsDataURL(file);
+            })();
         };
         fileInput.click();
     }
@@ -4233,23 +4237,51 @@ class FamilyKYCManager {
             lucide.createIcons();
         }
     }
+    
+    compressProfilePhoto(file, targetSize = 128, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = targetSize;
+                    canvas.height = targetSize;
+                    const ctx = canvas.getContext('2d');
+                    
+                    const minDim = Math.min(img.width, img.height);
+                    const sx = (img.width - minDim) / 2;
+                    const sy = (img.height - minDim) / 2;
+                    
+                    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, targetSize, targetSize);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.onerror = () => reject(new Error("Failed to load image for compression"));
+                img.src = e.target.result;
+            };
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsDataURL(file);
+        });
+    }
 
-    handleAdminPhotoUpload(event) {
+    async handleAdminPhotoUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const dataUrl = e.target.result;
-            this.tempAdminAvatar = dataUrl;
+        try {
+            const compressedDataUrl = await this.compressProfilePhoto(file);
+            this.tempAdminAvatar = compressedDataUrl;
             
             const avatarPreview = document.getElementById('settings-admin-avatar-preview');
             if (avatarPreview) {
-                avatarPreview.src = dataUrl;
+                avatarPreview.src = compressedDataUrl;
             }
-            this.toast("Admin photo uploaded. Click Save Settings to save it.", "success");
-        };
-        reader.readAsDataURL(file);
+            this.toast("Admin photo uploaded and optimized. Click Save Settings to save it.", "success");
+        } catch (e) {
+            console.error("Admin photo compression failed", e);
+            this.toast("Failed to process profile photo.", "warning");
+        }
     }
 
     updateSettingsName(newName) {
