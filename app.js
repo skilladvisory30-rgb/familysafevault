@@ -3751,6 +3751,8 @@ class FamilyKYCManager {
     closeAddMemberModal() {
         document.getElementById('add-member-modal').classList.add('hidden');
         document.getElementById('add-member-form').reset();
+        const fileInput = document.getElementById('new-member-photo-file');
+        if (fileInput) fileInput.value = '';
     }
 
     selectPresetAvatar(clickedImg, avatarUrl) {
@@ -3763,20 +3765,49 @@ class FamilyKYCManager {
         clickedImg.classList.add('active');
         clickedImg.style.borderColor = 'var(--accent)';
         
-        // Clear custom input field when preset clicked
+        // Clear custom input field and file input when preset clicked
         const customInput = document.getElementById('new-member-avatar-url');
         if (customInput) customInput.value = '';
+        const fileInput = document.getElementById('new-member-photo-file');
+        if (fileInput) fileInput.value = '';
     }
 
     customAvatarUrlInput(url) {
         if (!url || !url.trim()) return;
         this.selectedMemberAvatar = url.trim();
         
-        // Clear active styles from presets
+        // Clear active styles from presets and file input
         document.querySelectorAll('.avatar-select-btn').forEach(btn => {
             btn.classList.remove('active');
             btn.style.borderColor = 'transparent';
         });
+        const fileInput = document.getElementById('new-member-photo-file');
+        if (fileInput) fileInput.value = '';
+    }
+
+    handleMemberPhotoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            this.selectedMemberAvatar = dataUrl;
+            
+            // Clear presets selection
+            document.querySelectorAll('.avatar-select-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderColor = 'transparent';
+            });
+            
+            // Populate the Custom URL field with placeholder
+            const customInput = document.getElementById('new-member-avatar-url');
+            if (customInput) {
+                customInput.value = "[Uploaded Profile Photo File]";
+            }
+            this.toast("Profile photo uploaded successfully.", "success");
+        };
+        reader.readAsDataURL(file);
     }
 
     handleAddMember(event) {

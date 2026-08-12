@@ -1437,8 +1437,12 @@
                             <img src="https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=100" class="avatar-select-btn" onclick="app.selectPresetAvatar(this, 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=100')" style="width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s;">
                         </div>
                     </div>
+                    <div class="form-group w-full mt-sm">
+                        <label for="new-member-photo-file">Upload Profile Photo</label>
+                        <input type="file" id="new-member-photo-file" accept="image/*" class="form-control" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px; background: var(--bg-secondary); color: var(--text-primary);" onchange="app.handleMemberPhotoUpload(event)">
+                    </div>
                     <div class="form-group w-full mt-sm" style="margin-bottom: 12px;">
-                        <label for="new-member-avatar-url">Custom Photo / Image URL (Optional)</label>
+                        <label for="new-member-avatar-url">Or Custom Photo URL (Optional)</label>
                         <input type="url" id="new-member-avatar-url" placeholder="https://example.com/profile.jpg" class="form-control" style="width:100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 4px;" oninput="app.customAvatarUrlInput(this.value)">
                     </div>
                     <button class="btn btn-primary w-full mt-md btn-lg" type="submit" style="background:var(--accent); border-color:var(--accent);">
