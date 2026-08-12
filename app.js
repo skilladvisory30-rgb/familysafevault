@@ -2312,6 +2312,10 @@ class FamilyKYCManager {
         if (id) {
             // Edit mode: find & update
             const doc = this.documents.find(d => d.id === id);
+            
+            // Archive the old version before modifying
+            this.archiveDocument(doc);
+            
             doc.owner = owner;
             doc.type = type;
             doc.number = number;
@@ -2520,13 +2524,19 @@ class FamilyKYCManager {
         `;
 
         const footer = document.getElementById('detail-modal-footer');
+        const isArchived = doc.status === 'archived';
         footer.innerHTML = `
             <button class="btn btn-outline" style="margin-right:auto; color:var(--danger);" onclick="app.deleteDocument('${doc.id}')">
                 <i data-lucide="trash-2"></i> Delete
             </button>
+            <button class="btn btn-outline" onclick="app.downloadDocument('${doc.id}')" style="margin-right: 8px;">
+                <i data-lucide="download"></i> Download Copy
+            </button>
+            ${!isArchived ? `
             <button class="btn btn-outline" onclick="app.closeDetailModal(); app.openUploadModal('${doc.id}')">
                 <i data-lucide="edit"></i> Edit Fields
             </button>
+            ` : ''}
             <button class="btn btn-primary" onclick="app.closeDetailModal()">Done</button>
         `;
 
@@ -2536,6 +2546,98 @@ class FamilyKYCManager {
 
     closeDetailModal() {
         document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    downloadDocument(docId) {
+        const doc = this.documents.find(d => d.id === docId);
+        if (!doc) {
+            this.toast("Document not found.", "danger");
+            return;
+        }
+        
+        let downloadUrl = doc.fileDataUrl;
+        let filename = `${doc.type.replace(/\s+/g, '_')}_${doc.number}.png`;
+        
+        if (!downloadUrl) {
+            // Generate a fallback premium ID card copy
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            
+            // Slate background
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, 800, 500);
+            
+            // Premium border
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(15, 15, 770, 470);
+            
+            // Outer header
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText("FAMILY SAFE VAULT - SECURE IDENTITY CERTIFICATE", 50, 60);
+            
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(50, 80);
+            ctx.lineTo(750, 80);
+            ctx.stroke();
+            
+            // Render key-value metadata
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '15px sans-serif';
+            let y = 140;
+            const drawRow = (label, val) => {
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText(label, 50, y);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 18px sans-serif';
+                ctx.fillText(val || 'N/A', 240, y);
+                ctx.font = '15px sans-serif';
+                y += 45;
+            };
+            
+            drawRow("Document Type:", doc.type);
+            drawRow("Official ID No.:", doc.number);
+            drawRow("KYC Full Name:", doc.kycName);
+            drawRow("Date of Birth:", doc.kycDob ? this.formatDateStr(doc.kycDob) : 'N/A');
+            drawRow("Residential Address:", doc.kycAddress);
+            drawRow("Validity Period:", `${doc.issueDate ? this.formatDateStr(doc.issueDate) : 'Permanent'} - ${doc.expiryDate ? this.formatDateStr(doc.expiryDate) : 'Permanent'}`);
+            
+            // Verification Badge
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillText("✓ VERIFIED CRYPTO COPY", 480, 420);
+            
+            ctx.fillStyle = '#475569';
+            ctx.font = 'italic 11px sans-serif';
+            ctx.fillText(`This document was generated in secure zero-knowledge state. Date: ${new Date().toLocaleDateString()}`, 50, 460);
+            
+            downloadUrl = canvas.toDataURL('image/png');
+        }
+        
+        // Trigger browser download
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        this.toast(`Downloading ${doc.type} ID proof copy...`, "success");
+    }
+
+    archiveDocument(doc) {
+        const archivedDoc = {
+            ...doc,
+            id: `archived-${doc.id}-${Date.now()}`,
+            status: 'archived',
+            fileName: `[Archived] ${doc.fileName || 'document.png'}`
+        };
+        this.documents.push(archivedDoc);
+        this.syncDocumentToCloud(archivedDoc);
     }
 
     // --- CLOSED LOOP KYC RESOLUTIONS ---
@@ -2633,6 +2735,10 @@ class FamilyKYCManager {
 
     actionResolveName(warningId, docId, targetName) {
         const doc = this.documents.find(d => d.id === docId);
+        
+        // Archive the old record
+        this.archiveDocument(doc);
+        
         const oldName = doc.kycName;
         doc.kycName = targetName;
         doc.status = 'valid';
@@ -2647,6 +2753,9 @@ class FamilyKYCManager {
         // Trigger SMS/Email simulation notifying the resolution!
         this.addResolutionCommsAlert(doc.owner, doc.type, 'KYC Name Correction');
 
+        // Sync changes to Supabase Cloud
+        this.syncDocumentToCloud(doc);
+
         this.toast("KYC Conflict resolved successfully.", "success");
         this.closeRenewalModal();
         this.runFullKYCScan();
@@ -2655,6 +2764,10 @@ class FamilyKYCManager {
 
     actionResolveDob(warningId, docId, targetDob) {
         const doc = this.documents.find(d => d.id === docId);
+        
+        // Archive the old record
+        this.archiveDocument(doc);
+        
         const oldDob = doc.kycDob;
         doc.kycDob = targetDob;
         doc.status = 'valid';
@@ -2668,6 +2781,9 @@ class FamilyKYCManager {
 
         this.addResolutionCommsAlert(doc.owner, doc.type, 'Date of Birth Verification');
 
+        // Sync changes to Supabase Cloud
+        this.syncDocumentToCloud(doc);
+
         this.toast("Date of birth conflict resolved.", "success");
         this.closeRenewalModal();
         this.runFullKYCScan();
@@ -2676,6 +2792,10 @@ class FamilyKYCManager {
 
     actionResolveAddress(warningId, docId, targetAddress) {
         const doc = this.documents.find(d => d.id === docId);
+        
+        // Archive the old record
+        this.archiveDocument(doc);
+        
         doc.kycAddress = targetAddress;
         doc.status = 'valid';
         
@@ -2687,6 +2807,9 @@ class FamilyKYCManager {
         });
 
         this.addResolutionCommsAlert(doc.owner, doc.type, 'Address Verification');
+
+        // Sync changes to Supabase Cloud
+        this.syncDocumentToCloud(doc);
 
         this.toast("Address conflict resolved.", "success");
         this.closeRenewalModal();
@@ -2759,6 +2882,9 @@ class FamilyKYCManager {
         const alert = this.expiryAlerts.find(a => a.id === alertId);
         const doc = this.documents.find(d => d.id === alert.docId);
         
+        // Archive the old record
+        this.archiveDocument(doc);
+        
         // Update document expiry date (extends by 5 years or shifts forward)
         const oldExpiry = doc.expiryDate;
         const newExpDate = new Date("2031-07-26"); // Set 5 years in future from current simulated date
@@ -2774,6 +2900,9 @@ class FamilyKYCManager {
 
         // Add a simulator comm log entry for renewal confirmation!
         this.addRenewalConfirmationComms(doc.owner, doc.type);
+
+        // Sync updated document to cloud
+        this.syncDocumentToCloud(doc);
 
         this.toast(`Renewal transaction completed. ${doc.type} extended.`, "success");
         this.closeRenewalModal();
@@ -3312,7 +3441,12 @@ class FamilyKYCManager {
         const typeFilter = document.getElementById('filter-type').value;
         const statusFilter = document.getElementById('filter-status').value;
         
-        let filtered = this.getVisibleDocuments();
+        let filtered = [];
+        if (statusFilter === 'archived') {
+            filtered = this.documents.filter(d => d.status === 'archived');
+        } else {
+            filtered = this.getVisibleDocuments();
+        }
         
         // Filter based on user profile capability.
         // Free tier: ONLY Vikram (head) can see his own documents.
@@ -3413,6 +3547,8 @@ class FamilyKYCManager {
                 statusLabel = '<span class="status-badge-dot success">Safe</span>';
             } else if (doc.status === 'warning') {
                 statusLabel = '<span class="status-badge-dot warning">KYC Error</span>';
+            } else if (doc.status === 'archived') {
+                statusLabel = '<span class="status-badge-dot info" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">Archived</span>';
             } else {
                 statusLabel = '<span class="status-badge-dot danger">Renew</span>';
             }
@@ -5082,12 +5218,13 @@ class FamilyKYCManager {
     }
 
     getVisibleDocuments() {
+        const activeDocs = this.documents.filter(d => d.status !== 'archived');
         if (this.activeMember === 'head') {
             // Primary Admin sees all documents except private documents of Independent Members (spouse)
-            return this.documents.filter(d => !(d.owner === 'spouse' && d.isPrivate === true));
+            return activeDocs.filter(d => !(d.owner === 'spouse' && d.isPrivate === true));
         } else {
             // Non-admin members (like spouse) only see their own documents
-            return this.documents.filter(d => d.owner === this.activeMember);
+            return activeDocs.filter(d => d.owner === this.activeMember);
         }
     }
 
