@@ -3562,23 +3562,29 @@ input:checked + .toggle-slider:before {
 
     /* Marketing page elements */
     .m-navbar {
+        height: auto;
+    }
+
+    .m-nav-container {
         flex-direction: column;
         height: auto;
-        padding: 16px;
+        padding: 16px 24px;
         gap: 16px;
         text-align: center;
+        width: 100%;
     }
 
     .m-nav-links {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 12px;
+        gap: 16px;
     }
 
     .m-nav-actions {
         width: 100%;
         justify-content: center;
+        flex-wrap: wrap;
         gap: 8px;
     }
 
