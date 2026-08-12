@@ -2435,8 +2435,91 @@ class FamilyKYCManager {
             statusBadge = '<span class="status-badge-dot success"><i data-lucide="check-circle-2"></i> Valid / Safe</span>';
         } else if (doc.status === 'warning') {
             statusBadge = '<span class="status-badge-dot warning"><i data-lucide="alert-triangle"></i> KYC Conflict</span>';
+        } else if (doc.status === 'archived') {
+            statusBadge = '<span class="status-badge-dot info" style="background:#e0f2fe; color:#0369a1;"><i data-lucide="archive"></i> Archived Record</span>';
         } else {
             statusBadge = '<span class="status-badge-dot danger"><i data-lucide="x-circle"></i> Renewal Required</span>';
+        }
+
+        // Find original/parent ID (if this is an archived copy, extract original ID)
+        let originalId = doc.id;
+        if (doc.id.startsWith('archived-')) {
+            const parts = doc.id.split('-');
+            originalId = `${parts[1]}-${parts[2]}-${parts[3]}`;
+        }
+            
+        // Find all revisions (both active version and archived copies)
+        const revisions = this.documents.filter(d => {
+            if (d.id === originalId) return true;
+            if (d.id.startsWith('archived-')) {
+                const parts = d.id.split('-');
+                const parentId = `${parts[1]}-${parts[2]}-${parts[3]}`;
+                return parentId === originalId;
+            }
+            return d.owner === doc.owner && d.type === doc.type && d.number === doc.number;
+        });
+
+        // Extract timestamps for sorting
+        revisions.forEach(r => {
+            if (r.id.startsWith('archived-')) {
+                const parts = r.id.split('-');
+                const ts = parseInt(parts[parts.length - 1]);
+                r.timestamp = isNaN(ts) ? new Date(r.archivedAt || Date.now()) : new Date(ts);
+            } else {
+                r.timestamp = new Date(); // Active version is the latest
+            }
+        });
+        
+        // Sort chronologically (oldest to newest)
+        revisions.sort((a, b) => a.timestamp - b.timestamp);
+
+        let timelineHTML = '';
+        if (revisions.length > 0) {
+            timelineHTML = `
+                <div class="inspector-meta-box" style="margin-top: 16px;">
+                    <div class="inspector-meta-title" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="history" style="width:14px; height:14px; color:var(--accent);"></i>
+                        Chronology of Record Changes
+                    </div>
+                    <div style="position: relative; margin-top: 12px; padding-left: 20px; border-left: 2px dashed var(--border-color); display:flex; flex-direction:column; gap:16px;">
+            `;
+            
+            revisions.forEach((rev, index) => {
+                const isCurrent = rev.status !== 'archived';
+                const timeStr = rev.timestamp.toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                timelineHTML += `
+                    <div style="position: relative; text-align: left;">
+                        <!-- Timeline bubble -->
+                        <div style="position: absolute; left: -27px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: ${isCurrent ? 'var(--accent)' : 'var(--text-muted)'}; border: 2px solid var(--bg-primary);"></div>
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size: 11px; font-weight: 700; color: ${isCurrent ? 'var(--accent)' : 'var(--text-secondary)'}; background: ${isCurrent ? 'rgba(37,99,235,0.08)' : 'var(--bg-tertiary)'}; padding: 2px 6px; border-radius: 4px;">
+                                ${isCurrent ? 'Active Version' : `Archived Copy #${index + 1}`}
+                            </span>
+                            <span style="font-size: 10px; color: var(--text-muted); font-family: monospace;">${timeStr}</span>
+                        </div>
+                        
+                        <div style="background: var(--bg-secondary); padding: 8px 12px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color); line-height: 1.4;">
+                            <div><strong style="color:var(--text-secondary);">Name:</strong> ${rev.kycName || 'N/A'}</div>
+                            ${rev.kycDob ? `<div><strong style="color:var(--text-secondary);">DOB:</strong> ${this.formatDateStr(rev.kycDob)}</div>` : ''}
+                            ${rev.kycAddress ? `<div><strong style="color:var(--text-secondary);">Address:</strong> ${rev.kycAddress}</div>` : ''}
+                            ${rev.expiryDate ? `<div><strong style="color:var(--text-secondary);">Expiry:</strong> ${this.formatDateStr(rev.expiryDate)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            timelineHTML += `
+                    </div>
+                </div>
+            `;
         }
 
         const body = document.getElementById('detail-modal-body');
@@ -2529,6 +2612,8 @@ class FamilyKYCManager {
                         <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-family: monospace; font-size: 10px; color: var(--text-secondary); max-height: 120px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 8px; text-align: left;">${doc.rawOcrText}</div>
                     </div>
                     ` : ''}
+
+                    ${timelineHTML}
                 </div>
             </div>
         `;
