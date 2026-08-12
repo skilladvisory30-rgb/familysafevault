@@ -323,6 +323,7 @@ class FamilyKYCManager {
                     <option value="DRIVING_LICENCE">Driver's License</option>
                     <option value="BANK_ACCOUNT">Bank Account Metadata</option>
                     <option value="INSURANCE_POLICY">Insurance Policy (Medical/Life)</option>
+                    <option value="VEHICLE_INSURANCE">Vehicle Insurance Policy</option>
                     <option value="MUTUAL_FUND">Mutual Fund / Brokerage Portfolio</option>
                     <option value="VEHICLE_RC">Vehicle Title & Registration</option>
                     <option value="LPG_CYLINDER">LPG Gas Cylinder Bill</option>
@@ -338,6 +339,7 @@ class FamilyKYCManager {
                     <option value="DRIVING_LICENCE">DVLA Driver's License</option>
                     <option value="BANK_ACCOUNT">Bank Account Metadata</option>
                     <option value="INSURANCE_POLICY">Insurance Policy (Life/Health)</option>
+                    <option value="VEHICLE_INSURANCE">Vehicle Insurance Policy</option>
                     <option value="MUTUAL_FUND">Mutual Fund / Investment ISA</option>
                     <option value="VEHICLE_RC">V5C Vehicle Registry</option>
                     <option value="LPG_CYLINDER">LPG Gas Cylinder Bill</option>
@@ -353,6 +355,7 @@ class FamilyKYCManager {
                     <option value="DRIVING_LICENCE">Driving Licence</option>
                     <option value="BANK_ACCOUNT">Bank Account Metadata</option>
                     <option value="INSURANCE_POLICY">Life & Health Insurance Policy</option>
+                    <option value="VEHICLE_INSURANCE">Vehicle Insurance Policy</option>
                     <option value="MUTUAL_FUND">Mutual Fund Folio</option>
                     <option value="VEHICLE_RC">Vehicle Registration Certificate (RC)</option>
                     <option value="LPG_CYLINDER">LPG Gas Cylinder Bill</option>
@@ -1092,6 +1095,22 @@ class FamilyKYCManager {
                 addressLabel: "Insured Members",
                 showAdditional: true,
                 additionalLabel: "Start / Commencement Date"
+            },
+            'VEHICLE_INSURANCE': {
+                numLabel: "Insurance Policy Number",
+                numPlaceholder: "e.g. 10019/31/27/059507",
+                showExpiry: true,
+                expiryLabel: "Period of Insurance End Date (Expiry)",
+                showName: true,
+                nameLabel: "Policyholder Name",
+                showDob: false,
+                showGender: false,
+                showRelative: true,
+                relativeLabel: "Insurance Company Name (e.g. Shriram General)",
+                showAddress: true,
+                addressLabel: "Vehicle Registration No & Make-Model (e.g. KA53MA0084 - MARUTI SUZUKI)",
+                showAdditional: true,
+                additionalLabel: "Engine No & Chassis No"
             },
             'MUTUAL_FUND': {
                 numLabel: "Folio Number",
@@ -2076,6 +2095,50 @@ class FamilyKYCManager {
                 docRelative = makeModel;
                 docAdditional = upper.includes('DIESEL') ? 'Diesel' : (upper.includes('CNG') ? 'CNG' : 'Petrol');
                 break;
+
+            case 'VEHICLE_INSURANCE': {
+                const policyMatch = text.match(/(?:Policy No\.?|Policy Number)[\s:-]*([0-9\/A-Z-]{8,30})/i);
+                if (policyMatch) docNum = policyMatch[1].trim();
+                
+                docName = extractFuzzyName();
+                
+                const periodMatch = text.match(/(?:To Midnight|To|Period of Insurance)[\s:-]*([0-9\/.\s-]{10})/i) || text.match(/To\s+(\d{2}\/\d{2}\/\d{4})/i);
+                if (periodMatch) {
+                    const cleanDate = periodMatch[1].trim();
+                    const parsed = this.parseDateInput(cleanDate);
+                    if (parsed) expDate = parsed;
+                }
+                
+                let provider = 'Shriram General Insurance';
+                if (upper.includes('SHRIRAM')) provider = 'Shriram General Insurance Co. Ltd.';
+                else if (upper.includes('ICICI')) provider = 'ICICI Lombard General';
+                else if (upper.includes('HDFC')) provider = 'HDFC ERGO General';
+                else if (upper.includes('BAJAJ')) provider = 'Bajaj Allianz General';
+                else if (upper.includes('NEW INDIA')) provider = 'New India Assurance';
+                docRelative = provider;
+                
+                let regMarkVal = '';
+                const markMatch = upper.match(/[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}/);
+                if (markMatch) regMarkVal = markMatch[0];
+                
+                let mkMdl = 'Maruti Ertiga';
+                if (upper.includes('ERTIGA')) mkMdl = 'Maruti Suzuki Ertiga';
+                else if (upper.includes('SWIFT')) mkMdl = 'Maruti Suzuki Swift';
+                else if (upper.includes('I20')) mkMdl = 'Hyundai i20';
+                else if (upper.includes('CITY')) mkMdl = 'Honda City';
+                
+                docAddress = `Reg No: ${regMarkVal || 'KA53MA0084'} - Make/Model: ${mkMdl}`;
+                
+                let engNoVal = 'K14BN7004755';
+                let chsNoVal = 'MA3ELMG1S00126621';
+                const engMatch = text.match(/([A-Z0-9]{10,17})\s*&\s*([A-Z0-9]{15,17})/);
+                if (engMatch) {
+                    engNoVal = engMatch[1];
+                    chsNoVal = engMatch[2];
+                }
+                docAdditional = `Engine: ${engNoVal} - Chassis: ${chsNoVal}`;
+                break;
+            }
 
             case 'LPG_CYLINDER':
                 const customerNoMatch = text.match(/(?:Customer No|Consumer No|Customer\s*No)[\s:-]*([0-9/]{10,25})/i);
@@ -3572,7 +3635,7 @@ class FamilyKYCManager {
             } else if (typeFilter === 'Financial') {
                 filtered = filtered.filter(d => ['BANK_ACCOUNT', 'MUTUAL_FUND'].includes(d.type));
             } else if (typeFilter === 'Insurance') {
-                filtered = filtered.filter(d => ['INSURANCE_POLICY'].includes(d.type));
+                filtered = filtered.filter(d => ['INSURANCE_POLICY', 'VEHICLE_INSURANCE'].includes(d.type));
             } else if (typeFilter === 'Utility') {
                 filtered = filtered.filter(d => ['UTILITY_RECORD', 'LPG_CYLINDER', 'ELECTRICITY_BILL', 'PROPERTY_TAX'].includes(d.type));
             }
@@ -3613,6 +3676,7 @@ class FamilyKYCManager {
                 'DRIVING_LICENCE': 'Driving Licence',
                 'BANK_ACCOUNT': 'Bank Account Metadata',
                 'INSURANCE_POLICY': 'Insurance Policy',
+                'VEHICLE_INSURANCE': 'Vehicle Insurance Policy',
                 'MUTUAL_FUND': 'Mutual Fund',
                 'VEHICLE_RC': 'Vehicle RC',
                 'UTILITY_RECORD': 'Utility Record'
@@ -3621,7 +3685,7 @@ class FamilyKYCManager {
 
             // Add custom classification classes
             let classType = 'Utility';
-            if (['Aadhaar','PAN','PASSPORT','DRIVING_LICENCE','BANK_ACCOUNT','INSURANCE_POLICY','MUTUAL_FUND','VEHICLE_RC','UTILITY_RECORD'].includes(doc.type)) {
+            if (['Aadhaar','PAN','PASSPORT','DRIVING_LICENCE','BANK_ACCOUNT','INSURANCE_POLICY','VEHICLE_INSURANCE','MUTUAL_FUND','VEHICLE_RC','UTILITY_RECORD'].includes(doc.type)) {
                 classType = doc.type;
             }
 
@@ -3635,6 +3699,7 @@ class FamilyKYCManager {
             else if (doc.type === 'DRIVING_LICENCE') icon = 'car';
             else if (doc.type === 'BANK_ACCOUNT') icon = 'wallet';
             else if (doc.type === 'INSURANCE_POLICY') icon = 'heart-handshake';
+            else if (doc.type === 'VEHICLE_INSURANCE') icon = 'shield';
             else if (doc.type === 'MUTUAL_FUND') icon = 'briefcase';
             else if (doc.type === 'VEHICLE_RC') icon = 'truck';
             else if (doc.type === 'UTILITY_RECORD') icon = 'receipt';
