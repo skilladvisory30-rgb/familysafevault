@@ -1287,6 +1287,15 @@
                     <!-- KYC Matching Data Fields -->
                     <div class="section-divider-text">KYC Verification Fields (To match other documents)</div>
                     
+                    <!-- Caution Alert for OCR Typo Errors -->
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; text-align: left;">
+                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #d97706; flex-shrink: 0; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #d97706; font-size: 12px; display: block; margin-bottom: 2px;">Caution: Verify OCR Data</strong>
+                            <span style="color: var(--text-secondary); font-size: 11px; line-height: 1.4;">Automated OCR extraction can occasionally introduce typo errors (e.g. character substitutions like 'O' vs '0', 'l' vs '1', or date format variations). Please recheck all fields below against your physical copy before saving.</span>
+                        </div>
+                    </div>
+                    
                     <div class="form-row-2">
                         <div class="form-group">
                             <label for="doc-kyc-name">Full Name (as printed on document)</label>
