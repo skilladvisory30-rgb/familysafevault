@@ -2564,7 +2564,7 @@ class FamilyKYCManager {
                             <i data-lucide="sparkles"></i> Correct ${warning.docType} Name to "${doc1.kycName}"
                         </button>
                         <button class="btn btn-outline w-full text-left mt-sm justify-start" onclick="app.openUploadModal('${doc2.id}'); app.closeRenewalModal();">
-                            <i data-lucide="upload"></i> Upload Corrected Scan
+                            <i data-lucide="upload"></i> Upload Corrected ID Card (Evidence-based)
                         </button>
                         <button class="btn btn-outline w-full text-left mt-sm justify-start" style="color:var(--text-secondary);" onclick="app.actionDismissMismatch('${warning.id}')">
                             <i data-lucide="check"></i> Acknowledge spelling variation (Dismiss warning)
@@ -2590,7 +2590,7 @@ class FamilyKYCManager {
                             <i data-lucide="check-square"></i> Change ${warning.docType} DOB to ${warning.value1}
                         </button>
                         <button class="btn btn-outline w-full text-left mt-sm justify-start" onclick="app.openUploadModal('${doc2.id}'); app.closeRenewalModal();">
-                            <i data-lucide="upload"></i> Upload Corrected ID Card
+                            <i data-lucide="upload"></i> Upload Corrected ID Card (Evidence-based)
                         </button>
                         <button class="btn btn-outline w-full text-left mt-sm justify-start" onclick="app.actionDismissMismatch('${warning.id}')">
                             <i data-lucide="x"></i> Acknowledge & Ignore
@@ -2745,7 +2745,7 @@ class FamilyKYCManager {
                         <i data-lucide="credit-card"></i> Pay Premium / Auto-Apply Renewal (₹15,420)
                     </button>
                     <button class="btn btn-outline w-full text-left mt-sm justify-start" onclick="app.openUploadModal('${doc.id}'); app.closeRenewalModal();">
-                        <i data-lucide="upload"></i> Upload Renewed Scan Receipt
+                        <i data-lucide="upload"></i> Upload Renewed Scan Receipt (Evidence-based)
                     </button>
                 </div>
             </div>
