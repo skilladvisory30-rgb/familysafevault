@@ -33,7 +33,13 @@ class FamilyKYCManager {
 
         // Document Database
         this.documents = [];
+        this.assets = [];
         this.lastSyncedEventTime = null;
+
+        // Subtabs track flags
+        this.activeDocSubtab = 'all';
+        this.activeFamilySubtab = 'people';
+        this.activeSettingsSubtab = 'account';
 
         // Alerts / KYC discrepancies list
         this.kycWarnings = [];
@@ -142,6 +148,7 @@ class FamilyKYCManager {
         
         // Load localized mock documents
         this.documents = this.getLocalizedDocuments(country);
+        this.initializeAssets();
         
         // Regenerate localized notifications and logs
         this.notifications = this.getLocalizedNotifications(country);
@@ -693,8 +700,27 @@ class FamilyKYCManager {
 
     // --- TAB NAVIGATION SWITCHER ---
     switchTab(tabId) {
-        this.activeTab = tabId;
+        // Dynamic mapping of old tabs to consolidated new tab architecture
+        if (tabId === 'kyc-audit') {
+            this.activeTab = 'documents';
+            this.activeDocSubtab = 'attention';
+        } else if (tabId === 'renewals') {
+            this.activeTab = 'documents';
+            this.activeDocSubtab = 'attention';
+        } else if (tabId === 'life-events') {
+            this.activeTab = 'documents';
+            this.activeDocSubtab = 'roadmaps';
+        } else if (tabId === 'comms-log') {
+            this.activeTab = 'activity';
+        } else if (tabId === 'subscription') {
+            this.activeTab = 'settings';
+            this.activeSettingsSubtab = 'account';
+        } else {
+            this.activeTab = tabId;
+        }
         
+        const mappedTabId = this.activeTab;
+
         // Close sidebar if open on mobile screens
         const sidebar = document.querySelector('.sidebar');
         const backdrop = document.getElementById('sidebar-backdrop');
@@ -705,7 +731,7 @@ class FamilyKYCManager {
 
         // Manage Nav Active State
         document.querySelectorAll('.nav-item').forEach(item => {
-            if (item.getAttribute('data-tab') === tabId) {
+            if (item.getAttribute('data-tab') === mappedTabId) {
                 item.classList.add('active');
             } else {
                 item.classList.remove('active');
@@ -714,7 +740,7 @@ class FamilyKYCManager {
         
         // Toggle Pane Visibility
         document.querySelectorAll('.tab-pane').forEach(pane => {
-            if (pane.getAttribute('id') === `tab-${tabId}`) {
+            if (pane.getAttribute('id') === `tab-${mappedTabId}`) {
                 pane.classList.remove('hidden');
             } else {
                 pane.classList.add('hidden');
@@ -725,42 +751,26 @@ class FamilyKYCManager {
         const pageTitle = document.getElementById('page-title');
         const pageSubtitle = document.getElementById('page-subtitle');
         
-        switch(tabId) {
+        switch(mappedTabId) {
             case 'dashboard':
                 pageTitle.innerText = "Dashboard Overview";
                 pageSubtitle.innerText = `Welcome back, ${this.members[this.activeMember].name}. Here is your family's vault safety status.`;
                 break;
             case 'documents':
-                pageTitle.innerText = "My Documents Vault";
-                pageSubtitle.innerText = "Securely browse, search, and download your uploaded family documents.";
+                pageTitle.innerText = "Documents Vault";
+                pageSubtitle.innerText = "Securely browse, search, and monitor your family regulatory documents.";
                 break;
             case 'family':
-                pageTitle.innerText = "Family Vault Controls";
-                pageSubtitle.innerText = "Establish encryption scopes and delegate access keys for spouse, children, and parents.";
+                pageTitle.innerText = "Family People & Assets";
+                pageSubtitle.innerText = "Monitor identity status and link household assets to documents.";
                 break;
-            case 'kyc-audit':
-                pageTitle.innerText = "KYC Integrity Checker";
-                pageSubtitle.innerText = "Cross-document machine analysis scanning for inconsistencies.";
-                break;
-            case 'life-events':
-                pageTitle.innerText = "Life Event Document Mapping";
-                pageSubtitle.innerText = "Track cascading document compliance roadmaps triggered by major life events.";
-                break;
-            case 'renewals':
-                pageTitle.innerText = "Renewals & Expiries Calendar";
-                pageSubtitle.innerText = "Set reminder timers, pay premiums, and close compliance renewal loops.";
-                break;
-            case 'comms-log':
-                pageTitle.innerText = "Reminders Simulator Center";
-                pageSubtitle.innerText = "Verify SMS and Email updates sent out by the automated alert engine.";
-                break;
-            case 'subscription':
-                pageTitle.innerText = "SaaS Subscription Tier Plan";
-                pageSubtitle.innerText = "Review document quotas, multi-member features, and premium configurations.";
+            case 'activity':
+                pageTitle.innerText = "Activity & Comms Log";
+                pageSubtitle.innerText = "Review document timeline events, warnings, and reminder simulations.";
                 break;
             case 'settings':
-                pageTitle.innerText = "Profile & Settings";
-                pageSubtitle.innerText = "Manage your administrative details, alert funnel thresholds, subscription and security options.";
+                pageTitle.innerText = "Settings & Configuration";
+                pageSubtitle.innerText = "Manage family setup, notifications, security, data backups, and SaaS billing.";
                 break;
         }
 
@@ -3249,25 +3259,16 @@ class FamilyKYCManager {
                 this.renderDashboard();
                 break;
             case 'documents':
-                this.renderDocumentsVault();
+                this.toggleDocSubtab(this.activeDocSubtab);
                 break;
             case 'family':
-                this.renderFamilyVaultPanel();
+                this.toggleFamilySubtab(this.activeFamilySubtab);
                 break;
-            case 'kyc-audit':
-                this.renderKYCAudit();
-                break;
-            case 'life-events':
-                this.renderLifeEvents();
-                break;
-            case 'renewals':
-                this.renderRenewalsPanel();
-                break;
-            case 'comms-log':
-                this.renderCommsLogList();
+            case 'activity':
+                this.renderActivityLogTab();
                 break;
             case 'settings':
-                this.renderSettings();
+                this.toggleSettingsSubtab(this.activeSettingsSubtab);
                 break;
         }
 
@@ -3590,6 +3591,32 @@ class FamilyKYCManager {
             `;
             categoryList.appendChild(item);
         });
+
+        // Render Recent Activity Timeline
+        const timeline = document.getElementById('dashboard-recent-activity-timeline');
+        if (timeline) {
+            timeline.innerHTML = '';
+            const recent = this.actionTimeline.slice(0, 4);
+            if (recent.length === 0) {
+                timeline.innerHTML = `
+                    <p style="color:var(--text-secondary); font-size:13px; font-style:italic; margin:0; text-align:center;">No recent actions recorded.</p>
+                `;
+            } else {
+                recent.forEach(act => {
+                    const item = document.createElement('div');
+                    item.style.paddingLeft = '16px';
+                    item.style.borderLeft = '2px solid var(--accent)';
+                    item.style.position = 'relative';
+                    item.style.marginBottom = '12px';
+                    item.innerHTML = `
+                        <span style="font-size:11px; color:var(--text-secondary);">${act.time}</span>
+                        <div style="font-size:13px; font-weight:600; color:var(--text-primary);">${act.title}</div>
+                        <p style="font-size:12px; color:var(--text-secondary); margin:2px 0 0 0;">${act.desc}</p>
+                    `;
+                    timeline.appendChild(item);
+                });
+            }
+        }
     }
 
     renderDocumentsVault() {
@@ -4203,6 +4230,8 @@ class FamilyKYCManager {
                 }
             }
         }
+
+        this.renderFamilyVaultPanel();
     }
 
     async saveProfileSettings(event) {
@@ -5621,8 +5650,10 @@ class FamilyKYCManager {
                         rawOcrText: extra.rawOcrText || ''
                     };
                 });
+                this.initializeAssets();
             } else {
                 this.documents = [];
+                this.initializeAssets();
             }
 
             // 2. Load Family Members
@@ -5852,6 +5883,697 @@ class FamilyKYCManager {
         this.actionTimeline = [];
         this.kycWarnings = [];
         this.expiryAlerts = [];
+        this.initializeAssets();
+    }
+
+    // --- SITE RESTRENGTHENING & RESTRUCTURE CONTROLLERS ---
+
+    toggleDocSubtab(subtab) {
+        this.activeDocSubtab = subtab;
+        
+        // Toggle active button style
+        document.querySelectorAll('#tab-documents .sub-tab-item').forEach(btn => {
+            if (btn.getAttribute('data-subtab') === subtab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Hide/show views based on active subtab
+        const allDocsContainer = document.getElementById('docs-subview-all');
+        const attentionContainer = document.getElementById('docs-subview-attention');
+        const roadmapsContainer = document.getElementById('docs-subview-roadmaps');
+        const archivedContainer = document.getElementById('docs-subview-archived');
+
+        if (allDocsContainer) allDocsContainer.style.display = subtab === 'all' ? 'block' : 'none';
+        if (attentionContainer) attentionContainer.style.display = subtab === 'attention' ? 'block' : 'none';
+        if (roadmapsContainer) roadmapsContainer.style.display = subtab === 'roadmaps' ? 'block' : 'none';
+        if (archivedContainer) archivedContainer.style.display = subtab === 'archived' ? 'block' : 'none';
+
+        if (subtab === 'all') {
+            this.renderDocumentsGrid();
+        } else if (subtab === 'attention') {
+            this.renderNeedsAttentionDocs();
+        } else if (subtab === 'roadmaps') {
+            this.renderLifeEventRoadmap();
+        } else if (subtab === 'archived') {
+            this.renderArchivedDocsGrid();
+        }
+    }
+
+    toggleFamilySubtab(subtab) {
+        this.activeFamilySubtab = subtab;
+
+        // Toggle active button style
+        document.querySelectorAll('#tab-family .sub-tab-item').forEach(btn => {
+            if (btn.getAttribute('data-subtab') === subtab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        const peopleContainer = document.getElementById('family-subview-people');
+        const assetsContainer = document.getElementById('family-subview-assets');
+
+        if (peopleContainer) peopleContainer.style.display = subtab === 'people' ? 'block' : 'none';
+        if (assetsContainer) assetsContainer.style.display = subtab === 'assets' ? 'block' : 'none';
+
+        if (subtab === 'people') {
+            this.renderFamilyPeopleTab();
+        } else if (subtab === 'assets') {
+            this.renderFamilyAssetsTab();
+        }
+    }
+
+    toggleSettingsSubtab(subtab) {
+        this.activeSettingsSubtab = subtab;
+
+        // Toggle active style
+        document.querySelectorAll('.settings-nav-item').forEach(btn => {
+            if (btn.getAttribute('data-subtab') === subtab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Hide/show settings content panes
+        const panes = ['family', 'notifications', 'security', 'data', 'account'];
+        panes.forEach(pane => {
+            const el = document.getElementById(`settings-pane-${pane}`);
+            if (el) {
+                el.style.display = pane === subtab ? 'block' : 'none';
+            }
+        });
+    }
+
+    toggleGlobalAddDropdown() {
+        const dd = document.getElementById('global-add-dropdown');
+        if (dd) {
+            dd.classList.toggle('hidden');
+        }
+    }
+
+    handleGlobalSearch() {
+        const query = document.getElementById('global-search-input').value.toLowerCase();
+        
+        // Forward search value to the active tab's filter/search logic
+        if (this.activeTab === 'documents') {
+            const docSearch = document.getElementById('doc-search-input');
+            if (docSearch) {
+                docSearch.value = query;
+                this.filterDocuments();
+            }
+        } else if (this.activeTab === 'dashboard') {
+            // Filter home compliance grids or alerts
+            const alertsList = document.getElementById('dashboard-alerts-list');
+            if (alertsList) {
+                const alerts = alertsList.children;
+                for (let i = 0; i < alerts.length; i++) {
+                    const text = alerts[i].innerText.toLowerCase();
+                    alerts[i].style.display = text.includes(query) ? 'flex' : 'none';
+                }
+            }
+        } else if (this.activeTab === 'family') {
+            if (this.activeFamilySubtab === 'people') {
+                const cards = document.getElementById('family-people-cards').children;
+                for (let i = 0; i < cards.length; i++) {
+                    const text = cards[i].innerText.toLowerCase();
+                    cards[i].style.display = text.includes(query) ? 'flex' : 'none';
+                }
+            } else {
+                const cards = document.getElementById('family-assets-cards').children;
+                for (let i = 0; i < cards.length; i++) {
+                    const text = cards[i].innerText.toLowerCase();
+                    cards[i].style.display = text.includes(query) ? 'block' : 'none';
+                }
+            }
+        }
+    }
+
+    initializeAssets() {
+        this.assets = [];
+        
+        // Dynamic mapping based on loaded documents
+        const vehicleRcDoc = this.documents.find(d => d.type === 'VEHICLE_RC');
+        const vehicleInsDoc = this.documents.find(d => d.type === 'VEHICLE_INSURANCE');
+        const propertyTaxDoc = this.documents.find(d => d.type === 'PROPERTY_TAX' || d.type === 'UTILITY_RECORD');
+        const bankAccountDocs = this.documents.filter(d => d.type === 'BANK_ACCOUNT');
+        const mutualFundDocs = this.documents.filter(d => d.type === 'MUTUAL_FUND');
+        const insurancePolicyDocs = this.documents.filter(d => d.type === 'INSURANCE_POLICY');
+
+        // 1. Vehicle Asset
+        if (vehicleRcDoc || vehicleInsDoc) {
+            const owner = vehicleRcDoc ? vehicleRcDoc.owner : (vehicleInsDoc ? vehicleInsDoc.owner : 'head');
+            const name = vehicleRcDoc && vehicleRcDoc.kycRelative ? vehicleRcDoc.kycRelative : 'Family Vehicle (Car)';
+            const regNo = vehicleRcDoc ? vehicleRcDoc.number : (vehicleInsDoc ? (vehicleInsDoc.kycAddress.match(/Reg No:\s*([A-Z0-9]+)/i)?.[1] || '') : '');
+            
+            this.assets.push({
+                id: 'asset-vehicle',
+                name: name,
+                type: 'Vehicle',
+                description: regNo ? `Registration Number: ${regNo}` : 'Primary Family Vehicle',
+                owner: owner,
+                docIds: [vehicleRcDoc?.id, vehicleInsDoc?.id].filter(Boolean)
+            });
+        }
+
+        // 2. Property Asset
+        if (propertyTaxDoc) {
+            this.assets.push({
+                id: 'asset-property',
+                name: 'Family Residence',
+                type: 'Property',
+                description: propertyTaxDoc.kycAddress || 'Sector 12, Dwarka, New Delhi',
+                owner: propertyTaxDoc.owner || 'head',
+                docIds: [propertyTaxDoc.id]
+            });
+        }
+
+        // 3. Bank Account Assets
+        bankAccountDocs.forEach((doc, index) => {
+            this.assets.push({
+                id: `asset-bank-${doc.id}`,
+                name: doc.kycRelative || `Savings Account (${doc.number.slice(-4)})`,
+                type: 'Financial',
+                description: `IFSC Code: ${doc.kycAdditional || 'N/A'}`,
+                owner: doc.owner,
+                docIds: [doc.id]
+            });
+        });
+
+        // 4. Mutual Fund Portfolio Assets
+        mutualFundDocs.forEach((doc, index) => {
+            this.assets.push({
+                id: `asset-mf-${doc.id}`,
+                name: `${doc.kycRelative || 'Mutual Fund'} Folio`,
+                type: 'Financial',
+                description: `Folio Number: ${doc.number}`,
+                owner: doc.owner,
+                docIds: [doc.id]
+            });
+        });
+
+        // 5. Insurance Policy Assets
+        insurancePolicyDocs.forEach((doc, index) => {
+            this.assets.push({
+                id: `asset-ins-${doc.id}`,
+                name: doc.kycRelative || 'Life & Health Policy',
+                type: 'Insurance',
+                description: `Policy Number: ${doc.number}`,
+                owner: doc.owner,
+                docIds: [doc.id]
+            });
+        });
+    }
+
+    openMemberProfile(mId) {
+        const member = this.members[mId];
+        if (!member) return;
+
+        const memDocs = this.documents.filter(d => d.owner === mId && d.status !== 'archived');
+        const memIssues = this.kycWarnings.filter(w => w.owner === mId).concat(this.expiryAlerts.filter(a => a.owner === mId));
+        const memActions = this.actionTimeline.filter(t => t.desc.toLowerCase().includes(member.name.toLowerCase()));
+
+        const overlay = document.createElement('div');
+        overlay.className = 'profile-drawer-overlay';
+        overlay.id = 'member-profile-drawer-overlay';
+        overlay.onclick = (e) => {
+            if (e.target === overlay) overlay.remove();
+        };
+
+        const drawer = document.createElement('div');
+        drawer.className = 'profile-drawer';
+
+        const header = document.createElement('div');
+        header.className = 'drawer-header';
+        header.innerHTML = `
+            <h3>Member Profile Inspector</h3>
+            <button class="drawer-close-btn" onclick="document.getElementById('member-profile-drawer-overlay').remove()"><i data-lucide="x"></i></button>
+        `;
+
+        const body = document.createElement('div');
+        body.className = 'drawer-body';
+
+        let docsHtml = memDocs.map(d => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; margin-bottom:8px;">
+                <div>
+                    <span style="font-weight:600; font-size:13px;">${d.type}</span>
+                    <div style="font-size:11px; color:var(--text-secondary);">${d.number}</div>
+                </div>
+                <span class="status-badge-dot ${d.status === 'valid' ? 'success' : (d.status === 'warning' ? 'warning' : 'danger')}" style="padding: 2px 8px; font-size: 11px; border-radius: 9999px;">
+                    ${d.status.toUpperCase()}
+                </span>
+            </div>
+        `).join('') || '<p style="color:var(--text-secondary); font-size:13px; font-style:italic;">No active documents uploaded.</p>';
+
+        let issuesHtml = memIssues.map(i => `
+            <div style="padding:10px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:6px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;">
+                <i data-lucide="alert-circle" class="text-danger" style="width:16px; height:16px; margin-top:2px;"></i>
+                <div style="font-size:13px;">
+                    <div style="font-weight:600; color:#ef4444;">${i.title || 'KYC Issue'}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">${i.desc || i.message}</div>
+                </div>
+            </div>
+        `).join('') || '<p style="color:var(--text-success); font-size:13px; font-style:italic;">✨ No active compliance issues detected.</p>';
+
+        let activityHtml = memActions.map(a => `
+            <div style="padding-left:16px; border-left:2px solid var(--accent); position:relative; margin-bottom:12px;">
+                <span style="font-size:11px; color:var(--text-secondary);">${a.time}</span>
+                <div style="font-size:13px; font-weight:600;">${a.title}</div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:2px 0 0 0;">${a.desc}</p>
+            </div>
+        `).join('') || '<p style="color:var(--text-secondary); font-size:13px; font-style:italic;">No recent activity logs.</p>';
+
+        body.innerHTML = `
+            <div style="display:flex; align-items:center; gap:16px; padding:16px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px;">
+                <img src="${member.avatar || NEUTRAL_AVATAR}" alt="${member.name}" style="width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
+                <div>
+                    <h4 style="margin:0; font-size:18px; font-weight:700;">${member.name}</h4>
+                    <span style="font-size:12px; font-weight:600; color:var(--accent); background:rgba(37,99,235,0.1); padding:2px 8px; border-radius:9999px; display:inline-block; margin-top:4px;">${member.relation} (${member.role})</span>
+                </div>
+            </div>
+            <div>
+                <h4 style="margin:0 0 12px 0; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Active Documents</h4>
+                ${docsHtml}
+            </div>
+            <div>
+                <h4 style="margin:0 0 12px 0; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Compliance Status</h4>
+                ${issuesHtml}
+            </div>
+            <div>
+                <h4 style="margin:0 0 12px 0; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Recent Activity Log</h4>
+                ${activityHtml}
+            </div>
+        `;
+
+        drawer.appendChild(header);
+        drawer.appendChild(body);
+        overlay.appendChild(drawer);
+        document.body.appendChild(overlay);
+
+        lucide.createIcons();
+    }
+
+    openAssetProfile(assetId) {
+        const asset = this.assets.find(a => a.id === assetId);
+        if (!asset) return;
+
+        const ownerMember = this.members[asset.owner] || { name: 'Family Group' };
+        const linkedDocs = this.documents.filter(d => asset.docIds.includes(d.id));
+
+        const overlay = document.createElement('div');
+        overlay.className = 'profile-drawer-overlay';
+        overlay.id = 'asset-profile-drawer-overlay';
+        overlay.onclick = (e) => {
+            if (e.target === overlay) overlay.remove();
+        };
+
+        const drawer = document.createElement('div');
+        drawer.className = 'profile-drawer';
+
+        const header = document.createElement('div');
+        header.className = 'drawer-header';
+        header.innerHTML = `
+            <h3>Asset Profile Inspector</h3>
+            <button class="drawer-close-btn" onclick="document.getElementById('asset-profile-drawer-overlay').remove()"><i data-lucide="x"></i></button>
+        `;
+
+        const body = document.createElement('div');
+        body.className = 'drawer-body';
+
+        let docsHtml = linkedDocs.map(d => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; margin-bottom:8px;">
+                <div>
+                    <span style="font-weight:600; font-size:13px;">${d.type}</span>
+                    <div style="font-size:11px; color:var(--text-secondary);">${d.number}</div>
+                </div>
+                <span class="status-badge-dot ${d.status === 'valid' ? 'success' : (d.status === 'warning' ? 'warning' : 'danger')}" style="padding: 2px 8px; font-size: 11px; border-radius: 9999px;">
+                    ${d.status.toUpperCase()}
+                </span>
+            </div>
+        `).join('') || '<p style="color:var(--text-secondary); font-size:13px; font-style:italic;">No documents linked to this asset.</p>';
+
+        body.innerHTML = `
+            <div style="display:flex; align-items:center; gap:16px; padding:16px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px;">
+                <div style="background-color:rgba(37,99,235,0.1); color:var(--accent); padding:12px; border-radius:8px;">
+                    <i data-lucide="${asset.type === 'Vehicle' ? 'car' : (asset.type === 'Property' ? 'home' : 'wallet')}" style="width:32px; height:32px;"></i>
+                </div>
+                <div>
+                    <h4 style="margin:0; font-size:18px; font-weight:700;">${asset.name}</h4>
+                    <span style="font-size:12px; font-weight:600; color:var(--accent); background:rgba(37,99,235,0.1); padding:2px 8px; border-radius:9999px; display:inline-block; margin-top:4px;">${asset.type}</span>
+                </div>
+            </div>
+            <div>
+                <h4 style="margin:0 0 12px 0; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Ownership details</h4>
+                <div style="padding:16px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:8px; font-size:13px; line-height:1.6;">
+                    <div><strong>Registered Owner:</strong> ${ownerMember.name}</div>
+                    <div style="margin-top:6px;"><strong>Description:</strong> ${asset.description}</div>
+                </div>
+            </div>
+            <div>
+                <h4 style="margin:0 0 12px 0; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Associated Documents</h4>
+                ${docsHtml}
+            </div>
+        `;
+
+        drawer.appendChild(header);
+        drawer.appendChild(body);
+        overlay.appendChild(drawer);
+        document.body.appendChild(overlay);
+
+        lucide.createIcons();
+    }
+
+    showAddAssetModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-backdrop';
+        modal.id = 'add-asset-modal';
+        modal.onclick = (e) => {
+            if (e.target === modal) modal.remove();
+        };
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+        content.style.maxWidth = '500px';
+
+        const header = document.createElement('div');
+        header.className = 'modal-header';
+        header.innerHTML = `
+            <h3>Add Family Asset</h3>
+            <button class="close-btn" onclick="document.getElementById('add-asset-modal').remove()"><i data-lucide="x"></i></button>
+        `;
+
+        const body = document.createElement('div');
+        body.className = 'modal-body';
+
+        let ownerOptions = Object.keys(this.members).map(key => `
+            <option value="${key}">${this.members[key].name} (${this.members[key].relation})</option>
+        `).join('');
+
+        let docsChecklist = this.documents.map(d => `
+            <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:13px; font-weight:500; cursor:pointer;">
+                <input type="checkbox" name="asset-link-doc" value="${d.id}">
+                <span>${d.type} - ${d.number} (${this.members[d.owner]?.name || d.owner})</span>
+            </label>
+        `).join('') || '<p style="color:var(--text-secondary); font-size:13px; font-style:italic;">No documents available to link.</p>';
+
+        body.innerHTML = `
+            <form id="add-asset-form">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:13px;">Asset Name</label>
+                    <input type="text" id="asset-name-input" required class="form-input" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);" placeholder="e.g. Maruti Suzuki Ertiga">
+                </div>
+                <div class="form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:6px; font-weight:600; font-size:13px;">Asset Type</label>
+                        <select id="asset-type-input" required class="form-select" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);">
+                            <option value="Vehicle">Vehicle</option>
+                            <option value="Property">Property</option>
+                            <option value="Financial">Financial / Bank Account</option>
+                            <option value="Insurance">Insurance Policy</option>
+                            <option value="Other">Other Asset</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:6px; font-weight:600; font-size:13px;">Registered Owner</label>
+                        <select id="asset-owner-input" required class="form-select" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);">
+                            ${ownerOptions}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:13px;">Asset Description</label>
+                    <input type="text" id="asset-desc-input" required class="form-input" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-primary); color:var(--text-primary);" placeholder="e.g. Registration Plate No, bank details">
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600; font-size:13px;">Link Documents</label>
+                    <div style="max-height:120px; overflow-y:auto; border:1px solid var(--border-color); padding:10px; border-radius:6px; background:var(--bg-primary);">
+                        ${docsChecklist}
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('add-asset-modal').remove()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Asset</button>
+                </div>
+            </form>
+        `;
+
+        content.appendChild(header);
+        content.appendChild(body);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        const form = document.getElementById('add-asset-form');
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            this.handleAddAssetSubmit();
+        };
+
+        lucide.createIcons();
+    }
+
+    handleAddAssetSubmit() {
+        const name = document.getElementById('asset-name-input').value;
+        const type = document.getElementById('asset-type-input').value;
+        const owner = document.getElementById('asset-owner-input').value;
+        const description = document.getElementById('asset-desc-input').value;
+
+        const docIds = [];
+        document.querySelectorAll('input[name="asset-link-doc"]:checked').forEach(cb => {
+            docIds.push(cb.value);
+        });
+
+        const newAsset = {
+            id: `asset-${Date.now()}`,
+            name,
+            type,
+            owner,
+            description,
+            docIds
+        };
+
+        this.assets.push(newAsset);
+        this.saveLocalVaultCache();
+
+        this.actionTimeline.unshift({
+            time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            title: 'Asset Added',
+            desc: `Added new ${type} asset "${name}" owned by ${this.members[owner]?.name || owner}.`,
+            status: 'completed'
+        });
+
+        this.toast(`🎉 Asset "${name}" added successfully.`, "success");
+        document.getElementById('add-asset-modal').remove();
+
+        this.renderAll();
+    }
+
+    renderNeedsAttentionDocs() {
+        this.renderKYCAudit();
+        this.renderRenewalsPanel();
+    }
+
+    renderLifeEventRoadmap() {
+        this.renderLifeEvents();
+    }
+
+    renderArchivedDocsGrid() {
+        const grid = document.getElementById('archived-documents-grid');
+        const emptyState = document.getElementById('archived-empty-state');
+        if (!grid) return;
+        
+        grid.innerHTML = '';
+        
+        const archived = this.documents.filter(d => d.status === 'archived');
+        if (archived.length === 0) {
+            if (emptyState) emptyState.classList.remove('hidden');
+            grid.classList.add('hidden');
+        } else {
+            if (emptyState) emptyState.classList.add('hidden');
+            grid.classList.remove('hidden');
+            
+            archived.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'doc-card archived';
+                card.style.opacity = '0.7';
+                card.innerHTML = `
+                    <div class="doc-card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="archive" style="width:16px; height:16px; color:var(--text-secondary);"></i>
+                            <span style="font-weight:600; font-size:13px; color:var(--text-secondary);">${doc.type}</span>
+                        </div>
+                        <span class="status-badge-dot info" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd; font-size:11px; padding:2px 8px; border-radius:9999px;">Archived</span>
+                    </div>
+                    <h4 style="font-size:14px; font-weight:700; margin-bottom:4px;">${doc.fileName || 'Archived Record'}</h4>
+                    <span style="font-size:11px; color:var(--text-secondary);">${doc.number}</span>
+                    <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Owner: ${this.members[doc.owner]?.name || doc.owner}</span>
+                        <button class="btn btn-outline btn-xs" onclick="app.openDetailModal('${doc.id}')">View</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+    }
+
+    renderFamilyPeopleTab() {
+        const container = document.getElementById('family-people-cards');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const visibleDocs = this.getVisibleDocuments();
+        Object.keys(this.members).forEach(mId => {
+            const mem = this.members[mId];
+            const isHead = mId === 'head';
+            
+            const memberDocs = visibleDocs.filter(d => d.owner === mId && d.status !== 'archived');
+            const kycIssues = this.kycWarnings.filter(w => w.memberId === mId).length;
+            const expIssues = this.expiryAlerts.filter(a => a.owner === mId).length;
+            
+            let status = 'success';
+            let pillText = 'Safe';
+            
+            if (expIssues > 0) {
+                status = 'danger';
+                pillText = `${expIssues} Renewal Required`;
+            } else if (kycIssues > 0 && this.billingTier === 'pro') {
+                status = 'warning';
+                pillText = `${kycIssues} KYC Mismatch`;
+            }
+
+            const card = document.createElement('div');
+            card.className = `family-compliance-card ${status}`;
+            card.style.cursor = 'pointer';
+            
+            const lockOverlay = (!isHead && this.billingTier === 'free')
+                ? `<div class="lock-overlay">
+                    <i data-lucide="lock" class="icon-danger"></i>
+                    <span>Locked</span>
+                   </div>`
+                : '';
+
+            card.innerHTML = `
+                ${lockOverlay}
+                <img src="${mem.avatar || NEUTRAL_AVATAR}" alt="${mem.name}" class="family-avatar-large">
+                <span class="family-name">${mem.name}</span>
+                <span class="family-relation">${isHead ? 'Primary Admin' : mem.relation}</span>
+                <span class="compliance-status-pill ${status}">${pillText}</span>
+                <div class="family-doc-summary">
+                    <strong>${memberDocs.length}</strong> Document${memberDocs.length !== 1 ? 's' : ''} stored
+                </div>
+            `;
+            
+            card.onclick = () => {
+                if (!isHead && this.billingTier === 'free') {
+                    this.toast("Upgrade to Family Pro to view family member profiles.", "warning");
+                    this.switchTab('settings');
+                    this.toggleSettingsSubtab('account');
+                } else {
+                    this.openMemberProfile(mId);
+                }
+            };
+            
+            container.appendChild(card);
+        });
+        lucide.createIcons();
+    }
+
+    renderFamilyAssetsTab() {
+        const container = document.getElementById('family-assets-cards');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (this.assets.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1; padding: 40px; border-style:dashed;">
+                    <i data-lucide="package" style="width:48px; height:48px; color:var(--text-secondary); margin-bottom:12px;"></i>
+                    <h3>No assets registered</h3>
+                    <p>Track vehicles, land deeds, and bank accounts linked to family credentials.</p>
+                    <button class="btn btn-primary mt-md" onclick="app.showAddAssetModal()"><i data-lucide="plus"></i> Add First Asset</button>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        this.assets.forEach(asset => {
+            const owner = this.members[asset.owner] || { name: 'Family Group' };
+            const card = document.createElement('div');
+            card.className = 'asset-card';
+            card.onclick = () => this.openAssetProfile(asset.id);
+            
+            let icon = 'wallet';
+            if (asset.type === 'Vehicle') icon = 'car';
+            else if (asset.type === 'Property') icon = 'home';
+            else if (asset.type === 'Insurance') icon = 'shield';
+
+            card.innerHTML = `
+                <div class="asset-card-header">
+                    <div class="asset-icon-box">
+                        <i data-lucide="${icon}"></i>
+                    </div>
+                    <span class="asset-owner-tag">${owner.name}</span>
+                </div>
+                <h4>${asset.name}</h4>
+                <p>${asset.description}</p>
+                <div class="asset-linked-docs">
+                    <i data-lucide="link"></i>
+                    <span>${asset.docIds.length} Linked Document${asset.docIds.length !== 1 ? 's' : ''}</span>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        lucide.createIcons();
+    }
+
+    renderActivityLogTab() {
+        const timeline = document.getElementById('activity-audit-timeline');
+        if (!timeline) return;
+        
+        timeline.innerHTML = '';
+        
+        if (this.actionTimeline.length === 0) {
+            timeline.innerHTML = `
+                <p style="color:var(--text-secondary); font-size:13px; font-style:italic; margin:0; text-align:center;">No activity timeline logs available.</p>
+            `;
+            return;
+        }
+
+        this.actionTimeline.forEach(act => {
+            const item = document.createElement('div');
+            item.style.paddingLeft = '20px';
+            item.style.borderLeft = '2px solid var(--accent)';
+            item.style.position = 'relative';
+            item.style.marginBottom = '20px';
+            
+            const dot = document.createElement('div');
+            dot.style.position = 'absolute';
+            dot.style.left = '-6px';
+            dot.style.top = '2px';
+            dot.style.width = '10px';
+            dot.style.height = '10px';
+            dot.style.borderRadius = '50%';
+            dot.style.backgroundColor = 'var(--accent)';
+            
+            item.appendChild(dot);
+            
+            const content = document.createElement('div');
+            content.innerHTML = `
+                <span style="font-size:11px; color:var(--text-secondary); font-weight:600;">${act.time}</span>
+                <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-top:2px;">${act.title}</div>
+                <p style="font-size:13px; color:var(--text-secondary); margin:4px 0 0 0; line-height:1.4;">${act.desc}</p>
+            `;
+            item.appendChild(content);
+            timeline.appendChild(item);
+        });
+        
+        this.renderCommsLogList();
     }
 
     resetDefaultMembers() {

@@ -46,20 +46,28 @@
                     <div class="logo-icon" style="background:var(--accent);"><i data-lucide="shield-check"></i></div>
                     <span class="logo-text">Family<span style="color:var(--accent);">KYCManager</span></span>
                 </div>
-                <nav class="m-nav-links">
-                    <a href="#problem">The Challenge</a>
-                    <a href="#features">Core Pillars</a>
-                    <a href="#documents-list">Supported Records</a>
-                    <a href="#pricing">Pricing Plans</a>
-                </nav>
-                <div class="m-nav-actions">
-                    <select id="m-country-select" onchange="app.setCountry(this.value)" class="form-select text-xs" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: 600; cursor: pointer; color: #475569; margin-right: 8px;">
-                        <option value="India" selected>🇮🇳 India</option>
-                        <option value="US">🇺🇸 United States</option>
-                        <option value="UK">🇬🇧 United Kingdom</option>
-                    </select>
-                    <button class="btn btn-outline m-signin-btn" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">Unlock Vault</button>
-                    <button class="btn btn-primary" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:var(--accent); border-color:var(--accent);">Register Vault</button>
+                
+                <!-- Hamburger menu toggle button -->
+                <button class="m-mobile-menu-btn" onclick="app.toggleMobileMarketingMenu()" style="display: none; background: none; border: none; cursor: pointer; color: #0f172a; padding: 4px;">
+                    <i data-lucide="menu" id="m-menu-icon" style="width: 24px; height: 24px;"></i>
+                </button>
+
+                <div class="m-nav-menu-wrapper" id="m-nav-menu-wrapper">
+                    <nav class="m-nav-links">
+                        <a href="#problem" onclick="app.closeMobileMarketingMenu()">The Challenge</a>
+                        <a href="#features" onclick="app.closeMobileMarketingMenu()">Core Pillars</a>
+                        <a href="#documents-list" onclick="app.closeMobileMarketingMenu()">Supported Records</a>
+                        <a href="#pricing" onclick="app.closeMobileMarketingMenu()">Pricing Plans</a>
+                    </nav>
+                    <div class="m-nav-actions">
+                        <select id="m-country-select" onchange="app.setCountry(this.value)" class="form-select text-xs" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: 600; cursor: pointer; color: #475569; margin-right: 8px;">
+                            <option value="India" selected>🇮🇳 India</option>
+                            <option value="US">🇺🇸 United States</option>
+                            <option value="UK">🇬🇧 United Kingdom</option>
+                        </select>
+                        <button class="btn btn-outline m-signin-btn" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'}); app.closeMobileMarketingMenu();">Unlock Vault</button>
+                        <button class="btn btn-primary" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'}); app.closeMobileMarketingMenu();" style="background:var(--accent); border-color:var(--accent);">Register Vault</button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -510,31 +518,19 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li class="nav-item active" data-tab="dashboard">
-                        <a href="#"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+                        <a href="#"><i data-lucide="layout-dashboard"></i> <span>Home</span></a>
                     </li>
                     <li class="nav-item" data-tab="documents">
-                        <a href="#"><i data-lucide="files"></i> <span>My Documents</span></a>
+                        <a href="#"><i data-lucide="files"></i> <span>Docs</span> <span class="badge badge-warning" id="kyc-badge-count">3</span></a>
                     </li>
                     <li class="nav-item" data-tab="family">
-                        <a href="#"><i data-lucide="users"></i> <span>Family Vault</span></a>
+                        <a href="#"><i data-lucide="users"></i> <span>Family</span></a>
                     </li>
-                    <li class="nav-item" data-tab="kyc-audit">
-                        <a href="#"><i data-lucide="check-square"></i> <span>KYC Audit</span> <span class="badge badge-warning" id="kyc-badge-count">3</span></a>
-                    </li>
-                    <li class="nav-item" data-tab="life-events">
-                        <a href="#"><i data-lucide="milestone"></i> <span>Life Events</span> <span class="badge badge-pro" id="life-events-badge">2 Active</span></a>
-                    </li>
-                    <li class="nav-item" data-tab="renewals">
-                        <a href="#"><i data-lucide="clock"></i> <span>Renewals & Expiries</span> <span class="badge badge-danger" id="renewal-badge-count">2</span></a>
-                    </li>
-                    <li class="nav-item" data-tab="comms-log">
-                        <a href="#"><i data-lucide="mail"></i> <span>Reminders Log</span></a>
-                    </li>
-                    <li class="nav-item" data-tab="subscription">
-                        <a href="#"><i data-lucide="credit-card"></i> <span>SaaS Subscription</span></a>
+                    <li class="nav-item" data-tab="activity">
+                        <a href="#"><i data-lucide="activity"></i> <span>Activity</span></a>
                     </li>
                     <li class="nav-item" data-tab="settings">
-                        <a href="#"><i data-lucide="settings"></i> <span>Profile & Settings</span></a>
+                        <a href="#"><i data-lucide="settings"></i> <span>Settings</span></a>
                     </li>
                 </ul>
             </nav>
@@ -568,6 +564,12 @@
                     <h1 id="page-title">Dashboard Overview</h1>
                     <p class="subtitle" id="page-subtitle">Welcome back, Administrator. Here is your family's safety health status.</p>
                 </div>
+
+                <!-- Unified Global Search Bar -->
+                <div class="topbar-search">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Search across vault..." id="global-search-input" onkeyup="app.handleGlobalSearch()">
+                </div>
                 
                 <div class="topbar-right">
                     <!-- Action Bar Items -->
@@ -578,11 +580,18 @@
                         <i data-lucide="shield"></i> Family Pro Active
                     </div>
 
-
-                    <!-- Quick Add Button -->
-                    <button class="btn btn-primary btn-add-doc" onclick="app.openUploadModal()">
-                        <i data-lucide="plus"></i> <span>Add Document</span>
-                    </button>
+                    <!-- Unified Quick Add Button & Dropdown -->
+                    <div class="global-add-container">
+                        <button class="btn btn-primary" onclick="app.toggleGlobalAddDropdown()" style="background:var(--accent); border-color:var(--accent); display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="plus"></i> <span>Add New</span>
+                        </button>
+                        <div class="global-add-dropdown hidden" id="global-add-dropdown">
+                            <button onclick="app.openUploadModal(); app.toggleGlobalAddDropdown()"><i data-lucide="file-plus"></i> Add Document</button>
+                            <button onclick="app.openUploadModal(); app.toggleGlobalAddDropdown()"><i data-lucide="scan"></i> Scan Document</button>
+                            <button onclick="app.showAddMemberModal(); app.toggleGlobalAddDropdown()"><i data-lucide="user-plus"></i> Add Family Member</button>
+                            <button onclick="app.showAddAssetModal(); app.toggleGlobalAddDropdown()"><i data-lucide="package"></i> Add Asset</button>
+                        </div>
+                    </div>
                     
                     <!-- Notification Bell -->
                     <div class="notification-bell-container">
@@ -692,6 +701,16 @@
                                     <!-- Dynamic cards representing family members -->
                                 </div>
                             </div>
+
+                            <!-- Recent Activity Timeline -->
+                            <div class="activity-timeline-section mt-lg">
+                                <div class="section-title-row" style="margin-bottom: 16px;">
+                                    <h3 class="section-title" style="display:flex; align-items:center; gap:8px;"><i data-lucide="history" style="width:18px; height:18px;"></i> Recent Activity Log</h3>
+                                </div>
+                                <div class="timeline" id="dashboard-recent-activity-timeline" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:20px;">
+                                    <!-- Loaded dynamically from app.actionTimeline -->
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Right Panel -->
@@ -737,104 +756,164 @@
                     </div>
                 </div>
 
-                <!-- TAB: MY DOCUMENTS -->
+                <!-- TAB: DOCUMENTS (Consolidated) -->
                 <div class="tab-pane hidden" id="tab-documents">
-                    <!-- Filters & Search Toolbar -->
-                    <div class="toolbar">
-                        <div class="search-box">
-                            <i data-lucide="search"></i>
-                            <input type="text" placeholder="Search documents by name, type, or number..." id="doc-search-input" onkeyup="app.filterDocuments()">
+                    <!-- Sub-tabs Toolbar -->
+                    <div class="sub-tabs-bar">
+                        <button class="sub-tab-item active" data-subtab="all" onclick="app.toggleDocSubtab('all')">All Documents</button>
+                        <button class="sub-tab-item" data-subtab="attention" onclick="app.toggleDocSubtab('attention')">Needs Attention</button>
+                        <button class="sub-tab-item" data-subtab="roadmaps" onclick="app.toggleDocSubtab('roadmaps')">Life Event Roadmaps</button>
+                        <button class="sub-tab-item" data-subtab="archived" onclick="app.toggleDocSubtab('archived')">Archived</button>
+                    </div>
+
+                    <!-- SUB-VIEW: ALL DOCUMENTS -->
+                    <div id="docs-subview-all" class="subview-pane">
+                        <!-- Filters & Search Toolbar -->
+                        <div class="toolbar">
+                            <div class="search-box">
+                                <i data-lucide="search"></i>
+                                <input type="text" placeholder="Search documents by name, type, or number..." id="doc-search-input" onkeyup="app.filterDocuments()">
+                            </div>
+                            <div class="filters-row">
+                                <select id="filter-member" onchange="app.filterDocuments()">
+                                    <option value="all">All Family Members</option>
+                                    <option value="head">Vikram Garg (Self)</option>
+                                    <option value="spouse">Sunita Garg (Wife)</option>
+                                    <option value="child">Rohan Garg (Son)</option>
+                                    <option value="parent">Ramesh C. Garg (Father)</option>
+                                </select>
+                                <select id="filter-type" onchange="app.filterDocuments()">
+                                    <option value="all">All Document Types</option>
+                                    <option value="Government">Government IDs</option>
+                                    <option value="Financial">Financial / Tax</option>
+                                    <option value="Insurance">Insurance Policies</option>
+                                    <option value="Utility">Utilities / Bills</option>
+                                </select>
+                                <select id="filter-status" onchange="app.filterDocuments()" style="display:none;">
+                                    <option value="all">All Statuses</option>
+                                    <option value="valid">Valid / Safe</option>
+                                    <option value="warning">KYC Mismatch</option>
+                                    <option value="expired">Expired / Expiring</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="filters-row">
-                            <select id="filter-member" onchange="app.filterDocuments()">
-                                <option value="all">All Family Members</option>
-                                <option value="head">Vikram Garg (Self)</option>
-                                <option value="spouse">Sunita Garg (Wife)</option>
-                                <option value="child">Rohan Garg (Son)</option>
-                                <option value="parent">Ramesh C. Garg (Father)</option>
-                            </select>
-                            <select id="filter-type" onchange="app.filterDocuments()">
-                                <option value="all">All Document Types</option>
-                                <option value="Government">Government IDs</option>
-                                <option value="Financial">Financial / Tax</option>
-                                <option value="Insurance">Insurance Policies</option>
-                                <option value="Utility">Utilities / Bills</option>
-                            </select>
-                            <select id="filter-status" onchange="app.filterDocuments()">
-                                <option value="all">All Statuses</option>
-                                <option value="valid">Valid / Safe</option>
-                                <option value="warning">KYC Mismatch</option>
-                                <option value="expired">Expired / Expiring</option>
-                                <option value="archived">Archived Records</option>
-                            </select>
+
+                        <!-- Documents Grid -->
+                        <div class="documents-grid" id="documents-grid">
+                            <!-- Dynamic Cards -->
+                        </div>
+
+                        <div class="empty-state hidden" id="documents-empty-state">
+                            <i data-lucide="file-question" class="empty-icon"></i>
+                            <h3>No documents found</h3>
+                            <p>Try adjusting your filters or search query, or upload a new document.</p>
+                            <button class="btn btn-primary mt-md" onclick="app.openUploadModal()">
+                                <i data-lucide="plus"></i> Add Document
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Documents Grid -->
-                    <div class="documents-grid" id="documents-grid">
-                        <!-- Dynamic Cards -->
+                    <!-- SUB-VIEW: NEEDS ATTENTION (KYC Checks & Expiries) -->
+                    <div id="docs-subview-attention" class="subview-pane" style="display:none;">
+                        <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:24px;">
+                            <!-- KYC Warning List -->
+                            <div class="card">
+                                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                    <h3 style="margin:0;">Active KYC Inconsistencies</h3>
+                                    <span class="badge badge-warning" id="kyc-card-badge">0 Warnings</span>
+                                </div>
+                                <div class="kyc-warnings-list" id="kyc-warnings-list">
+                                    <!-- Loaded dynamically -->
+                                </div>
+                            </div>
+                            
+                            <!-- Expiries/Renewals List -->
+                            <div class="card">
+                                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                    <h3 style="margin:0;">Upcoming Expiry Schedule</h3>
+                                    <span class="badge badge-danger" id="renewals-card-badge">0 Urgent</span>
+                                </div>
+                                <div class="renewals-list-container" id="renewals-list-container">
+                                    <!-- Loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="empty-state hidden" id="documents-empty-state">
-                        <i data-lucide="file-question" class="empty-icon"></i>
-                        <h3>No documents found</h3>
-                        <p>Try adjusting your filters or search query, or upload a new document.</p>
-                        <button class="btn btn-primary mt-md" onclick="app.openUploadModal()">
-                            <i data-lucide="plus"></i> Add Document
-                        </button>
+                    <!-- SUB-VIEW: LIFE EVENT ROADMAPS -->
+                    <div id="docs-subview-roadmaps" class="subview-pane" style="display:none;">
+                        <div class="life-events-layout" style="display:grid; grid-template-columns: 240px 1fr; gap:24px;">
+                            <div class="life-events-menu">
+                                <div class="card">
+                                    <h3>Active Life Events</h3>
+                                    <p class="text-xs text-muted mb-md">Select an event to view the document roadmap checklist.</p>
+                                    <div class="life-events-list" id="life-events-select-list">
+                                        <!-- Dynamic list items -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="life-events-roadmap">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 id="active-event-title">Post-Marriage Name Alignment</h3>
+                                        <span class="badge badge-warning" id="active-event-progress">33% Complete</span>
+                                    </div>
+                                    <p class="text-sm text-muted mb-md" id="active-event-desc">
+                                        Following marriage, name corrections must cascade across identification records.
+                                    </p>
+                                    <div class="life-event-stepper" id="life-event-stepper-container">
+                                        <!-- Loaded dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUB-VIEW: ARCHIVED DOCUMENTS -->
+                    <div id="docs-subview-archived" class="subview-pane" style="display:none;">
+                        <div class="documents-grid" id="archived-documents-grid">
+                            <!-- Dynamic archived documents grid -->
+                        </div>
+                        <div class="empty-state hidden" id="archived-empty-state">
+                            <i data-lucide="archive" class="empty-icon"></i>
+                            <h3>No archived documents</h3>
+                            <p>Completed resolution cycles and old revisions will appear here for audit history.</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB: FAMILY VAULT -->
+                <!-- TAB: FAMILY (Consolidated view) -->
                 <div class="tab-pane hidden" id="tab-family">
-                    <div class="family-vault-header">
-                        <h2>Family Account Settings & Profiles</h2>
-                        <p>Manage access control for your spouse, children, and parents. Head of family controls billing, encryption keys, and has executive override access.</p>
+                    <!-- Sub-tabs Toolbar -->
+                    <div class="sub-tabs-bar">
+                        <button class="sub-tab-item active" data-subtab="people" onclick="app.toggleFamilySubtab('people')">Family Members</button>
+                        <button class="sub-tab-item" data-subtab="assets" onclick="app.toggleFamilySubtab('assets')">Household Assets</button>
                     </div>
 
-                    <!-- Paywall banner for Free Tier -->
-                    <div class="alert alert-warning free-only" id="family-paywall" style="margin-top: 20px; display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 8px; border: 1px solid var(--warning-border); background-color: var(--warning-bg);">
-                        <i data-lucide="shield-alert" class="text-warning" style="width: 24px; height: 24px; flex-shrink:0;"></i>
-                        <div style="flex-grow: 1; text-align: left;">
-                            <h4 style="margin: 0; font-size: 14px; color: var(--gold);">Family Directory Demo Mode</h4>
-                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">You are viewing the family vault in free mode. Upgrade to Family Pro to unlock multi-user vaults, automated KYC checker, and E2E escrow keys.</p>
+                    <!-- SUB-VIEW: PEOPLE -->
+                    <div id="family-subview-people" class="subview-pane">
+                        <div class="section-title-row" style="margin-bottom: 20px;">
+                            <h3 style="margin:0;">Family Directory Profiles</h3>
+                            <p class="text-sm text-muted">Click on a family member's profile to view their status, active records, compliance issues, and activity logs.</p>
                         </div>
-                        <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')" style="flex-shrink:0; padding: 8px 12px; font-size: 11px;">Upgrade Plan</button>
+                        <div class="family-grid-container" id="family-people-cards">
+                            <!-- Populated dynamically via renderFamilyPeopleTab() -->
+                        </div>
                     </div>
 
-                    <!-- Active Family View -->
-                    <div class="family-active-container" id="family-pro-view" style="margin-top: 24px;">
-                        <div class="section-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin:0;">Family Directory Setup</h3>
-                            <button class="btn btn-primary" onclick="app.showAddMemberModal()">
-                                <i data-lucide="user-plus"></i> Add Family Member
+                    <!-- SUB-VIEW: ASSETS -->
+                    <div id="family-subview-assets" class="subview-pane" style="display:none;">
+                        <div class="section-title-row" style="margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h3 style="margin:0;">Household Assets Tracking</h3>
+                                <p class="text-sm text-muted">Manage high-value family assets (Vehicles, Properties, Accounts) and trace their linked insurance or regulatory document compliance.</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="app.showAddAssetModal()">
+                                <i data-lucide="plus"></i> Add Asset
                             </button>
                         </div>
-                        <!-- Family Members Grid -->
-                        <div class="family-members-cards-container" id="family-members-setup-grid">
-                            <!-- Filled dynamically -->
-                        </div>
-
-                        <!-- Access Controls Table -->
-                        <div class="permissions-card mt-lg">
-                            <h3>Access & Encryption Controls</h3>
-                            <p class="text-sm text-muted">All documents are stored with end-to-end encryption. The Head of Family has the master recovery key.</p>
-                            
-                            <table class="data-table mt-md">
-                               <thead>
-                                   <tr>
-                                       <th>Family Member</th>
-                                       <th>Role</th>
-                                       <th>Relationship</th>
-                                       <th>Vault Access Permissions</th>
-                                       <th>Encryption Key Status</th>
-                                       <th>Actions</th>
-                                   </tr>
-                               </thead>
-                               <tbody id="family-permissions-tbody">
-                                   <!-- Filled dynamically -->
-                               </tbody>
-                            </table>
+                        <div class="assets-grid" id="family-assets-cards">
+                            <!-- Populated dynamically via renderFamilyAssetsTab() -->
                         </div>
                     </div>
                 </div>
@@ -980,220 +1059,236 @@
                     </div>
                 </div>
 
-                <!-- TAB: COMMUNICATIONS LOG (SMS / EMAIL SIMULATOR) -->
-                <div class="tab-pane hidden" id="tab-comms-log">
-                    <div class="comms-header">
-                        <h2>Simulated Notifications Log (Email & SMS)</h2>
-                        <p>FamilySafeVault automatically dispatches timely updates and high-priority warnings via email and SMS. In this debug panel, you can monitor what messages have been sent to family members and trigger actions directly from incoming alerts.</p>
-                    </div>
-
-                    <div class="comms-panel mt-lg">
-                        <!-- Filter Log -->
-                        <div class="comms-toolbar">
-                            <div class="comms-channel-selector">
-                                <button class="filter-chip active" data-channel="all" onclick="app.filterComms('all')">All Messages</button>
-                                <button class="filter-chip" data-channel="email" onclick="app.filterComms('email')"><i data-lucide="mail"></i> Emails</button>
-                                <button class="filter-chip" data-channel="sms" onclick="app.filterComms('sms')"><i data-lucide="smartphone"></i> SMS Alerts</button>
+                <!-- TAB: ACTIVITY LOGS -->
+                <div class="tab-pane hidden" id="tab-activity">
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:24px;">
+                        <!-- Action Timeline / Audit Logs -->
+                        <div class="card">
+                            <div class="card-header" style="margin-bottom: 16px;">
+                                <h3>Chronology of Record Changes</h3>
+                                <p class="text-xs text-muted">Auditable log of all documents added, profile settings modified, and issues resolved.</p>
                             </div>
-                            <button class="btn btn-outline btn-sm" onclick="app.clearCommsLog()">Clear Logs</button>
-                        </div>
-
-                        <!-- Logs list representation -->
-                        <div class="comms-logs-list" id="comms-logs-list">
-                            <!-- Filled dynamically -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB: SAAS SUBSCRIPTION -->
-                <div class="tab-pane hidden" id="tab-subscription">
-                    <div class="sub-header text-center">
-                        <h2>Flexible Pricing Plans</h2>
-                        <p class="subtitle">Secure your family's financial and regulatory safety. Choose the plan that fits your scale.</p>
-                    </div>
-
-                    <div class="sub-billing-toggle text-center mt-md">
-                        <span class="billing-label text-bold">Monthly</span>
-                        <div class="toggle-switch-wrapper">
-                            <input type="checkbox" id="billing-toggle" onchange="app.toggleBillingCycle()">
-                            <label for="billing-toggle" class="toggle-slider"></label>
-                        </div>
-                        <span class="billing-label">Yearly <span class="badge badge-success text-xs">Save 20%</span></span>
-                    </div>
-
-                    <!-- Pricing Cards Grid -->
-                    <div class="pricing-grid mt-xl">
-                        <!-- Free Tier Card -->
-                        <div class="pricing-card" id="pricing-card-free">
-                            <div class="pricing-card-header">
-                                <span class="plan-badge">Basic Safety</span>
-                                <h3>Free Vault</h3>
-                                <div class="price"><span class="currency">₹</span>0<span class="period">/ month</span></div>
-                                <p class="plan-desc">For single users getting started with basic document storage.</p>
-                            </div>
-                            <ul class="plan-features-list">
-                                <li><i data-lucide="check" class="text-success"></i> 1 User Account</li>
-                                <li><i data-lucide="check" class="text-success"></i> Up to 5 Documents Max</li>
-                                <li><i data-lucide="check" class="text-success"></i> Basic Expiry Reminders</li>
-                                <li><i data-lucide="x" class="text-danger"></i> No Family Vaults & Switcher</li>
-                                <li><i data-lucide="x" class="text-danger"></i> No Automated KYC Mismatch crosscheck</li>
-                                <li><i data-lucide="x" class="text-danger"></i> No Premium Support</li>
-                            </ul>
-                            <div class="pricing-card-action">
-                                <button class="btn btn-outline w-full" id="btn-select-free" disabled>Current Active Plan</button>
+                            <div class="timeline" id="activity-audit-timeline" style="padding:10px;">
+                                <!-- Populated dynamically by renderActivityLogTab() -->
                             </div>
                         </div>
 
-                        <!-- Pro Family Tier Card (Recommended) -->
-                        <div class="pricing-card pricing-recommended" id="pricing-card-pro">
-                            <div class="pricing-card-glow"></div>
-                            <div class="pricing-card-header">
-                                <span class="plan-badge badge-gold">Most Popular</span>
-                                <h3>Family Pro Vault</h3>
-                                <div class="price" id="pro-price-val"><span class="currency">₹</span>299<span class="period">/ month</span></div>
-                                <p class="plan-desc">Complete security management for your entire family household.</p>
+                        <!-- Comms alert simulator logs -->
+                        <div class="card">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <div>
+                                    <h3 style="margin:0;">Simulated Comms Sent</h3>
+                                    <p class="text-xs text-muted">Outgoing alerts dispatched to family members via SMS or email.</p>
+                                </div>
+                                <button class="btn btn-outline btn-xs" onclick="app.clearCommsLog()">Clear Logs</button>
                             </div>
-                            <ul class="plan-features-list">
-                                <li><i data-lucide="check" class="text-success"></i> Head of Family + 5 Family Profiles</li>
-                                <li><i data-lucide="check" class="text-success"></i> <strong>Unlimited Documents Storage</strong></li>
-                                <li><i data-lucide="check" class="text-success"></i> <strong>Smart Cross-Document KYC Checker</strong></li>
-                                <li><i data-lucide="check" class="text-success"></i> Automated SMS & Email Reminders</li>
-                                <li><i data-lucide="check" class="text-success"></i> Priority WhatsApp Support & Recovery</li>
-                                <li><i data-lucide="check" class="text-success"></i> Advanced Encryption Key Escrow</li>
-                            </ul>
-                            <div class="pricing-card-action">
-                                <button class="btn btn-gold w-full btn-lg" id="btn-upgrade-pro" onclick="app.upgradeSubscription()">
-                                    Upgrade to Family Pro
-                                </button>
+                            <div class="comms-logs-list" id="comms-logs-list" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Populated dynamically by renderCommsLogList() -->
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- TAB: PROFILE & SETTINGS -->
+                      <!-- TAB: SETTINGS (Consolidated) -->
                 <div class="tab-pane hidden" id="tab-settings">
-                    <div class="settings-grid-layout" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px;">
-                        
-                        <!-- Left Panel: Account Metadata & Security -->
-                        <div style="display: flex; flex-direction: column; gap: 24px;">
-                            
-                            <!-- Card 1: Identity & Metadata -->
-                            <div class="card">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="user" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--accent);"></i> Account & Identity Metadata</h3>
-                                    <span class="badge badge-warning" id="settings-role-tag" style="background-color: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); font-size: 10px;">Family Admin</span>
-                                </div>
-                                <div class="form-group w-full" style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
-                                    <img id="settings-admin-avatar-preview" src="" style="width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: var(--bg-secondary);">
-                                    <div style="flex-grow: 1;">
-                                        <label for="settings-admin-photo">Upload Profile Photo</label>
-                                        <input type="file" id="settings-admin-photo" accept="image/*" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none; background: var(--bg-secondary); color: var(--text-primary);" onchange="app.handleAdminPhotoUpload(event)">
-                                    </div>
-                                </div>
-                                <div class="form-group w-full">
-                                    <label for="settings-admin-name">Primary Admin Legal Name</label>
-                                    <input type="text" id="settings-admin-name" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
-                                </div>
-                                <div class="form-group w-full mt-sm">
-                                    <label for="settings-mobile">Primary Mobile Number (OTP Auth)</label>
-                                    <input type="text" id="settings-mobile" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
-                                </div>
-                                <div class="form-group w-full mt-sm">
-                                    <label for="settings-email">Email Address (Recovery & Alerts)</label>
-                                    <input type="email" id="settings-email" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
-                                </div>
-                                <div class="form-group w-full mt-sm" style="margin-bottom: 16px;">
-                                    <label for="settings-address">Admin Residential Address</label>
-                                    <textarea id="settings-address" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; min-height: 60px; outline: none; resize: vertical;"></textarea>
-                                </div>
-                                <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                                    <button class="btn btn-primary" id="btn-save-settings" onclick="app.saveProfileSettings(event)" style="padding: 10px 24px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Settings</button>
-                                </div>
-                            </div>
-
-                            <!-- Card 2: Household & Overview -->
-                            <div class="card">
-                                <div style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="users" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--success);"></i> Household Overview</h3>
-                                </div>
-                                <p id="settings-members-count" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Linked Family Members: 4 connected profiles managed under this household account.</p>
-                                <div style="display: flex; gap: 12px;">
-                                    <button class="btn btn-outline btn-sm w-full" onclick="app.switchTab('family')"><i data-lucide="eye" style="width: 14px; height: 14px; margin-right: 4px;"></i> View Directory</button>
-                                    <button class="btn btn-primary btn-sm w-full" onclick="app.switchTab('family'); app.showAddMemberModal()"><i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> Add Member</button>
-                                </div>
-                            </div>
+                    <div class="settings-layout">
+                        <!-- Sidebar menu -->
+                        <div class="settings-sidebar">
+                            <button class="settings-nav-item active" data-subtab="account" onclick="app.toggleSettingsSubtab('account')">
+                                <i data-lucide="user"></i> <span>Account & Billing</span>
+                            </button>
+                            <button class="settings-nav-item" data-subtab="family" onclick="app.toggleSettingsSubtab('family')">
+                                <i data-lucide="users"></i> <span>Family Setup</span>
+                            </button>
+                            <button class="settings-nav-item" data-subtab="notifications" onclick="app.toggleSettingsSubtab('notifications')">
+                                <i data-lucide="bell"></i> <span>Notifications</span>
+                            </button>
+                            <button class="settings-nav-item" data-subtab="security" onclick="app.toggleSettingsSubtab('security')">
+                                <i data-lucide="shield"></i> <span>Security & PIN</span>
+                            </button>
+                            <button class="settings-nav-item" data-subtab="data" onclick="app.toggleSettingsSubtab('data')">
+                                <i data-lucide="database"></i> <span>Data backups</span>
+                            </button>
                         </div>
 
-                        <!-- Right Panel: Preferences & Controls -->
-                        <div style="display: flex; flex-direction: column; gap: 24px;">
-                            
-                            <!-- Card 3: Alert & Funnel Preferences -->
-                            <div class="card">
-                                <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="bell" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--warning);"></i> Alert & Reminder Preferences</h3>
-                                </div>
-                                <h4 style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">Active Alert Delivery Channels</h4>
-                                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 16px; height: 16px;">
-                                        <span>Push Notifications (Firebase Cloud Messaging)</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 16px; height: 16px;">
-                                        <span>SMS Text Alerts</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 16px; height: 16px;">
-                                        <span>Email Security Notices</span>
-                                    </label>
-                                </div>
+                        <!-- Settings content panels -->
+                        <div class="settings-content">
+                            <!-- 1. Account & Billing Settings Panel -->
+                            <div id="settings-pane-account" class="settings-pane">
+                                <div class="settings-section-title">Account & Billing Details</div>
                                 
-                                <h4 style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">Reminder Funnel Thresholds</h4>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
-                                        <span>90 Days Ahead</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
-                                        <span>60 Days Ahead</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
-                                        <span>30 Days Ahead</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
-                                        <span>15 Days Ahead</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
-                                        <span>7 Days Ahead</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
-                                        <input type="checkbox" checked style="width: 15px; height: 15px;">
-                                        <span>1 Day Out</span>
-                                    </label>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:32px;">
+                                    <div>
+                                        <div class="form-group w-full" style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                                            <img id="settings-admin-avatar-preview" src="" style="width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: var(--bg-secondary);">
+                                            <div style="flex-grow: 1;">
+                                                <label for="settings-admin-photo">Upload Profile Photo</label>
+                                                <input type="file" id="settings-admin-photo" accept="image/*" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none; background: var(--bg-secondary); color: var(--text-primary);" onchange="app.handleAdminPhotoUpload(event)">
+                                            </div>
+                                        </div>
+                                        <div class="form-group w-full" style="margin-bottom:12px;">
+                                            <label for="settings-admin-name">Primary Admin Legal Name</label>
+                                            <input type="text" id="settings-admin-name" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                        </div>
+                                        <div class="form-group w-full" style="margin-bottom:12px;">
+                                            <label for="settings-mobile">Primary Mobile Number (OTP Auth)</label>
+                                            <input type="text" id="settings-mobile" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                        </div>
+                                        <div class="form-group w-full" style="margin-bottom:12px;">
+                                            <label for="settings-email">Email Address (Recovery & Alerts)</label>
+                                            <input type="email" id="settings-email" value="" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; outline: none;">
+                                        </div>
+                                        <div class="form-group w-full" style="margin-bottom: 20px;">
+                                            <label for="settings-address">Admin Residential Address</label>
+                                            <textarea id="settings-address" class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px; min-height: 60px; outline: none; resize: vertical;"></textarea>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="app.saveProfileSettings(event)" style="padding: 10px 24px; font-weight: 600; border-radius: 8px; display: flex; align-items: center; gap: 6px;"><i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Settings</button>
+                                    </div>
+
+                                    <!-- Pricing / Plan Billing Widget -->
+                                    <div>
+                                        <h4 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary);">Plan Subscription Billing</h4>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-tertiary); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                                            <div>
+                                                <span class="text-xs text-muted" style="text-transform:uppercase; font-weight:700;">Active Plan</span>
+                                                <h4 id="settings-plan-tier" style="margin:0; font-size:16px; color: var(--gold);">Free Household Tier</h4>
+                                            </div>
+                                            <button class="btn btn-gold btn-sm" onclick="app.upgradeSubscription()">Upgrade Plan</button>
+                                        </div>
+
+                                        <div class="sub-billing-toggle text-center" style="margin-bottom: 20px;">
+                                            <span class="billing-label text-bold">Monthly Billing</span>
+                                            <div class="toggle-switch-wrapper" style="margin: 0 12px;">
+                                                <input type="checkbox" id="billing-toggle" onchange="app.toggleBillingCycle()">
+                                                <label for="billing-toggle" class="toggle-slider"></label>
+                                            </div>
+                                            <span class="billing-label">Yearly <span class="badge badge-success text-xs">Save 20%</span></span>
+                                        </div>
+
+                                        <!-- Small Pricing Cards -->
+                                        <div style="display:flex; flex-direction:column; gap:16px;">
+                                            <div class="pricing-card" style="padding:16px; border:1px solid var(--border-color); border-radius:8px;">
+                                                <h4 style="margin:0; font-size:14px;">Free Vault</h4>
+                                                <div class="price" style="font-size:18px; font-weight:700; margin:4px 0;">₹0 <span style="font-size:11px; font-weight:normal; color:var(--text-secondary);">/ month</span></div>
+                                                <p style="font-size:11px; color:var(--text-secondary); margin:0;">Up to 25 documents limit. Vikram (Self) only.</p>
+                                            </div>
+                                            <div class="pricing-card pricing-recommended" style="padding:16px; border:2px solid var(--gold); border-radius:8px; position:relative; overflow:hidden;">
+                                                <div style="background:var(--gold); color:#000; font-size:10px; font-weight:800; padding:2px 8px; position:absolute; top:0; right:0; border-bottom-left-radius:6px;">POPULAR</div>
+                                                <h4 style="margin:0; font-size:14px;">Family Pro Vault</h4>
+                                                <div class="price" id="pro-price-val" style="font-size:18px; font-weight:700; margin:4px 0;">₹299 <span style="font-size:11px; font-weight:normal; color:var(--text-secondary);">/ month</span></div>
+                                                <p style="font-size:11px; color:var(--text-secondary); margin:0;">Unlimited documents. Head of family + 5 profiles.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Card 4: Plan Status & Security -->
-                            <div class="card">
-                                <div style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                                    <h3 style="margin: 0; font-size: 16px;"><i data-lucide="shield-check" style="vertical-align: middle; margin-right: 6px; width: 18px; height: 18px; color: var(--gold);"></i> Subscription & Security Controls</h3>
+                            <!-- 2. Family Setup Settings Panel -->
+                            <div id="settings-pane-family" class="settings-pane" style="display:none;">
+                                <div class="settings-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Family Directory Setup</span>
+                                    <button class="btn btn-primary btn-sm" onclick="app.showAddMemberModal()">
+                                        <i data-lucide="user-plus"></i> Add Family Member
+                                    </button>
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-                                    <div>
-                                        <span class="text-xs text-muted" style="text-transform:uppercase; font-weight:700;">Active Plan</span>
-                                        <h4 id="settings-plan-tier" style="margin:0; font-size:15px; color: var(--gold);">Free Household Tier</h4>
+
+                                <!-- Paywall banner for Free Tier -->
+                                <div class="alert alert-warning free-only" id="family-paywall" style="margin: 16px 0; display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 8px; border: 1px solid var(--warning-border); background-color: var(--warning-bg);">
+                                    <i data-lucide="shield-alert" class="text-warning" style="width: 24px; height: 24px; flex-shrink:0;"></i>
+                                    <div style="flex-grow: 1; text-align: left;">
+                                        <h4 style="margin: 0; font-size: 14px; color: var(--gold);">Family Directory Demo Mode</h4>
+                                        <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">You are viewing the family vault in free mode. Upgrade to Family Pro to unlock multi-user vaults, automated KYC checker, and E2E escrow keys.</p>
                                     </div>
-                                    <button class="btn btn-gold btn-sm" onclick="app.switchTab('subscription')">Upgrade Plan</button>
                                 </div>
-                                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; cursor: pointer; margin-bottom: 12px;">
+
+                                <!-- Family Members Grid -->
+                                <div class="family-members-cards-container" id="family-members-setup-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px; margin-top:20px;">
+                                    <!-- Filled dynamically -->
+                                </div>
+
+                                <!-- Access Controls Table -->
+                                <div class="permissions-card mt-lg">
+                                    <h3>Access & Encryption Controls</h3>
+                                    <p class="text-sm text-muted">All documents are stored with end-to-end encryption. The Head of Family has the master recovery key.</p>
+                                    
+                                    <table class="data-table mt-md">
+                                       <thead>
+                                           <tr>
+                                               <th>Family Member</th>
+                                               <th>Role</th>
+                                               <th>Relationship</th>
+                                               <th>Vault Access Permissions</th>
+                                               <th>Encryption Key Status</th>
+                                               <th>Actions</th>
+                                           </tr>
+                                       </thead>
+                                       <tbody id="family-permissions-tbody">
+                                           <!-- Filled dynamically -->
+                                       </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- 3. Notification Preferences Settings Panel -->
+                            <div id="settings-pane-notifications" class="settings-pane" style="display:none;">
+                                <div class="settings-section-title">Notification Preferences</div>
+                                <div style="display:flex; flex-direction:column; gap:24px;">
+                                    <div>
+                                        <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--text-primary);">Active Alert Delivery Channels</h4>
+                                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                                            <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                                <span>Push Notifications (Firebase Cloud Messaging)</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                                <span>SMS Text Alerts</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 16px; height: 16px;">
+                                                <span>Email Security Notices</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <hr style="border:0; border-top:1px solid var(--border-color);">
+                                    <div>
+                                        <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--text-primary);">Reminder Funnel Thresholds</h4>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                                <span>90 Days Ahead</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                                <span>60 Days Ahead</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                                <span>30 Days Ahead</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                                <span>15 Days Ahead</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                                <span>7 Days Ahead</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                                                <input type="checkbox" checked style="width: 15px; height: 15px;">
+                                                <span>1 Day Out</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Security & PIN Settings Panel -->
+                            <div id="settings-pane-security" class="settings-pane" style="display:none;">
+                                <div class="settings-section-title">Security & PIN Settings</div>
+                                <div style="display:flex; flex-direction:column; gap:20px;">
+                                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; cursor: pointer;">
                                         <span>Biometric Authentication (Face ID / Touch ID)</span>
                                         <input type="checkbox" id="settings-biometric" checked style="width: 16px; height: 16px;">
                                     </label>
+                                    
                                     <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); padding-top: 14px;">
                                         <label for="settings-secure-pin" style="font-weight: 600; font-size: 13px; color: var(--text-primary);">Secure 6-Digit Decryption PIN</label>
                                         <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
@@ -1201,22 +1296,46 @@
                                             <button type="button" class="btn btn-outline" onclick="app.togglePinVisibility(event)" style="padding: 10px; border-radius: 8px; height: 40px; display: flex; align-items: center; justify-content: center;"><i data-lucide="eye" id="pin-eye-icon" style="width: 16px; height: 16px;"></i></button>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Data Privacy Badge -->
-                                <div class="alert alert-info" style="display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; border: 1px solid #93c5fd; background-color: #eff6ff; font-size: 11px; color: #1e40af; margin-bottom: 20px;">
-                                    <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
-                                    <span><strong>Metadata-Only Storage</strong>: No financial values or sensitive document binaries stored.</span>
-                                </div>
+                                    <!-- Data Privacy Badge -->
+                                    <div class="alert alert-info" style="display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; border: 1px solid #93c5fd; background-color: #eff6ff; font-size: 11px; color: #1e40af; margin-top: 10px;">
+                                        <i data-lucide="info" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                                        <span><strong>Metadata-Only Storage</strong>: No financial values or sensitive document binaries stored.</span>
+                                    </div>
 
-                                <!-- Actions -->
-                                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 16px; gap: 12px;">
-                                    <button class="btn btn-outline btn-sm btn-danger" onclick="app.toast('Account data closure requested. All local ledger mappings will be wiped permanently within 24 hours.', 'danger')"><i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Close Account</button>
-                                    <button class="btn btn-outline btn-sm" onclick="app.handleSignOut()"><i data-lucide="log-out" style="width:14px; height:14px; margin-right:4px;"></i> Lock Vault</button>
+                                    <!-- Actions -->
+                                    <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 16px; gap: 12px;">
+                                        <button class="btn btn-outline btn-sm btn-danger" onclick="app.toast('Account data closure requested. All local ledger mappings will be wiped permanently within 24 hours.', 'danger')"><i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Close Account</button>
+                                        <button class="btn btn-outline btn-sm" onclick="app.handleSignOut()"><i data-lucide="log-out" style="width:14px; height:14px; margin-right:4px;"></i> Lock Vault</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5. Data Management Settings Panel -->
+                            <div id="settings-pane-data" class="settings-pane" style="display:none;">
+                                <div class="settings-section-title">Data Management & Storage</div>
+                                <div style="display:flex; flex-direction:column; gap:20px;">
+                                    <div>
+                                        <h4 style="font-size: 14px; margin-bottom: 6px; color: var(--text-primary);">Backup Vault Ledger</h4>
+                                        <p class="text-xs text-muted" style="margin-bottom:12px;">Download a complete encrypted backup payload containing your family profiles and metadata links.</p>
+                                        <div style="display:flex; gap:12px;">
+                                            <button class="btn btn-outline btn-sm" onclick="app.toast('Backup generation started...', 'info')"><i data-lucide="download" style="width:14px; height:14px; margin-right:4px;"></i> Export Ledger</button>
+                                            <button class="btn btn-outline btn-sm" onclick="app.toast('Please select a backup JSON file to import.', 'info')"><i data-lucide="upload" style="width:14px; height:14px; margin-right:4px;"></i> Import Ledger</button>
+                                        </div>
+                                    </div>
+                                    <hr style="border:0; border-top:1px solid var(--border-color);">
+                                    <div>
+                                        <h4 style="font-size: 14px; margin-bottom: 6px; color: var(--text-primary);">Vault Storage capacity</h4>
+                                        <div class="progress-bar-container" style="height:12px; margin-bottom:8px;">
+                                            <div class="progress-bar" style="width: 15%; background: var(--accent);"></div>
+                                        </div>
+                                        <span class="text-xs text-muted">Using 1.2 MB of 100 MB encrypted metadata volume capacity.</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
+                    </div>
+                </div>
                     </div>
                 </div>
 
