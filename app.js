@@ -3268,6 +3268,7 @@ class FamilyKYCManager {
                 this.renderActivityLogTab();
                 break;
             case 'settings':
+                this.renderSettings();
                 this.toggleSettingsSubtab(this.activeSettingsSubtab);
                 break;
         }
