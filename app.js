@@ -715,6 +715,9 @@ class FamilyKYCManager {
         } else if (tabId === 'subscription') {
             this.activeTab = 'settings';
             this.activeSettingsSubtab = 'account';
+            setTimeout(() => {
+                this.upgradeSubscription();
+            }, 100);
         } else {
             this.activeTab = tabId;
         }
