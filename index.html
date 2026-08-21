@@ -1774,6 +1774,44 @@
         </div>
     </div>
 
+        <!-- BOTTOM NAVIGATION BAR FOR MOBILE DEVICES -->
+        <nav class="bottom-nav fixed bottom-0 left-0 w-full z-50 bg-surface-container/90 dark:bg-surface-container/90 backdrop-blur-2xl rounded-t-xl shadow-[0_-4px_24px_rgba(0,0,0,0.4)] md:hidden border-t border-white/5">
+            <ul class="flex justify-around items-center px-4 pb-6 pt-3 list-none m-0 p-0">
+                <li class="nav-item active flex-1" data-tab="dashboard">
+                    <a class="flex flex-col items-center justify-center text-center w-full" href="#">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 mb-1"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
+                    </a>
+                </li>
+                <li class="nav-item flex-1" data-tab="documents">
+                    <a class="flex flex-col items-center justify-center text-center w-full" href="#">
+                        <i data-lucide="files" class="w-5 h-5 mb-1"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Vault</span>
+                    </a>
+                </li>
+                <li class="nav-item flex-1" data-tab="family">
+                    <a class="flex flex-col items-center justify-center text-center w-full" href="#">
+                        <i data-lucide="users" class="w-5 h-5 mb-1"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Family</span>
+                    </a>
+                </li>
+                <li class="nav-item flex-1" data-tab="activity">
+                    <a class="flex flex-col items-center justify-center text-center w-full" href="#">
+                        <i data-lucide="activity" class="w-5 h-5 mb-1"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Activity</span>
+                    </a>
+                </li>
+                <li class="nav-item flex-1" data-tab="settings">
+                    <a class="flex flex-col items-center justify-center text-center w-full" href="#">
+                        <i data-lucide="settings" class="w-5 h-5 mb-1"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+
     <!-- MODAL: RESET PASSWORD / NEW DECRYPTION KEY -->
     <div class="modal-backdrop hidden" id="reset-password-modal">
         <div class="modal-content" style="max-width: 420px; border-radius: var(--border-radius-xl); box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color); background: var(--bg-card); padding: 24px;">
