@@ -6260,7 +6260,7 @@ class FamilyKYCManager {
         };
 
         const content = document.createElement('div');
-        content.className = 'modal-content';
+        content.className = 'modal-card';
         content.style.maxWidth = '500px';
 
         const header = document.createElement('div');
