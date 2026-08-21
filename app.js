@@ -3627,10 +3627,14 @@ class FamilyKYCManager {
         const grid = document.getElementById('documents-grid');
         grid.innerHTML = '';
         
-        const query = document.getElementById('doc-search-input').value.toLowerCase();
-        const memberFilter = document.getElementById('filter-member').value;
-        const typeFilter = document.getElementById('filter-type').value;
-        const statusFilter = document.getElementById('filter-status').value;
+        const docSearchEl = document.getElementById('doc-search-input');
+        const query = docSearchEl ? docSearchEl.value.toLowerCase() : (document.getElementById('global-search-input')?.value.toLowerCase() || '');
+        const memberFilterEl = document.getElementById('filter-member');
+        const memberFilter = memberFilterEl ? memberFilterEl.value : 'all';
+        const typeFilterEl = document.getElementById('filter-type');
+        const typeFilter = typeFilterEl ? typeFilterEl.value : 'all';
+        const statusFilterEl = document.getElementById('filter-status');
+        const statusFilter = statusFilterEl ? statusFilterEl.value : 'all';
         
         let filtered = [];
         if (statusFilter === 'archived') {
@@ -5916,7 +5920,7 @@ class FamilyKYCManager {
         if (archivedContainer) archivedContainer.style.display = subtab === 'archived' ? 'block' : 'none';
 
         if (subtab === 'all') {
-            this.renderDocumentsGrid();
+            this.renderDocumentsVault();
         } else if (subtab === 'attention') {
             this.renderNeedsAttentionDocs();
         } else if (subtab === 'roadmaps') {
@@ -5983,13 +5987,22 @@ class FamilyKYCManager {
     handleGlobalSearch() {
         const query = document.getElementById('global-search-input').value.toLowerCase();
         
+        // Update local doc search input so both inputs are synced
+        const docSearch = document.getElementById('doc-search-input');
+        if (docSearch) {
+            docSearch.value = query;
+        }
+
+        // If we are on activity or settings, redirect to documents tab since there is no local search there
+        if (query && (this.activeTab === 'activity' || this.activeTab === 'settings')) {
+            this.switchTab('documents');
+            this.toggleDocSubtab('all');
+            return;
+        }
+
         // Forward search value to the active tab's filter/search logic
         if (this.activeTab === 'documents') {
-            const docSearch = document.getElementById('doc-search-input');
-            if (docSearch) {
-                docSearch.value = query;
-                this.filterDocuments();
-            }
+            this.filterDocuments();
         } else if (this.activeTab === 'dashboard') {
             // Filter home compliance grids or alerts
             const alertsList = document.getElementById('dashboard-alerts-list');

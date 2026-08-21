@@ -7,10 +7,101 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Hanken+Grotesk:wght@400;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN & Config -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#171f33",
+                        "tertiary-container": "#e364a7",
+                        "on-surface": "#dae2fd",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#001f26",
+                        "inverse-primary": "#6d3bd7",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-fixed-variant": "#85145a",
+                        "on-surface-variant": "#cbc3d7",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#131b2e",
+                        "primary-fixed": "#e9ddff",
+                        "outline": "#958ea0",
+                        "on-tertiary-container": "#560038",
+                        "surface-container-highest": "#2d3449",
+                        "primary-container": "#a078ff",
+                        "error-container": "#93000a",
+                        "on-secondary": "#003640",
+                        "on-primary-fixed-variant": "#5516be",
+                        "surface": "#0b1326",
+                        "surface-dim": "#0b1326",
+                        "primary": "#d0bcff",
+                        "outline-variant": "#494454",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "inverse-on-surface": "#283044",
+                        "surface-tint": "#d0bcff",
+                        "on-tertiary-fixed": "#3d0026",
+                        "on-tertiary": "#620040",
+                        "inverse-surface": "#dae2fd",
+                        "on-secondary-container": "#00424e",
+                        "secondary": "#4cd7f6",
+                        "on-primary-container": "#340080",
+                        "on-primary": "#3c0091",
+                        "tertiary-fixed": "#ffd8e7",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "background": "#0b1326",
+                        "tertiary-fixed-dim": "#ffafd3",
+                        "secondary-container": "#03b5d3",
+                        "primary-fixed-dim": "#d0bcff",
+                        "surface-container-lowest": "#060e20",
+                        "secondary-fixed": "#acedff",
+                        "on-primary-fixed": "#23005c",
+                        "tertiary": "#ffafd3",
+                        "on-error": "#690005",
+                        "surface-container-high": "#222a3d",
+                        "surface-bright": "#31394d",
+                        "on-background": "#dae2fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "glass-margin": "12px",
+                        "container-padding": "40px",
+                        "stack-gap": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "data-mono": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "data-mono": ["14px", { "lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        };
+    </script>
+
     <!-- PWA & Mobile Web Manifest -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0b1326">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FamilyVault">
@@ -36,210 +127,219 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="light-mode vault-locked">
+<body class="dark bg-surface text-on-surface min-h-screen bg-mesh font-body-md overflow-x-hidden vault-locked">
     <!-- SALES & MARKETING LANDING PAGE -->
-    <div class="marketing-page" id="marketing-page">
+    <div class="marketing-page min-h-screen bg-surface bg-mesh text-on-surface font-body-md relative overflow-x-hidden pb-12" id="marketing-page">
         <!-- Navigation Header -->
-        <header class="m-navbar">
-            <div class="m-nav-container">
-                <div class="logo">
-                    <div class="logo-icon" style="background:var(--accent);"><i data-lucide="shield-check"></i></div>
-                    <span class="logo-text">Family<span style="color:var(--accent);">KYCManager</span></span>
+        <header class="fixed top-0 w-full z-50 bg-surface/50 dark:bg-surface-dim/50 backdrop-blur-xl border-b border-white/10 shadow-none">
+            <div class="flex justify-between items-center px-glass-margin py-4 max-w-7xl mx-auto w-full">
+                <div class="logo flex items-center gap-3">
+                    <div class="logo-icon w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center"><i data-lucide="shield-check"></i></div>
+                    <span class="logo-text font-headline-lg-mobile text-[20px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Family<span>KYCManager</span></span>
                 </div>
                 
                 <!-- Hamburger menu toggle button -->
-                <button class="m-mobile-menu-btn" onclick="app.toggleMobileMarketingMenu()" style="display: none; background: none; border: none; cursor: pointer; color: #0f172a; padding: 4px;">
+                <button class="m-mobile-menu-btn text-on-surface-variant hover:bg-white/5 transition-colors p-2 rounded-full md:hidden" onclick="app.toggleMobileMarketingMenu()" style="display: none; background: none; border: none; cursor: pointer;">
                     <i data-lucide="menu" id="m-menu-icon" style="width: 24px; height: 24px;"></i>
                 </button>
 
-                <div class="m-nav-menu-wrapper" id="m-nav-menu-wrapper">
-                    <nav class="m-nav-links">
-                        <a href="#problem" onclick="app.closeMobileMarketingMenu()">The Challenge</a>
-                        <a href="#features" onclick="app.closeMobileMarketingMenu()">Core Pillars</a>
-                        <a href="#documents-list" onclick="app.closeMobileMarketingMenu()">Supported Records</a>
-                        <a href="#pricing" onclick="app.closeMobileMarketingMenu()">Pricing Plans</a>
+                <div class="m-nav-menu-wrapper flex items-center gap-6" id="m-nav-menu-wrapper">
+                    <nav class="m-nav-links flex items-center gap-6">
+                        <a href="#problem" class="text-on-surface-variant hover:text-on-surface transition-colors text-sm font-semibold" onclick="app.closeMobileMarketingMenu()">The Challenge</a>
+                        <a href="#features" class="text-on-surface-variant hover:text-on-surface transition-colors text-sm font-semibold" onclick="app.closeMobileMarketingMenu()">Core Pillars</a>
+                        <a href="#documents-list" class="text-on-surface-variant hover:text-on-surface transition-colors text-sm font-semibold" onclick="app.closeMobileMarketingMenu()">Supported Records</a>
+                        <a href="#pricing" class="text-on-surface-variant hover:text-on-surface transition-colors text-sm font-semibold" onclick="app.closeMobileMarketingMenu()">Pricing Plans</a>
                     </nav>
-                    <div class="m-nav-actions">
-                        <select id="m-country-select" onchange="app.setCountry(this.value)" class="form-select text-xs" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: 600; cursor: pointer; color: #475569; margin-right: 8px;">
+                    <div class="m-nav-actions flex items-center gap-4">
+                        <select id="m-country-select" onchange="app.setCountry(this.value)" class="bg-surface-container/60 border border-white/10 text-on-surface text-xs rounded-full px-3 py-1.5 outline-none cursor-pointer hover:bg-white/5 font-semibold">
                             <option value="India" selected>🇮🇳 India</option>
                             <option value="US">🇺🇸 United States</option>
                             <option value="UK">🇬🇧 United Kingdom</option>
                         </select>
-                        <button class="btn btn-outline m-signin-btn" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'}); app.closeMobileMarketingMenu();">Unlock Vault</button>
-                        <button class="btn btn-primary" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'}); app.closeMobileMarketingMenu();" style="background:var(--accent); border-color:var(--accent);">Register Vault</button>
+                        <button class="px-4 py-2 rounded-full border border-white/20 text-on-surface text-xs font-semibold hover:bg-white/5 transition-colors" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'}); app.closeMobileMarketingMenu();">Unlock Vault</button>
+                        <button class="px-4 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-xs hover:shadow-[0_0_15px_rgba(208,188,255,0.4)] transition-all" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'}); app.closeMobileMarketingMenu();">Register Vault</button>
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Hero Section (2-Column Grid with Embedded Login Form) -->
-        <section class="m-hero">
-            <div class="m-hero-bg-glow"></div>
-            <div class="m-hero-grid">
+        <section class="max-w-7xl mx-auto px-glass-margin md:px-container-padding pt-32 pb-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
                 <!-- Left Column: Copy & Teaser Stats -->
-                <div class="m-hero-left">
-                    <span class="m-hero-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.2); color:#ef4444;"><i data-lucide="shield-alert"></i> ⚠️ 3 out of 5 families have a hidden identity or paperwork mismatch right now.</span>
-                    <h1 style="font-size: 34px; line-height: 1.25; margin-top: 12px;">One Mismatched Letter Can Freeze Your Bank Account, Reject Your Insurance, or Lock Out Your Family.</h1>
-                    <p class="m-hero-desc" id="m-hero-desc">
+                <div class="lg:col-span-7 flex flex-col justify-center">
+                    <span class="inline-flex items-center gap-2 bg-error/10 text-error px-4 py-1.5 rounded-full border border-error/20 w-fit backdrop-blur-md text-xs font-semibold mb-4"><i data-lucide="shield-alert"></i> ⚠️ 3 out of 5 families have a hidden identity or paperwork mismatch right now.</span>
+                    <h1 class="font-display-lg text-[32px] md:text-[40px] text-transparent bg-clip-text bg-gradient-to-r from-on-surface to-outline mb-6 font-bold leading-tight">One Mismatched Letter Can Freeze Your Bank Account, Reject Your Insurance, or Lock Out Your Family.</h1>
+                    <p class="text-on-surface-variant text-base mb-8 leading-relaxed" id="m-hero-desc">
                         Stop scrambling at the eleventh hour over expired passports, legacy licence rules, or name typos. FamilyKYCManager automatically tracks your household's expiries and alerts you before the authorities do.
                     </p>
-                    <div class="m-hero-actions-container mb-lg">
-                        <button class="btn btn-primary btn-lg" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:var(--accent); border-color:var(--accent); margin-right:12px;">
+                    <div class="flex flex-wrap gap-4 mb-8">
+                        <button class="px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-sm hover:shadow-[0_0_15px_rgba(208,188,255,0.4)] transition-all" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">
                             Protect Your Family Free
                         </button>
-                        <button class="btn btn-outline btn-lg" onclick="document.getElementById('problem').scrollIntoView({behavior: 'smooth'})">
+                        <button class="px-6 py-3 rounded-full border border-white/20 text-on-surface text-sm font-semibold hover:bg-white/5 transition-colors" onclick="document.getElementById('problem').scrollIntoView({behavior: 'smooth'})">
                             See How It Works
                         </button>
                     </div>
-                    <p class="trust-subtext text-xs text-muted mb-lg" style="display:flex; align-items:center; gap:6px;">
-                        <i data-lucide="shield-check" style="color:var(--accent); width:14px; height:14px;"></i> 🔒 Metadata-only storage. We store dates and numbers, never your money. Zero security liability.
+                    <p class="text-xs text-on-surface-variant flex items-center gap-2 mb-8">
+                        <i data-lucide="shield-check" class="text-primary w-4 h-4"></i> 🔒 Metadata-only storage. We store dates and numbers, never your money. Zero security liability.
                     </p>
                     
                     <!-- Teaser preview with family image -->
-                    <div class="m-hero-teaser-frame" style="position: relative; overflow: hidden; height: 185px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); margin-top: 10px;">
-                        <img src="./hero_family.jpg" alt="Happy Multigenerational Family" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.85);">
+                    <div class="glass-card border border-white/10 shadow-xl overflow-hidden rounded-[2rem] h-48 relative mt-4">
+                        <img src="./hero_family.jpg" alt="Happy Multigenerational Family" class="w-full h-full object-cover filter brightness-75">
                         <!-- Overlaid Stats Banner -->
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1);">
-                            <div style="text-align: left;">
-                                <span style="font-size: 11px; color: rgba(255,255,255,0.7); display: block; font-weight: 500;">Household Safety Net</span>
-                                <span style="font-size: 14px; color: #fff; font-weight: 700;">Active Guard Status</span>
+                        <div class="absolute bottom-0 left-0 right-0 bg-surface-container-low/95 backdrop-blur-md px-6 py-4 flex justify-between items-center border-t border-white/10">
+                            <div class="text-left">
+                                <span class="text-[10px] text-on-surface-variant uppercase tracking-wider block font-bold">Household Safety Net</span>
+                                <span class="text-sm text-white font-bold">Active Guard Status</span>
                             </div>
-                            <div style="display: flex; gap: 16px;">
-                                <div style="text-align: right;"><span style="font-size: 10px; color: rgba(255,255,255,0.7); display: block;">Safety Health</span><span style="font-size: 12px; color: var(--success); font-weight: 700;">100%</span></div>
-                                <div style="text-align: right;"><span style="font-size: 10px; color: rgba(255,255,255,0.7); display: block;">Active Alerts</span><span style="font-size: 12px; color: var(--text-secondary); font-weight: 700;">0 Active</span></div>
+                            <div class="flex gap-6">
+                                <div class="text-right">
+                                    <span class="text-[9px] text-on-surface-variant uppercase block">Safety Health</span>
+                                    <span class="text-xs text-secondary font-bold">100%</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[9px] text-on-surface-variant uppercase block">Active Alerts</span>
+                                    <span class="text-xs text-on-surface font-bold">0 Active</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Right Column: Login Card Portal (Direct E2E Access) -->
-                <div class="m-hero-right" id="login-form-anchor">
-                    <div class="login-card-container">
-                        <div class="login-card-header">
-                            <div class="login-logo" style="background:linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);">
-                                <i data-lucide="lock"></i>
+                <div class="lg:col-span-5 flex justify-center w-full" id="login-form-anchor">
+                    <div class="glass-card p-8 rounded-[2rem] w-full max-w-md border border-white/10 shadow-2xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="logo flex items-center gap-2">
+                                    <div class="logo-icon w-8 h-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center"><i data-lucide="lock"></i></div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-white uppercase tracking-wider" id="auth-title">Unlock Family Vault</h3>
+                                        <p class="text-[10px] text-on-surface-variant" id="auth-subtitle">E2E LOCAL DECRYPTION & AUTHORIZATION</p>
+                                    </div>
+                                </div>
+                                <div id="auth-db-status" class="text-[10px] font-bold px-3 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/20"></div>
                             </div>
-                            <h3 id="auth-title">Unlock Family Vault</h3>
-                            <p id="auth-subtitle" style="margin-bottom: 8px;">E2E LOCAL DECRYPTION & AUTHORIZATION GATE</p>
-                            <div id="auth-db-status" style="margin-bottom: 15px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-block;"></div>
-                        </div>
-                        
-                        <!-- Auth Tabs Switcher -->
-                        <div class="auth-tabs" style="display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 20px; gap: 8px;">
-                            <button type="button" class="auth-tab active" id="tab-signin" onclick="app.switchAuthMode('signin')" style="flex: 1; padding: 10px; background: none; border: none; font-weight: 700; font-size: 13px; color: var(--accent); border-bottom: 2px solid var(--accent); cursor: pointer; transition: all 0.2s;">Unlock Vault</button>
-                            <button type="button" class="auth-tab" id="tab-signup" onclick="app.switchAuthMode('signup')" style="flex: 1; padding: 10px; background: none; border: none; font-weight: 600; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;">Register Vault</button>
-                        </div>
-
-                        <!-- Signin View -->
-                        <div id="signin-view-container">
-                            <div class="login-role-selector" style="margin-bottom: 15px;">
-                                <button class="role-btn active" id="role-head" onclick="app.setLoginRole('head')">
-                                    <i data-lucide="shield-alert"></i>
-                                    <span>Head Login</span>
-                                </button>
-                                <button class="role-btn" id="role-spouse" onclick="app.setLoginRole('spouse')">
-                                    <i data-lucide="user"></i>
-                                    <span>Member Login</span>
-                                </button>
+                            
+                            <!-- Auth Tabs Switcher -->
+                            <div class="flex border-b border-white/10 mb-6 gap-2">
+                                <button type="button" class="flex-1 pb-3 text-center text-primary font-bold text-xs border-b-2 border-primary outline-none transition-all" id="tab-signin" onclick="app.switchAuthMode('signin')">Unlock Vault</button>
+                                <button type="button" class="flex-1 pb-3 text-center text-on-surface-variant hover:text-on-surface font-semibold text-xs border-b-2 border-transparent outline-none transition-all" id="tab-signup" onclick="app.switchAuthMode('signup')">Register Vault</button>
                             </div>
 
-                            <form id="login-form" onsubmit="app.handleLogin(event)">
-                                <div class="form-group w-full">
-                                    <label for="login-email">Email Address or Mobile Number</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="mail"></i>
-                                        <input type="text" id="login-email" required placeholder="Email or mobile number">
-                                    </div>
+                            <!-- Signin View -->
+                            <div id="signin-view-container">
+                                <div class="grid grid-cols-2 gap-3 mb-6">
+                                    <button class="role-btn flex items-center gap-2 justify-center px-4 py-2.5 rounded-full bg-gradient-to-br from-primary-container to-secondary-container text-on-primary-container font-bold text-xs border-transparent transition-all" id="role-head" onclick="app.setLoginRole('head')">
+                                        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                                        <span>Head Login</span>
+                                    </button>
+                                    <button class="role-btn flex items-center gap-2 justify-center px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface-variant font-semibold text-xs transition-all" id="role-spouse" onclick="app.setLoginRole('spouse')">
+                                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                                        <span>Member Login</span>
+                                    </button>
                                 </div>
 
-                                <div class="form-group w-full mt-sm">
-                                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                         <label for="login-password" style="margin: 0;">Decryption Key / Master Password</label>
-                                         <a href="#" onclick="app.showForgotPasswordView(event)" style="font-size: 11px; color: var(--accent); font-weight: 600; text-decoration: none; margin-bottom: 2px;">Forgot Password?</a>
+                                <form id="login-form" onsubmit="app.handleLogin(event)" class="flex flex-col gap-4">
+                                    <div class="flex flex-col gap-2">
+                                        <label for="login-email" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Email or Mobile Number</label>
+                                        <div class="relative">
+                                            <i data-lucide="mail" class="absolute left-3.5 top-3 w-4 h-4 text-on-surface-variant/40"></i>
+                                            <input type="text" id="login-email" required placeholder="Email or mobile number" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/50 transition-colors text-sm">
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2">
+                                         <div class="flex justify-between items-center w-full">
+                                             <label for="login-password" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Master Decryption Key</label>
+                                             <a href="#" onclick="app.showForgotPasswordView(event)" class="text-[10px] text-primary hover:underline font-semibold">Forgot Key?</a>
+                                         </div>
+                                         <div class="relative">
+                                             <i data-lucide="key-round" class="absolute left-3.5 top-3 w-4 h-4 text-on-surface-variant/40"></i>
+                                             <input type="password" id="login-password" required placeholder="Enter password" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/50 transition-colors text-sm">
+                                         </div>
                                      </div>
-                                     <div class="input-icon-wrapper">
-                                         <i data-lucide="key-round"></i>
-                                         <input type="password" id="login-password" required placeholder="Enter password">
+
+                                    <div class="flex flex-col gap-2" id="otp-group">
+                                        <label for="login-otp" id="login-otp-label" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Secure 6-Digit PIN</label>
+                                        <div class="relative">
+                                            <i data-lucide="fingerprint" class="absolute left-3.5 top-3 w-4 h-4 text-on-surface-variant/40"></i>
+                                            <input type="text" id="login-otp" maxlength="6" required placeholder="Enter 6-digit PIN" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/50 transition-colors text-sm">
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 py-2">
+                                        <input type="checkbox" id="login-consent-chk" checked required class="w-4 h-4 rounded border-white/10 bg-surface text-primary focus:ring-0 cursor-pointer">
+                                        <label for="login-consent-chk" class="text-xs text-on-surface-variant cursor-pointer select-none">I authorize E2E validation scanning of records.</label>
+                                    </div>
+
+                                    <button class="w-full py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-sm shadow-[0_0_15px_rgba(208,188,255,0.4)] hover:shadow-[0_0_25px_rgba(208,188,255,0.6)] transition-all flex items-center justify-center gap-2" type="submit" id="btn-login-unlock">
+                                        <i data-lucide="unlock" class="w-4 h-4"></i> Authorize & Unlock
+                                    </button>
+                                    <div class="flex justify-center gap-4 mt-2 text-xs font-semibold">
+                                         <a href="#" onclick="event.preventDefault(); app.autofillDemoCredentials();" class="text-primary hover:underline">Auto-fill Demo Credentials</a>
+                                         <span class="text-white/10">|</span>
+                                         <a href="#" onclick="event.preventDefault(); app.resetSiteCache();" class="text-error hover:underline">Reset Site Cache</a>
                                      </div>
-                                 </div>
+                                </form>
+                            </div>
 
-                                <div class="form-group w-full mt-sm" id="otp-group">
-                                    <label for="login-otp" id="login-otp-label">Secure 6-Digit PIN</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="fingerprint"></i>
-                                        <input type="text" id="login-otp" maxlength="6" required placeholder="Enter 6-digit PIN">
+                            <!-- Signup View (Hidden initially) -->
+                            <div id="signup-view-container" class="hidden">
+                                <form id="signup-form" onsubmit="app.handleSignup(event)" class="flex flex-col gap-4">
+                                    <div class="flex flex-col gap-2">
+                                        <label for="signup-email" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Email or Mobile Number</label>
+                                        <div class="relative">
+                                            <i data-lucide="mail" class="absolute left-3.5 top-3 w-4 h-4 text-on-surface-variant/40"></i>
+                                            <input type="text" id="signup-email" required placeholder="Email or mobile number" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/50 transition-colors text-sm">
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="login-consent mt-md">
-                                    <input type="checkbox" id="login-consent-chk" checked required>
-                                    <label for="login-consent-chk">I authorize E2E validation scanning of my government records.</label>
-                                </div>
-
-                                <button class="btn btn-primary w-full mt-md btn-lg" type="submit" id="btn-login-unlock" style="background:var(--accent); border-color:var(--accent);">
-                                    <i data-lucide="unlock"></i> Authorize & Unlock
-                                </button>
-                                <div style="display: flex; justify-content: center; gap: 14px; margin-top: 14px; font-size: 11.5px; font-weight: 600;">
-                                     <a href="#" onclick="event.preventDefault(); app.autofillDemoCredentials();" style="color: var(--accent); text-decoration: underline;">Auto-fill Demo Credentials</a>
-                                     <span style="color: #cbd5e1;">|</span>
-                                     <a href="#" onclick="event.preventDefault(); app.resetSiteCache();" style="color: var(--danger); text-decoration: underline;">Reset Site Cache</a>
-                                 </div>
-                            </form>
-                        </div>
-
-                        <!-- Signup View (Hidden initially) -->
-                        <div id="signup-view-container" class="hidden">
-                            <form id="signup-form" onsubmit="app.handleSignup(event)">
-                                <div class="form-group w-full">
-                                    <label for="signup-email">Email Address or Mobile Number</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="mail"></i>
-                                        <input type="text" id="signup-email" required placeholder="Email or mobile number">
+                                    <div class="flex flex-col gap-2">
+                                        <label for="signup-password" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Master Password</label>
+                                        <div class="relative">
+                                            <i data-lucide="key-round" class="absolute left-3.5 top-3 w-4 h-4 text-on-surface-variant/40"></i>
+                                            <input type="password" id="signup-password" required placeholder="Create password" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/50 transition-colors text-sm">
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="form-group w-full mt-sm">
-                                    <label for="signup-password">Master Password</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="key-round"></i>
-                                        <input type="password" id="signup-password" required placeholder="Create password">
+                                    <div class="flex flex-col gap-2">
+                                        <label for="signup-country-select" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Country Location</label>
+                                        <div class="relative">
+                                            <i data-lucide="globe" class="absolute left-3.5 top-3.5 w-4 h-4 text-on-surface-variant/40 z-10"></i>
+                                            <select id="signup-country-select" onchange="app.setCountry(this.value)" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface outline-none focus:border-primary/50 transition-colors text-sm appearance-none cursor-pointer">
+                                                <option value="India" selected>🇮🇳 India</option>
+                                                <option value="US">🇺🇸 United States</option>
+                                                <option value="UK">🇬🇧 United Kingdom</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="form-group w-full mt-sm">
-                                    <label for="signup-country-select">Country Location (Select once)</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="globe" style="top:12px;"></i>
-                                        <select id="signup-country-select" onchange="app.setCountry(this.value)" style="width:100%; padding: 10px 12px 10px 36px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 13px; color: #475569; background: #fff; cursor: pointer; outline: none;">
-                                            <option value="India" selected>🇮🇳 India</option>
-                                            <option value="US">🇺🇸 United States</option>
-                                            <option value="UK">🇬🇧 United Kingdom</option>
-                                        </select>
+                                    <div class="flex flex-col gap-2">
+                                        <label for="signup-otp" id="signup-otp-label" class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Secure 6-Digit PIN</label>
+                                        <div class="relative">
+                                            <i data-lucide="fingerprint" class="absolute left-3.5 top-3 w-4 h-4 text-on-surface-variant/40"></i>
+                                            <input type="text" id="signup-otp" maxlength="6" required placeholder="Create 6-digit PIN" class="w-full bg-surface-container-lowest/60 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/50 transition-colors text-sm">
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="form-group w-full mt-sm">
-                                    <label for="signup-otp" id="signup-otp-label">Secure 6-Digit PIN</label>
-                                    <div class="input-icon-wrapper">
-                                        <i data-lucide="fingerprint"></i>
-                                        <input type="text" id="signup-otp" maxlength="6" required placeholder="Create 6-digit PIN">
+                                    <div class="flex items-center gap-2 py-2">
+                                        <input type="checkbox" id="signup-consent-chk" required class="w-4 h-4 rounded border-white/10 bg-surface text-primary focus:ring-0 cursor-pointer">
+                                        <label for="signup-consent-chk" class="text-xs text-on-surface-variant cursor-pointer select-none">I agree to terms and E2E schema scan protocols.</label>
                                     </div>
-                                </div>
 
-                                <div class="login-consent mt-md">
-                                    <input type="checkbox" id="signup-consent-chk" required>
-                                    <label for="signup-consent-chk">I agree to terms and E2E schema scan protocols.</label>
-                                </div>
-
-                                <button class="btn btn-primary w-full mt-md btn-lg" type="submit" style="background:var(--accent); border-color:var(--accent);">
-                                    <i data-lucide="user-plus"></i> Register & Open Vault
-                                </button>
-                            </form>
+                                    <button class="w-full py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-sm shadow-[0_0_15px_rgba(208,188,255,0.4)] hover:shadow-[0_0_25px_rgba(208,188,255,0.6)] transition-all flex items-center justify-center gap-2" type="submit">
+                                        <i data-lucide="user-plus" class="w-4 h-4"></i> Register & Open Vault
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         
-                        <div class="login-card-footer mt-md text-xs text-muted">
-                            <i data-lucide="lock" style="width: 12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Zero-knowledge keys never leave this device.
+                        <div class="text-[10px] text-on-surface-variant/50 text-center mt-6">
+                            <i data-lucide="lock" class="w-3 h-3 inline-block mr-1 align-middle"></i> Zero-knowledge keys never leave this device.
                         </div>
                     </div>
                 </div>
@@ -248,93 +348,93 @@
         </section>
 
         <!-- The Problem Section -->
-        <section class="m-section m-bg-alt" id="problem">
-            <div class="m-container" style="max-width: 800px; text-align: center;">
-                <span class="m-hero-badge" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #ef4444; margin-bottom: 16px;">The Pain of Life Admin</span>
-                <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 20px;">Life Admin Doesn’t Have to Be a Family Emergency</h2>
-                <p style="font-size: 14px; color: #475569; line-height: 1.7; font-weight: 400; text-align: center;">
+        <section class="py-20 border-y border-white/5 bg-surface-container-lowest/30" id="problem">
+            <div class="max-w-4xl mx-auto px-glass-margin text-center flex flex-col items-center">
+                <span class="inline-flex items-center gap-2 bg-error/10 text-error px-4 py-1.5 rounded-full border border-error/20 w-fit backdrop-blur-md text-xs font-semibold mb-6">The Pain of Life Admin</span>
+                <h2 class="font-display-lg text-[28px] md:text-[36px] font-bold text-white mb-6">Life Admin Doesn’t Have to Be a Family Emergency</h2>
+                <p class="text-on-surface-variant text-sm md:text-base leading-relaxed max-w-2xl">
                     From renewing your parents' passports to updating your child's documents or catching a sneaky name mismatch between your PAN and Aadhaar, managing household paperwork is exhausting. Missing a single renewal can mean frozen accounts, rejected insurance claims, or administrative gridlock. You don't need another heavy, risky document vault—you need a proactive family safety net.
                 </p>
             </div>
         </section>
 
         <!-- Founder's Story Section -->
-        <section class="m-section" style="background: #f8fafc; border-top: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7;">
-            <div class="m-container" style="max-width: 1000px;">
-                <div class="m-section-header" style="text-align: center; margin-bottom: 48px;">
-                    <span class="m-hero-badge" style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.2); color: var(--accent); margin: 0 auto 16px;">Real Households, Real Pain</span>
-                    <h2>Why FamilyKYCManager Exists</h2>
-                    <p style="max-width: 600px; margin: 0 auto; color: #64748b;">True administrative nightmares that inspired us to build a proactive household companion.</p>
+        <section class="py-24">
+            <div class="max-w-7xl mx-auto px-glass-margin">
+                <div class="text-center mb-16">
+                    <span class="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full border border-primary/20 w-fit backdrop-blur-md text-xs font-semibold mb-4">Real Households, Real Pain</span>
+                    <h2 class="font-display-lg text-[28px] md:text-[36px] font-bold text-white">Why FamilyKYCManager Exists</h2>
+                    <p class="text-on-surface-variant text-sm mt-3 max-w-xl mx-auto">True administrative nightmares that inspired us to build a proactive household companion.</p>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;" class="settings-grid-layout">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Story 1 -->
-                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">AS</div>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-error/10 text-error flex items-center justify-center font-bold text-sm">AS</div>
                             <div>
-                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">A. Sharma</h4>
-                                <span style="font-size: 11px; color: var(--text-secondary);">The Nominee Bank Account Ordeal</span>
+                                <h4 class="text-sm font-bold text-white">A. Sharma</h4>
+                                <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">The Nominee Bank Account Ordeal</span>
                             </div>
                         </div>
-                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed italic">
                             "After my father passed away, I naively assumed closing his bank account would be simple because a nominee was registered. Instead, it became a grueling 6-month ordeal because the account had slipped into dormancy. A nominee name on a form doesn't protect your family if records go out of sync and nobody tracks operational health."
                         </p>
                     </div>
 
                     <!-- Story 2 -->
-                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">SS</div>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold text-sm">SS</div>
                             <div>
-                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">S. Sen</h4>
-                                <span style="font-size: 11px; color: var(--text-secondary);">The Forgotten 15-Year Mutual Fund</span>
+                                <h4 class="text-sm font-bold text-white">S. Sen</h4>
+                                <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">The Forgotten 15-Year Mutual Fund</span>
                             </div>
                         </div>
-                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed italic">
                             "I invested in a mutual fund for my daughter when she was 5. When she turned 21, I discovered a mountain of roadblocks: the company merged, my contact details and KYC were outdated, and PAN/nominee details weren't updated. It hit me with a chill: What if something had happened to me during those 15 years? My family wouldn't even have known the investment existed."
                         </p>
                     </div>
 
                     <!-- Story 3 -->
-                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">KP</div>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">KP</div>
                             <div>
-                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">K. Patel</h4>
-                                <span style="font-size: 11px; color: var(--text-secondary);">The Typos & Digits Mismatch Squeeze</span>
+                                <h4 class="text-sm font-bold text-white">K. Patel</h4>
+                                <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">The Typos & Digits Mismatch Squeeze</span>
                             </div>
                         </div>
-                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed italic">
                             "Missing a passport renewal deadline by 3 months. Realizing at the eleventh hour that my 2005 Driver's Licence required manual offline digitization before online renewal, threatening a 14-day window. Compounded by a DOB typo (30.07.1977 printed as 30.09.1977) and outdated addresses. Running from office to office over cascading errors is an unnecessary headache."
                         </p>
                     </div>
 
                     <!-- Story 4 -->
-                    <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); border-radius: 12px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">RM</div>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-tertiary-container/10 text-tertiary flex items-center justify-center font-bold text-sm">RM</div>
                             <div>
-                                <h4 style="margin:0; font-size: 14px; font-weight: 700; color: var(--text-primary);">R. Mehta</h4>
-                                <span style="font-size: 11px; color: var(--text-secondary);">The 25-Year Ghost Builder Trap</span>
+                                <h4 class="text-sm font-bold text-white">R. Mehta</h4>
+                                <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">The 25-Year Ghost Builder Trap</span>
                             </div>
                         </div>
-                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-style: italic; margin: 0;">
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed italic">
                             "Buying a property 25 years ago, only to find the electricity bill still bore the builder's name when trying to generate an e-khata. Requiring an untraceable builder's NOC creates permanent administrative gridlock for homeowners."
                         </p>
                     </div>
                 </div>
                 
                 <!-- Story 5 (Full Width Accent) -->
-                <div class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; background: linear-gradient(to right, #eff6ff, #fff); border: 1px solid #bfdbfe; border-radius: 12px; margin-top: 32px; text-align: left;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="background: var(--accent-light); color: var(--accent); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">VA</div>
+                <div class="glass-card p-8 rounded-[2rem] border border-primary/20 bg-primary/5 mt-8 flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base">VA</div>
                         <div>
-                            <h4 style="margin:0; font-size: 15px; font-weight: 700; color: var(--accent);">Vikram Agrawal</h4>
-                            <span style="font-size: 12px; color: var(--text-secondary);">The EPFO Clerical Spelling Mismatch Trap</span>
+                            <h4 class="text-base font-bold text-primary">Vikram Agrawal</h4>
+                            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider block">The EPFO Clerical Spelling Mismatch Trap</span>
                         </div>
                     </div>
-                    <p style="font-size: 13.5px; color: #1e3a8a; line-height: 1.65; font-style: italic; margin: 0;">
+                    <p class="text-sm text-on-surface leading-relaxed italic">
                         "Working across 5 different organizations over 25 years, only to find my name spelled differently in 3 of them (Vikram Agrawal, Vikram D Agrawal, D Vikram Agrawal). Despite having the same UAN, the EPFO portal refused to recognize them because names didn't match official identity records. This locked me out of my passbook, left helpless by unresponsive helplines, while third-party agencies demanded a 2% cut to fix it. Career milestones shouldn't be held hostage by clerical typos."
                     </p>
                 </div>
@@ -342,68 +442,68 @@
         </section>
 
         <!-- Core Pillars Section -->
-        <section class="m-section" id="features">
-            <div class="m-container">
-                <div class="m-section-header">
-                    <h2>Core Pillars: Built for Real Families</h2>
-                    <p>The Principle of Simple Security & Proactive Record Management.</p>
+        <section class="py-24 bg-surface-container-lowest/30 border-y border-white/5" id="features">
+            <div class="max-w-7xl mx-auto px-glass-margin">
+                <div class="text-center mb-16">
+                    <h2 class="font-display-lg text-[28px] md:text-[36px] font-bold text-white">Core Pillars: Built for Real Families</h2>
+                    <p class="text-on-surface-variant text-sm mt-3 max-w-xl mx-auto">The Principle of Simple Security & Proactive Record Management.</p>
                 </div>
                 
-                <div class="m-features-grid">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Pillar 1 -->
-                    <div class="m-feature-card">
-                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="shield-check"></i></div>
-                        <h3>Metadata-Only Storage</h3>
-                        <p>We store only document numbers and dates (like expiry and issue dates). We <strong>never</strong> store financial balances, bank account amounts, or sensitive investments.</p>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 hover:bg-white/5 transition-colors flex flex-col gap-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center"><i data-lucide="shield-check"></i></div>
+                        <h3 class="text-base font-bold text-white">Metadata-Only Storage</h3>
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed">We store only document numbers and dates (like expiry and issue dates). We <strong>never</strong> store financial balances, bank account amounts, or sensitive investments.</p>
                     </div>
                     <!-- Pillar 2 -->
-                    <div class="m-feature-card">
-                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="users"></i></div>
-                        <h3>Multi-Member Family Sync</h3>
-                        <p>One central "Family Admin" (like you or your partner) can easily manage records for spouses, children, and elderly parents from a single dashboard.</p>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 hover:bg-white/5 transition-colors flex flex-col gap-4">
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center"><i data-lucide="users"></i></div>
+                        <h3 class="text-base font-bold text-white">Multi-Member Family Sync</h3>
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed">One central "Family Admin" (like you or your partner) can easily manage records for spouses, children, and elderly parents from a single dashboard.</p>
                     </div>
                     <!-- Pillar 3 -->
-                    <div class="m-feature-card">
-                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="smartphone"></i></div>
-                        <h3>Cross-Platform Accessibility</h3>
-                        <p>Enjoy real-time cloud synchronisation seamlessly across Android, iOS, and web platforms for all your devices.</p>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 hover:bg-white/5 transition-colors flex flex-col gap-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center"><i data-lucide="smartphone"></i></div>
+                        <h3 class="text-base font-bold text-white">Cross-Platform Accessibility</h3>
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed">Enjoy real-time cloud synchronisation seamlessly across Android, iOS, and web platforms for all your devices.</p>
                     </div>
                     <!-- Pillar 4 -->
-                    <div class="m-feature-card">
-                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="bell"></i></div>
-                        <h3>7-Stage Reminder Engine</h3>
-                        <p>Never miss a deadline again. Automated alerts trigger at smart intervals from <strong>90 days down to 24 hours</strong> before expiry.</p>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 hover:bg-white/5 transition-colors flex flex-col gap-4">
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center"><i data-lucide="bell"></i></div>
+                        <h3 class="text-base font-bold text-white">7-Stage Reminder Engine</h3>
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed">Never miss a deadline again. Automated alerts trigger at smart intervals from <strong>90 days down to 24 hours</strong> before expiry.</p>
                     </div>
                     <!-- Pillar 5 -->
-                    <div class="m-feature-card">
-                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="milestone"></i></div>
-                        <h3>Smart Life Event Mapping</h3>
-                        <p>Major life updates made easy. Selecting events like "Moving House" automatically suggests exactly which records (Aadhaar, DL, insurance, utility) require urgent updates.</p>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 hover:bg-white/5 transition-colors flex flex-col gap-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center"><i data-lucide="milestone"></i></div>
+                        <h3 class="text-base font-bold text-white">Smart Life Event Mapping</h3>
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed">Major life updates made easy. Selecting events like "Moving House" automatically suggests exactly which records (Aadhaar, DL, insurance, utility) require urgent updates.</p>
                     </div>
                     <!-- Pillar 6 -->
-                    <div class="m-feature-card">
-                        <div class="m-f-icon" style="background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="check-square"></i></div>
-                        <h3>Automated Consistency Checker</h3>
-                        <p>Proactively flags mismatches in names or addresses across your various government and financial IDs before official institutions do.</p>
+                    <div class="glass-card p-6 rounded-[2rem] border border-white/10 hover:bg-white/5 transition-colors flex flex-col gap-4">
+                        <div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center"><i data-lucide="check-square"></i></div>
+                        <h3 class="text-base font-bold text-white">Automated Consistency Checker</h3>
+                        <p class="text-xs md:text-sm text-on-surface-variant leading-relaxed">Proactively flags mismatches in names or addresses across your various government and financial IDs before official institutions do.</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Supported Document Examples -->
-        <section class="m-section m-bg-alt" id="documents-list">
-            <div class="m-container">
-                <div class="m-section-header">
-                    <h2>Supported Document Examples</h2>
-                    <p>Keep all your essential household records organized across three vital categories without the clutter:</p>
+        <section class="py-24" id="documents-list">
+            <div class="max-w-7xl mx-auto px-glass-margin">
+                <div class="text-center mb-16">
+                    <h2 class="font-display-lg text-[28px] md:text-[36px] font-bold text-white">Supported Document Examples</h2>
+                    <p class="text-on-surface-variant text-sm mt-3 max-w-xl mx-auto">Keep all your essential household records organized across three vital categories without the clutter:</p>
                 </div>
                 
-                <div class="m-features-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Category 1 -->
-                    <div class="m-feature-card" style="text-align: center;">
-                        <div class="m-f-icon" style="margin: 0 auto 20px; background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="fingerprint"></i></div>
-                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Government IDs</h3>
-                        <p id="m-docs-govt" style="font-size: 13px; color: #475569; line-height: 1.8;">
+                    <div class="glass-card p-8 rounded-[2rem] border border-white/10 flex flex-col gap-4 text-center items-center">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-2"><i data-lucide="fingerprint" class="w-6 h-6"></i></div>
+                        <h3 class="text-lg font-bold text-white">Government IDs</h3>
+                        <p id="m-docs-govt" class="text-xs md:text-sm text-on-surface-variant leading-relaxed">
                             PAN Card<br>
                             Passport<br>
                             Driving Licence<br>
@@ -412,25 +512,25 @@
                         </p>
                     </div>
                     <!-- Category 2 -->
-                    <div class="m-feature-card" style="text-align: center;">
-                        <div class="m-f-icon" style="margin: 0 auto 20px; background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="wallet"></i></div>
-                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Financial IDs</h3>
-                        <p id="m-docs-financial" style="font-size: 13px; color: #475569; line-height: 1.8;">
+                    <div class="glass-card p-8 rounded-[2rem] border border-white/10 flex flex-col gap-4 text-center items-center">
+                        <div class="w-12 h-12 rounded-full bg-secondary/10 text-secondary flex items-center justify-center mb-2"><i data-lucide="wallet" class="w-6 h-6"></i></div>
+                        <h3 class="text-lg font-bold text-white">Financial IDs</h3>
+                        <p id="m-docs-financial" class="text-xs md:text-sm text-on-surface-variant leading-relaxed">
                             Bank Accounts<br>
                             Life / Health Insurance<br>
                             Mutual Funds (Metadata Only)
                         </p>
                     </div>
                     <!-- Category 3 -->
-                    <div class="m-feature-card" style="text-align: center;">
-                        <div class="m-f-icon" style="margin: 0 auto 20px; background:rgba(37,99,235,0.1); color:var(--accent);"><i data-lucide="home"></i></div>
-                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Assets & Utilities</h3>
-                        <p id="m-docs-utilities" style="font-size: 13px; color: #475569; line-height: 1.8;">
+                    <div class="glass-card p-8 rounded-[2rem] border border-white/10 flex flex-col gap-4 text-center items-center">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-2"><i data-lucide="home" class="w-6 h-6"></i></div>
+                        <h3 class="text-lg font-bold text-white">Assets & Utilities</h3>
+                        <p id="m-docs-utilities" class="text-xs md:text-sm text-on-surface-variant leading-relaxed">
                             Vehicle RC (Registration)<br>
-                            Property Tax<br>
-                            Electricity<br>
-                            Gas<br>
-                            Broadband
+                            Vehicle Insurance Policy<br>
+                            LPG Gas Connection<br>
+                            Electricity / Water Bill<br>
+                            Property Tax Receipts
                         </p>
                     </div>
                 </div>
@@ -438,67 +538,80 @@
         </section>
 
         <!-- Pricing Section -->
-        <section class="m-section" id="pricing">
-            <div class="m-container">
-                <div class="m-section-header">
-                    <h2>Simple, Transparent Pricing for Peace of Mind</h2>
-                    <p>No hidden fees, no financial exposure, complete protection.</p>
+        <section class="py-24 bg-surface-container-lowest/30 border-t border-white/5" id="pricing">
+            <div class="max-w-7xl mx-auto px-glass-margin">
+                <div class="text-center mb-16">
+                    <h2 class="font-display-lg text-[28px] md:text-[36px] font-bold text-white">Simple, Affordable Plans</h2>
+                    <p class="text-on-surface-variant text-sm mt-3 max-w-xl mx-auto">Choose a plan that fits your family's administrative security requirements.</p>
                 </div>
                 
-                <div class="pricing-grid mt-xl" style="max-width:800px; margin: 0 auto; display:grid; grid-template-columns: 1fr 1fr; gap:32px;">
-                    <!-- Free Household Tier -->
-                    <div class="pricing-card" style="background:#ffffff; color:var(--text-primary); border-color:#e2e8f0; box-shadow:var(--shadow-md);">
-                        <div class="pricing-card-header">
-                            <span class="plan-badge" style="background:var(--bg-tertiary); color:var(--text-secondary);">Basic Vault</span>
-                            <h3>Free Household Tier</h3>
-                            <div class="price" style="color:var(--text-primary);" id="free-price-val"><span class="currency">$</span>0<span class="period" style="color:var(--text-secondary);">/ forever</span></div>
-                            <p class="plan-desc">Perfect for getting started with core family record tracking.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                    <!-- Plan 1 -->
+                    <div class="glass-card p-8 rounded-[2rem] border border-white/10 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white mb-2">Free Safety Net</h3>
+                            <p class="text-xs text-on-surface-variant mb-6">Essential guard for single users.</p>
+                            <div class="font-display-lg text-[36px] font-bold text-white mb-6" id="free-price-val">$0<span class="text-xs text-on-surface-variant font-normal">/ forever</span></div>
+                            <ul class="flex flex-col gap-3 text-xs text-on-surface-variant">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Up to 25 documents</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Expiry notifications</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> 1 User Profile (Admin)</li>
+                            </ul>
                         </div>
-                        <ul class="plan-features-list" style="color:var(--text-secondary); border-color:#e2e8f0; border-top:1px solid; padding-top:20px; list-style:none;">
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> 1 Primary User Account</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> Up to 25 Essential Documents</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> Standard Expiry Timers</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="x" class="text-danger" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> No family profile switching</li>
-                        </ul>
-                        <button class="btn btn-outline w-full mt-xl" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="color:var(--text-primary); border-color:#cbd5e1;">Get Started Free</button>
+                        <button class="w-full py-3 rounded-full border border-white/20 text-on-surface font-bold text-xs hover:bg-white/5 transition-all mt-8" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">Get Started</button>
                     </div>
 
-                    <!-- FamilyKYCManager Plan -->
-                    <div class="pricing-card pricing-recommended" style="border-color:var(--accent); background:#ffffff; color:var(--text-primary); box-shadow:0 10px 30px rgba(37, 99, 235, 0.08);">
-                        <div class="pricing-card-header">
-                            <span class="plan-badge badge-gold" style="background:var(--accent); color:#fff;">Most Popular</span>
-                            <h3 style="color:var(--text-primary);">FamilyKYCManager Plan</h3>
-                            <div class="price" style="color:var(--text-primary);" id="home-price-val"><span class="currency">$</span>2.99<span class="period" style="color:var(--text-secondary);">/ month</span></div>
-                            <p class="plan-desc">Complete administrative safety for the household.</p>
+                    <!-- Plan 2 (Popular) -->
+                    <div class="glass-card p-8 rounded-[2rem] border-primary/35 shadow-xl relative flex flex-col justify-between">
+                        <span class="absolute top-4 right-4 bg-primary text-on-primary text-[9px] uppercase tracking-wider font-extrabold px-3 py-1 rounded-full">POPULAR</span>
+                        <div>
+                            <h3 class="text-base font-bold text-primary mb-2">Home Sentinel</h3>
+                            <p class="text-xs text-on-surface-variant mb-6">Complete family vault sync.</p>
+                            <div class="font-display-lg text-[36px] font-bold text-white mb-6" id="home-price-val">$2.99<span class="text-xs text-on-surface-variant font-normal">/ month</span></div>
+                            <ul class="flex flex-col gap-3 text-xs text-on-surface-variant">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Unlimited documents</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Family setup (Up to 6 users)</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Automated KYC discrepancy scan</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Multi-channel notifications</li>
+                            </ul>
                         </div>
-                        <ul class="plan-features-list" style="color:var(--text-secondary); border-color:#e2e8f0; border-top:1px solid; padding-top:20px; list-style:none;">
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **Unlimited Family Members** (Spouse, kids, parents)</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **Unlimited Document Tracking** (Govt, Utility, Finance)</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **7-Stage Proactive Reminder Engine**</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> **Automated Consistency & Mismatch Checker**</li>
-                            <li style="margin-bottom:8px;"><i data-lucide="check" class="text-success" style="width:16px; height:16px; margin-right:8px; display:inline-block; vertical-align:middle;"></i> Smart Cascade Life Event Mapping</li>
-                        </ul>
-                        <button class="btn btn-primary w-full mt-xl" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:var(--accent); border-color:var(--accent); color:#fff;">Secure Your Family Today</button>
+                        <button class="w-full py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-xs hover:shadow-[0_0_15px_rgba(208,188,255,0.4)] transition-all mt-8" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">Unlock Home Sentinel</button>
+                    </div>
+
+                    <!-- Plan 3 -->
+                    <div class="glass-card p-8 rounded-[2rem] border border-white/10 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white mb-2">Enterprise / Trust</h3>
+                            <p class="text-xs text-on-surface-variant mb-6">Designed for legal and estate advisors.</p>
+                            <div class="font-display-lg text-[36px] font-bold text-white mb-6" id="pro-price-val">$9.99<span class="text-xs text-on-surface-variant font-normal">/ month</span></div>
+                            <ul class="flex flex-col gap-3 text-xs text-on-surface-variant">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Everything in Home Sentinel</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Document vault sharing w/ advisors</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Audit-trail timeline exports</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="text-secondary w-4 h-4"></i> Smart Cascade Life Event Mapping</li>
+                            </ul>
+                        </div>
+                        <button class="w-full py-3 rounded-full border border-white/20 text-on-surface font-bold text-xs hover:bg-white/5 transition-all mt-8" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">Get Pro Support</button>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Final Footer CTA -->
-        <section class="m-section" style="background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%); color:#ffffff; text-align:center;">
-            <div class="m-container" style="max-width: 600px;">
-                <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 16px;">Keep Your Family's Records Updated, Always</h2>
-                <p style="font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.6; margin-bottom: 24px;">
+        <section class="bg-gradient-to-br from-surface-container to-surface-dim border-y border-white/10 py-16 text-center">
+            <div class="max-w-xl mx-auto px-glass-margin flex flex-col items-center">
+                <h2 class="font-display-lg text-[28px] font-bold text-white mb-4">Keep Your Family's Records Updated, Always</h2>
+                <p class="text-on-surface-variant text-sm leading-relaxed mb-6">
                     Join modern households taking control of their administrative health. Zero friction, zero financial liability, total peace of mind.
                 </p>
-                <button class="btn btn-gold btn-lg" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})" style="background:#ffffff; color:var(--accent); border:none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight:700;">
+                <button class="px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-sm hover:shadow-[0_0_15px_rgba(208,188,255,0.4)] transition-all" onclick="document.getElementById('login-form-anchor').scrollIntoView({behavior: 'smooth'})">
                     Create Your Free Family Account
                 </button>
             </div>
         </section>
 
         <!-- CTA / Footer -->
-        <footer class="m-footer">
+        <footer class="max-w-7xl mx-auto px-glass-margin py-8 text-center text-xs text-on-surface-variant border-t border-white/5 mt-12">
             <p>© 2026 Family KYC Manager. Secure document registry and compliance engine.</p>
         </footer>
     </div>
