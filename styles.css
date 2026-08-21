@@ -5116,6 +5116,45 @@ input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:f
     display: block !important;
 }
 
+/* Member & Asset Profile Drawer Overrides */
+.profile-drawer {
+    background-color: rgba(23, 31, 51, 0.95) !important;
+    backdrop-filter: blur(40px) saturate(210%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(210%) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5) !important;
+    color: #dae2fd !important;
+}
+.drawer-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.drawer-header h3 {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+.drawer-close-btn {
+    color: #cbc3d7 !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.drawer-close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+.drawer-body {
+    padding: 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+    overflow-y: auto !important;
+}
+.drawer-body h4 {
+    color: #ffffff !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+
 
 
 
